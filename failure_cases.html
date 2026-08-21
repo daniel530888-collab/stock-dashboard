@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>失敗案例集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000000;
+    --bg-card: #0D0D0D;
+    --bg-card-hover: #141414;
+    --text-primary: #F2F0EA;
+    --text-secondary: #9C9A93;
+    --text-muted: #63615A;
+    --accent: #CBBFA8;
+    --gold: var(--accent);
+    --success: #3FA66B;
+    --danger: #E0473F;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .voice { font-family: 'Fraunces', serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--text-secondary); text-decoration: none; font-size: 13px;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--gold); }
+
+  header.hero {
+    padding: 2rem 0 1.75rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header.hero::after {
+    content: ''; position: absolute; bottom: -1px; left: 0;
+    width: 48px; height: 2px; background: var(--gold);
+  }
+
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.5rem;
+  }
+
+  header.hero h1 {
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 30px;
+    margin: 0 0 0.4rem; letter-spacing: -0.01em;
+  }
+
+  header.hero .sub { color: var(--text-secondary); font-size: 13.5px; margin: 0; }
+
+  section { padding: 2rem 0; border-bottom: 1px solid var(--border); }
+
+  .section-title {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted); margin: 0 0 1.1rem;
+  }
+
+  .section-desc {
+    color: var(--text-secondary); font-size: 12.5px; margin: -0.6rem 0 1.1rem;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .metric { background: var(--bg-card); padding: 1.1rem 1.2rem; }
+  .metric-label {
+    font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-muted); display: block; margin-bottom: 6px;
+  }
+  .metric-val { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500; }
+  .metric-val.ok { color: var(--success); }
+  .metric-val.warn { color: var(--gold); }
+  .metric-val.bad { color: var(--danger); }
+
+  .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .breakdown-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.1rem;
+  }
+  .breakdown-card h3 {
+    font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-muted); margin: 0 0 10px;
+  }
+  .breakdown-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .breakdown-row .k { color: var(--text-secondary); }
+  .breakdown-row .v { font-family: 'IBM Plex Mono', monospace; }
+
+  .case-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.2rem; margin-bottom: 10px;
+  }
+  .case-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .case-head h3 { font-size: 15px; margin: 0; }
+  .case-head h3 .code { font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+  .case-return { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; color: var(--danger); white-space: nowrap; }
+  .case-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--text-muted); margin: 6px 0 10px; }
+  .case-reason { font-size: 13px; color: var(--text-secondary); margin: 4px 0; }
+  .case-reason .lbl { color: var(--text-muted); font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .case-reason.missing { color: var(--text-muted); font-style: italic; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 500; white-space: nowrap;
+  }
+  .badge.strategy { background: rgba(203,191,168,0.12); color: var(--gold); }
+  .badge.exit-reason { background: rgba(224,71,63,0.12); color: #E0938D; }
+
+  .empty-note {
+    color: var(--text-muted); font-size: 13px; padding: 1rem 0;
+  }
+  .empty-note .mark { color: var(--success); margin-right: 6px; }
+
+  .empty-state {
+    text-align: center; padding: 4rem 2rem; color: var(--text-secondary);
+  }
+  .empty-state h2 { font-family: 'Fraunces', serif; color: var(--text-primary); font-size: 20px; margin: 0 0 0.8rem; }
+
+  .truncated-note {
+    font-size: 12px; color: var(--text-muted); padding: 0.8rem 0 0;
+  }
+
+  #loading { text-align: center; padding: 5rem 2rem; color: var(--text-secondary); }
+  #error-box { display: none; text-align: center; padding: 5rem 2rem; color: var(--text-secondary); }
+  #content { display: none; }
+
+  footer { text-align: center; color: var(--text-muted); font-size: 11.5px; padding: 2.5rem 2rem; }
+
+  @media (max-width: 680px) {
+    .wrap { padding: 0 1.1rem; }
+    header.hero h1 { font-size: 23px; }
+    .metric-val { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap"><a class="back-link" href="./index.html">← 返回看板</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Failure Cases · Knowledge Platform</p>
+  <h1 class="voice">失敗案例集</h1>
+  <p class="sub" id="updated-line">正在讀取失敗案例報告...</p>
+</div></header>
+
+<div id="loading" class="wrap">正在讀取...</div>
+<div id="error-box" class="wrap">找不到失敗案例報告資料(docs/failure_cases.json),可能是模擬交易尚未執行過一次完整流程。</div>
+
+<div id="content">
+  <div id="empty-state-wrap"></div>
+
+  <div id="data-sections">
+    <section><div class="wrap">
+      <p class="section-title">總覽</p>
+      <p class="section-desc">來自模擬交易(Paper Trading)已平倉紀錄,篩出扣完成本後淨報酬為負的部位——虧多少以真正的淨報酬認定,不是用停損/停利的出場原因代替。</p>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div id="truncated-note-wrap"></div>
+    </div></section>
+
+    <section><div class="wrap">
+      <p class="section-title">依出場原因 / 依策略分解</p>
+      <div class="breakdown-grid" id="breakdown-grid"></div>
+    </div></section>
+
+    <section><div class="wrap">
+      <p class="section-title">失敗案例(虧最多在前)</p>
+      <div id="cases-body"></div>
+    </div></section>
+  </div>
+</div>
+
+<footer>此頁面資料來自模擬交易(Paper Trading)的已平倉紀錄,每日隨自動化 pipeline 重新計算。進場理由(entry_reason)只在 2026-08-18(M53)之後開倉的部位才有記錄,更早的舊紀錄會明確標示沒有留下說明。</footer>
+
+<script>
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function fmtPct(v) {
+  return (v === null || v === undefined) ? '--' : (v > 0 ? '+' : '') + v + '%';
+}
+
+function buildSummaryGrid(summary) {
+  const items = [
+    { label: '已平倉總數', val: summary.n_closed_total ?? 0, cls: '' },
+    { label: '失敗案例', val: summary.n_failures ?? 0, cls: (summary.n_failures || 0) > 0 ? 'warn' : 'ok' },
+    { label: '失敗率', val: summary.failure_rate_pct != null ? summary.failure_rate_pct + '%' : '--', cls: '' },
+    { label: '平均虧損', val: fmtPct(summary.avg_loss_pct), cls: 'bad' },
+    { label: '最大虧損', val: fmtPct(summary.worst_loss_pct), cls: 'bad' },
+  ];
+  return items.map(it => `
+    <div class="metric">
+      <span class="metric-label">${it.label}</span>
+      <span class="metric-val ${it.cls}">${it.val}</span>
+    </div>`).join('');
+}
+
+function buildTruncatedNote(summary) {
+  if (!summary.truncated) return '';
+  return `<p class="truncated-note">失敗案例數超過顯示上限,這裡只列出虧損最大的一批,其餘未納入(不影響上方總覽的統計數字)。</p>`;
+}
+
+const EXIT_REASON_LABEL = { stop_loss: '觸發停損', take_profit_1x: '觸發停利', time_exit: '持有到期', unknown: '未知' };
+const STRATEGY_LABEL = { breakout: '突破', pullback: '拉回', unknown: '未知' };
+
+function buildBreakdown(title, dict, labelMap) {
+  const entries = Object.entries(dict || {});
+  if (!entries.length) return `<div class="breakdown-card"><h3>${title}</h3><p class="empty-note">無資料</p></div>`;
+  const rows = entries
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `<div class="breakdown-row"><span class="k">${esc(labelMap[k] || k)}</span><span class="v">${v}</span></div>`)
+    .join('');
+  return `<div class="breakdown-card"><h3>${title}</h3>${rows}</div>`;
+}
+
+function buildBreakdownGrid(summary) {
+  return buildBreakdown('依出場原因', summary.by_exit_reason, EXIT_REASON_LABEL) +
+    buildBreakdown('依策略', summary.by_strategy, STRATEGY_LABEL);
+}
+
+function buildCases(cases) {
+  if (!cases || !cases.length) {
+    return `<p class="empty-note"><span class="mark">✓</span>目前沒有任何失敗案例——已平倉的部位全部打平或獲利。</p>`;
+  }
+  return cases.map(c => {
+    const entryReasonHtml = c.entry_reason
+      ? `<p class="case-reason"><span class="lbl">進場理由</span>${esc(c.entry_reason)}</p>`
+      : `<p class="case-reason missing"><span class="lbl">進場理由</span>（M53之前的舊紀錄,沒有留下說明)</p>`;
+    const healthHtml = c.health_status_at_entry
+      ? `<p class="case-reason"><span class="lbl">進場當下基本面健康度</span>${esc(c.health_status_at_entry)}</p>`
+      : '';
+    return `
+      <div class="case-card">
+        <div class="case-head">
+          <h3>${esc(c.name)}<span class="code">${esc(c.ticker)}</span></h3>
+          <span class="case-return">${fmtPct(c.return_pct)}</span>
+        </div>
+        <div class="case-meta">
+          <span class="badge strategy">${esc(STRATEGY_LABEL[c.strategy] || c.strategy)}</span>
+          <span class="badge exit-reason">${esc(c.exit_reason_label || EXIT_REASON_LABEL[c.exit_reason] || c.exit_reason)}</span>
+          <span>進場 ${esc(c.entry_date)} → 出場 ${esc(c.exit_date)}（持有 ${esc(c.days_held)} 天）</span>
+          <span>${esc(c.entry_price)} → ${esc(c.exit_price)}</span>
+        </div>
+        ${entryReasonHtml}
+        ${healthHtml}
+      </div>`;
+  }).join('');
+}
+
+function render(data) {
+  const metadata = data.metadata || {};
+  const summary = data.summary || {};
+
+  document.getElementById('updated-line').textContent =
+    '最後更新: ' + new Date(data.last_updated).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }) + '(台灣時間)';
+
+  if (metadata.status === 'empty') {
+    document.getElementById('empty-state-wrap').innerHTML = `
+      <div class="empty-state wrap">
+        <h2 class="voice">還沒有任何已平倉紀錄</h2>
+        <p>模擬交易(Paper Trading)還沒有任何部位平倉過,等系統累積一段時間的交易紀錄後,這裡就會顯示失敗案例的分析。</p>
+      </div>`;
+    document.getElementById('data-sections').style.display = 'none';
+  } else {
+    document.getElementById('summary-grid').innerHTML = buildSummaryGrid(summary);
+    document.getElementById('truncated-note-wrap').innerHTML = buildTruncatedNote(summary);
+    document.getElementById('breakdown-grid').innerHTML = buildBreakdownGrid(summary);
+    document.getElementById('cases-body').innerHTML = buildCases(data.cases);
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+}
+
+async function load() {
+  try {
+    const res = await fetch('./failure_cases.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    render(await res.json());
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-box').style.display = 'block';
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>

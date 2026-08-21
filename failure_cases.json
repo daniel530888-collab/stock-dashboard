@@ -1,0 +1,82 @@
+{
+  "last_updated": "2026-08-21T08:24:48.655724+00:00",
+  "metadata": {
+    "data_version": "1.5",
+    "update_time": "2026-08-21T08:24:48.655724+00:00",
+    "source": "paper_trading_state",
+    "total_tracked": 6,
+    "total_succeeded": 3,
+    "missing_data": 3,
+    "status": "partial"
+  },
+  "summary": {
+    "n_failures": 3,
+    "n_closed_total": 6,
+    "failure_rate_pct": 50.0,
+    "avg_loss_pct": -9.28,
+    "worst_loss_pct": -10.3,
+    "by_exit_reason": {
+      "stop_loss": 3
+    },
+    "by_strategy": {
+      "pullback": 3
+    },
+    "truncated": false
+  },
+  "cases": [
+    {
+      "ticker": "2332.TW",
+      "code": "2332",
+      "name": "友訊",
+      "strategy": "pullback",
+      "entry_date": "2026-08-17",
+      "exit_date": "2026-08-19",
+      "entry_price": 22.9,
+      "exit_price": 20.7,
+      "return_pct": -10.3,
+      "exit_reason": "stop_loss",
+      "exit_reason_label": "觸發停損",
+      "entry_reason": null,
+      "health_status_at_entry": null,
+      "score_at_entry": 66.2,
+      "backtest_win_rate_at_entry": 42.4,
+      "days_held": 2
+    },
+    {
+      "ticker": "2388.TW",
+      "code": "2388",
+      "name": "威盛",
+      "strategy": "pullback",
+      "entry_date": "2026-08-17",
+      "exit_date": "2026-08-19",
+      "entry_price": 78.37,
+      "exit_price": 72.0,
+      "return_pct": -8.83,
+      "exit_reason": "stop_loss",
+      "exit_reason_label": "觸發停損",
+      "entry_reason": null,
+      "health_status_at_entry": null,
+      "score_at_entry": 67.0,
+      "backtest_win_rate_at_entry": 50.0,
+      "days_held": 2
+    },
+    {
+      "ticker": "4566.TW",
+      "code": "4566",
+      "name": "時碩工業",
+      "strategy": "pullback",
+      "entry_date": "2026-08-20",
+      "exit_date": "2026-08-21",
+      "entry_price": 71.86,
+      "exit_price": 66.11,
+      "return_pct": -8.71,
+      "exit_reason": "stop_loss",
+      "exit_reason_label": "觸發停損",
+      "entry_reason": "股價拉回至20日均線附近(容忍度2%)且未跌破,同時成交量較均量萎縮,顯示賣壓減弱、有機會止穩回升",
+      "health_status_at_entry": "healthy",
+      "score_at_entry": 70.8,
+      "backtest_win_rate_at_entry": 50.0,
+      "days_held": 1
+    }
+  ]
+}

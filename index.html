@@ -1,0 +1,5424 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>短線結構看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- 顯示字體改用 Instrument Sans(幾何無襯線、字腔開、偏寬),取代原本的
+     Fraunces 襯線體——要「第一眼乾淨」,襯線的裝飾性會扣分。
+     要換字體只改這行的 family 與下方 --font-display 一個變數即可。 -->
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000000;
+    --bg-card: #0D0D0D;
+    --bg-card-hover: #141414;
+    --text-primary: #F2F0EA;
+    --text-secondary: #9C9A93;
+    --text-muted: #63615A;
+    /* 主色:香檳鉑金。
+       原本的 #CBBFA8 是飽和度很高的黃金色(HSL 46°/59%/52%),在純黑底上
+       黃味太重,看久了會膩,而且跟「跌=紅」的暖色系距離太近。
+       換成 #CBBFA8 後飽和度降到 20% 左右,仍然讀得出是貴金屬,但更接近
+       鉻/鉑的質感——也就是你參考的 DRIP 那種調性。
+       附帶好處:對比度從約 8.5:1 提升到 11:1,更好讀。
+
+       想換色只改這一行。備選:
+         冷銀 #B9C2CC / 冷石板 #A8B4C4 / 暖銅 #C8A882 */
+    --accent: #CBBFA8;
+    --gold: var(--accent);   /* 舊變數名保留為別名,既有數十處引用不必逐一改 */
+    --success: #3FA66B;
+    --danger: #E0473F;
+    /* UI_SPEC 第一項:漲跌/損益跟「成功/錯誤」語意分開,避免共用色碼讓
+       「系統健康」跟「賺錢」在視覺上被劃上等號。目前故意跟上面同色,
+       這次只拆語意、不改配色,兩件事分開做才不會混淆是哪一步出錯。 */
+    --pnl-up: #3FA66B;
+    --pnl-down: #E0473F;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    /* 卡片陰影分級(參考shadcn/ui的克制陰影語彙:淡、分層,不搶走內容注意力)——
+       原本只有 .card 有陰影,其餘卡片式元件(策略卡/觀察清單項目)是純邊框、
+       扁平的,視覺層級不一致。統一成token後,新增/既有元件都用同一套語言。 */
+    --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.35);
+    --shadow-card-hover: 0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 34px rgba(0,0,0,0.45);
+    --shadow-sm: 0 4px 14px rgba(0,0,0,0.3);
+
+    /* 字體單一來源:換字型只改這裡 */
+    --font-display: 'Instrument Sans', 'Inter', sans-serif;
+
+    /* 損益調色:由 JS 依當下損益寫入,CSS 各處引用。
+       預設中性,沒有資料時不該預先染成綠或紅。 */
+    --pnl-hue: 0deg;
+    --pnl-glow: rgba(255,255,255,0.06);
+    --pnl-tint: rgba(255,255,255,0.02);
+  }
+
+  * { box-sizing: border-box; }
+
+  /* 平滑捲動:錨點跳轉與程式捲動都會有過場,不是瞬移。
+     開了「減少動態效果」的人維持瞬間捲動(下方 media query 覆寫)。
+
+     用 proximity 不用 mandatory。差別很實際:
+     - mandatory 規定瀏覽器「一定要停在某個 snap point」。首頁只有 hero 與
+       大盤總覽兩個 snap point,底下的 .hero-below 沒有,結果是捲到那裡會被
+       硬拉回去,內容變成搆不到。
+     - proximity 只在已經捲得很接近時才幫忙對齊,想直接滑過去就滑得過去。
+     這才是「絲滑」該有的樣子:幫忙,不是接管。 */
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; scroll-padding-top: 64px; }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .voice { font-family: var(--font-display); }
+
+  /* ---- 三區橫欄:左選單 / 中品牌 / 右功能 ---- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: grid;
+    /* 1fr auto 1fr 是關鍵:左右兩欄各自佔滿剩餘空間,
+       中間欄只佔內容寬度,所以品牌永遠在真正的中心,
+       不會因為左邊選單比右邊功能長就被推歪。 */
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.75rem;
+    background: rgba(0,0,0,0.82);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topbar-left::-webkit-scrollbar { display: none; }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .topbar-updated {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-link {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .topbar-link:hover { color: var(--gold); border-color: var(--gold); }
+
+  .brand {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    /* 全大寫必須加字距。大寫字母本身沒有升降部來製造節奏,
+       不加 tracking 會擠成一塊、辨識度反而下降。 */
+    letter-spacing: 0.42em;
+    /* letter-spacing 會在最後一個字母右邊也加空隙,造成視覺重心偏左,
+       補一個等量的左內距把它推回真正的中心 */
+    padding-left: 0.42em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.25s;
+  }
+  .brand:hover { color: var(--gold); }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- M13:全市場搜尋(查任意股票,不受限於追蹤清單) ---- */
+  .search-wrap {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 340px;
+  }
+
+  #search-box {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  #search-box::placeholder { color: var(--text-muted); }
+  #search-box:focus { outline: none; border-color: var(--gold); }
+
+  /* 搜尋下拉:玻璃質感(M33)。
+     原本是實心 #0D0D0D 的方角板子,掛在一個全透明的膠囊框下面——
+     透明框下面掉出一塊實心磚,是封面最刺眼的接縫。改成半透明+背景模糊後,
+     它看起來像從搜尋框「長出來」的,不是疊上去的。 */
+  .search-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    background: rgba(13,13,13,0.72);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+    max-height: 340px;
+    overflow-y: auto;
+    overscroll-behavior: contain;   /* 捲到底不會連動整頁一起捲 */
+    z-index: 30;
+    padding: 6px;
+  }
+
+  /* 捲軸也要收拾:預設捲軸在深色玻璃上是一條亮灰,很突兀 */
+  .search-dropdown { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; }
+  .search-dropdown::-webkit-scrollbar { width: 8px; }
+  .search-dropdown::-webkit-scrollbar-track { background: transparent; }
+  .search-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .search-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.24);
+    background-clip: content-box;
+  }
+
+  @keyframes dropdown-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .search-dropdown.open {
+    display: block;
+    animation: dropdown-in 0.18s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  /* 拿掉每列的底線改用 hover 底色:一疊分隔線在「乾淨」的前提下是雜訊,
+     而且列跟列之間本來就靠留白就分得開。圓角跟外層玻璃呼應。 */
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0.72rem 0.9rem;
+    cursor: pointer;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+  }
+
+  .search-result-item:hover { background: rgba(255,255,255,0.055); }
+
+  .search-result-item .sr-name { font-size: 13px; color: var(--text-primary); }
+  .search-result-item .sr-code { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); }
+  .search-result-item .sr-mid { flex: 1; min-width: 0; }
+  .search-result-item .sr-price { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text-secondary); text-align: right; }
+  .search-result-item .sr-price .chg { display: block; font-size: 10.5px; }
+
+  .sr-add-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 13px;
+    width: 24px; height: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .sr-add-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .sr-add-btn.active { color: var(--gold); border-color: var(--gold); }
+
+  .search-dropdown-note {
+    padding: 0.9rem 0.95rem;
+    line-height: 1.6;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ---- M13:我的觀察清單(可加任意股票,即有完整分析) ---- */
+  .watchlist-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .watchlist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+
+  .watchlist-item:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+
+  .watchlist-item .wl-mid { flex: 1; min-width: 0; }
+  .watchlist-item .wl-name { font-size: 13.5px; color: var(--text-primary); }
+  .watchlist-item .wl-code { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+  .watchlist-item .wl-price { font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-align: right; }
+  .watchlist-item .wl-price .chg { display: block; font-size: 10.5px; margin-top: 2px; }
+
+  .watchlist-item .wl-remove {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .watchlist-item .wl-remove:hover { color: var(--danger); }
+
+  .watchlist-item.wl-unavailable { opacity: 0.55; }
+  .watchlist-item .wl-unavailable-note { font-size: 11px; color: var(--text-muted); }
+
+  .watchlist-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 1.25rem 0;
+  }
+
+  /* ---- T6 交易帳本 ---- */
+  .ledger-summary {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .9rem 1.1rem;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  /* 對帳過與沒過的差別要一眼看得出來。用邊框色而不只是文字顏色——
+     文字顏色在掃視的時候會被忽略,邊框不會。 */
+  .ledger-summary.reconciled { border-color: rgba(94,187,124,.45); }
+  .ledger-summary.has-problem { border-color: rgba(214,106,106,.6); }
+  .ledger-summary .big { font-size: 15px; font-weight: 600; }
+
+  .ledger-row {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem .95rem;
+    margin-bottom: .55rem;
+  }
+  .ledger-row summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    flex-wrap: wrap;
+  }
+  .ledger-row summary::-webkit-details-marker { display: none; }
+  .ledger-row .lg-name { font-weight: 600; }
+  .ledger-row .lg-meta { color: var(--text-muted); font-size: 12px; }
+  .ledger-row .lg-ret { margin-left: auto; font-family: 'IBM Plex Mono', monospace; }
+  .ledger-fills {
+    margin-top: .7rem;
+    border-top: 1px solid var(--border);
+    padding-top: .6rem;
+    font-size: 12.5px;
+  }
+  .ledger-fill {
+    display: grid;
+    grid-template-columns: 3.2rem 5.5rem 1fr auto;
+    gap: .5rem;
+    padding: .3rem 0;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .ledger-fill .ok { color: var(--text-muted); }
+  .ledger-fill .bad { color: var(--danger, #d66a6a); font-weight: 600; }
+  .ledger-note { color: var(--text-muted); font-size: 12px; margin-top: .5rem; }
+
+  #search-btn {
+    background: var(--gold);
+    color: #1C1A15;
+    border: none;
+    border-radius: 6px;
+    padding: 0.65rem 1.1rem;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 10px rgba(203,191,168,0.18);
+    transition: opacity 0.15s, box-shadow 0.15s, transform 0.1s;
+  }
+
+  #search-btn:hover { box-shadow: 0 4px 16px rgba(203,191,168,0.28); }
+  #search-btn:active { transform: translateY(1px); box-shadow: 0 1px 6px rgba(203,191,168,0.2); }
+
+  #search-btn:hover { opacity: 0.85; }
+
+  .watchlist-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .watchlist-toggle input { accent-color: var(--gold); cursor: pointer; }
+
+  .star-btn {
+    display: inline-block;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .star-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .star-btn.active {
+    color: #211A02;
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  #ticker-strip {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+
+  .ticker-item {
+    flex: 0 0 auto;
+    padding: 0.85rem 1.5rem;
+    border-right: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .ticker-item.index-item { background: rgba(203,191,168,0.05); }
+  .ticker-item .name { color: var(--text-secondary); }
+  .ticker-item .price { color: var(--gold); font-weight: 500; }
+  .up { color: var(--pnl-up); }
+  .down { color: var(--pnl-down); }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section-heading {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-heading h2 {
+    font-size: 21px;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+  }
+
+  .section-sub {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* ---- Phase 6:今日決策摘要(Today's Risk/Opportunity) ---- */
+  .decision-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .decision-subhead {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 0.7rem;
+    color: var(--text-secondary);
+  }
+  .decision-subhead.risk { color: #E8B4AE; }
+  .decision-empty {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    padding: 0.5rem 0;
+    display: none;
+  }
+  .watchlist-item.decision-risk-item { border-color: rgba(224,71,63,0.3); background: rgba(224,71,63,0.05); }
+  .watchlist-item.decision-risk-item:hover { border-color: rgba(224,71,63,0.5); }
+  .decision-risk-item .wl-reason { font-size: 10.5px; color: #E8B4AE; margin-top: 1px; }
+
+  /* UI_SPEC 第三項:near_miss 區塊。文案色調刻意跟 opportunity 清單的強調色不同
+     (用 --gold 而不是 --pnl-up),避免使用者把「差一點」誤讀成「訊號」。 */
+  .near-miss-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: rgba(212,175,55,0.06);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin: 0 0 0.7rem;
+    line-height: 1.5;
+  }
+  .near-miss-note b { color: var(--gold); }
+  .wl-nm-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    color: var(--gold);
+    background: rgba(212,175,55,0.1);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 6px;
+  }
+
+  /* ---- Phase 6:警報中心(Alert Center) ----
+     跟「今日決策摘要」的差別:那邊是系統依固定規則挑給你看的,
+     這邊是你自己設定的條件。兩者都回答「今天我需要知道什麼」,
+     所以視覺上刻意共用同一套卡片/空狀態語言,只有觸發中的警報
+     額外強調(金色),因為那是你自己說過「發生了要告訴我」的事。 */
+  .alert-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+    margin-bottom: 1.1rem;
+    padding: 0.9rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .alert-form input, .alert-form select {
+    background: #050505;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .alert-form input:focus, .alert-form select:focus { outline: none; border-color: var(--gold); }
+  .alert-form input { width: 110px; }
+  .alert-form input.alert-code-input { width: 130px; }
+  .alert-form select { min-width: 150px; cursor: pointer; }
+  .alert-form .alert-form-hint { font-size: 11px; color: var(--text-muted); flex-basis: 100%; margin: 0; }
+
+  #alert-add-btn {
+    background: var(--gold);
+    color: #1C1A15;
+    border: none;
+    border-radius: 6px;
+    padding: 0.55rem 1rem;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(203,191,168,0.18);
+    transition: box-shadow 0.15s, transform 0.1s;
+  }
+  #alert-add-btn:hover { box-shadow: 0 4px 16px rgba(203,191,168,0.28); }
+  #alert-add-btn:active { transform: translateY(1px); }
+
+  .alert-error { color: var(--danger); font-size: 11.5px; flex-basis: 100%; margin: 0; display: none; }
+
+  .watchlist-item.alert-fired-item {
+    border-color: rgba(203,191,168,0.45);
+    background: rgba(203,191,168,0.06);
+  }
+  .watchlist-item.alert-fired-item:hover { border-color: var(--gold); }
+  .alert-fired-item .wl-reason { font-size: 10.5px; color: var(--gold); margin-top: 2px; }
+
+  .alert-rule-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .alert-rule-item .ar-mid { flex: 1; min-width: 0; }
+  .alert-rule-item .ar-name { font-size: 13px; color: var(--text-primary); }
+  .alert-rule-item .ar-cond { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .alert-rule-item .ar-remove {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+  .alert-rule-item .ar-remove:hover { color: var(--danger); }
+
+  /* ---- Phase 6:Economic Calendar(近期重要日程) ----
+     每個事件標註資料來源類型,因為三類的可靠度本來就不同:
+     法規推算最穩、證交所抓取次之、人工維護的會過期。
+     使用者有權知道他看到的這一條是哪來的。 */
+  .cal-list { display: flex; flex-direction: column; gap: 0.55rem; }
+
+  .cal-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 0.95rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cal-date {
+    flex-shrink: 0;
+    width: 62px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .cal-date .cal-md { font-size: 14px; color: var(--text-primary); }
+  .cal-date .cal-in { display: block; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .cal-item.cal-soon .cal-date .cal-md { color: var(--gold); }
+
+  .cal-body { flex: 1; min-width: 0; }
+  .cal-title { font-size: 13px; color: var(--text-primary); }
+  .cal-note { font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+  .cal-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+
+  .cal-tag {
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .cal-tag.cat { color: var(--text-secondary); }
+  .cal-tag.src-statutory { color: var(--success); border-color: rgba(63,166,107,0.4); }
+  .cal-tag.src-market_data { color: var(--gold); border-color: rgba(203,191,168,0.4); }
+  .cal-tag.src-manual { color: var(--text-muted); }
+
+  .cal-notice {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--text-muted);
+    border-radius: 0 6px 6px 0;
+    padding: 0.6rem 0.85rem;
+    margin-top: 0.9rem;
+    line-height: 1.6;
+  }
+  .cal-notice.stale { border-left-color: var(--danger); color: #E8B4AE; }
+
+  .discovered-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 1.5rem 0;
+    display: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.35rem 1.5rem 1.5rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card.hidden { display: none; }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .card-head-left h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 19px;
+    margin: 0 0 2px;
+    color: var(--text-primary);
+  }
+
+  .card-head .ticker-code {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ---- 結論橫幅:先講結論 ---- */
+  .conclusion-banner {
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border: 1px solid transparent;
+  }
+
+  .conclusion-banner .mark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .conclusion-banner.tone-go {
+    background: rgba(63,166,107,0.1);
+    border-color: rgba(63,166,107,0.35);
+    color: #B9E4C9;
+  }
+  .conclusion-banner.tone-go .mark { color: var(--success); }
+
+  .conclusion-banner.tone-caution {
+    background: rgba(203,191,168,0.08);
+    border-color: rgba(203,191,168,0.3);
+    color: #E8DCB0;
+  }
+  .conclusion-banner.tone-caution .mark { color: var(--gold); }
+
+  .conclusion-banner.tone-watch {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--border-strong);
+    color: var(--text-secondary);
+  }
+  .conclusion-banner.tone-watch .mark { color: var(--text-muted); }
+
+  .conclusion-banner.tone-danger {
+    background: rgba(224,71,63,0.08);
+    border-color: rgba(224,71,63,0.3);
+    color: #E8B4AE;
+  }
+  .conclusion-banner.tone-danger .mark { color: var(--danger); }
+
+  /* ---- 今日市場環境(Market Regime,Phase 6) ---- */
+  #market-regime-banner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.2rem 2rem 0;
+  }
+  #market-regime-banner .conclusion-banner { margin-bottom: 0; font-size: 13.5px; }
+  #market-regime-banner .mr-label { font-weight: 600; margin-right: 6px; }
+  #market-regime-banner .mr-reasons { display: block; margin-top: 3px; font-size: 12px; opacity: 0.85; }
+
+  /* ---- AI每日摘要(Phase 8續,M73)。跟市場環境橫幅同一種視覺語言,
+     但用watch色調區分「這是AI整合出來的話」而不是系統直接算出的判定,
+     沒有資料或AI沒回應時整個div留空,不佔位置。 ---- */
+  #ai-digest-banner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.6rem 2rem 0;
+  }
+  #ai-digest-banner .conclusion-banner { margin-bottom: 0; font-size: 13.5px; }
+  #ai-digest-banner .ad-label { font-weight: 600; margin-right: 6px; }
+
+  /* ---- 關鍵數字列 ---- */
+  .key-numbers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.6rem;
+    background: rgba(203,191,168,0.04);
+    border: 1px solid rgba(203,191,168,0.2);
+    border-radius: 6px;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .key-numbers .kn { text-align: left; }
+
+  .key-numbers .kn-label {
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .key-numbers .kn-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .kn-val.entry { color: var(--gold); font-size: 18px; }
+  .kn-val.stop { color: var(--pnl-down); }
+  .kn-val.target { color: var(--pnl-up); }
+  .kn-val.close { color: var(--text-secondary); font-size: 14px; }
+
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+
+  .badge {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+  }
+
+  .badge.active-breakout { color: #06180F; background: var(--success); border-color: var(--success); }
+  .badge.active-pullback { color: #211A02; background: var(--gold); border-color: var(--gold); }
+
+  .health-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+  }
+
+  .health-badge.healthy { background: rgba(63,166,107,0.15); color: var(--success); border-color: var(--success); }
+  .health-badge.watch { background: rgba(203,191,168,0.15); color: var(--gold); border-color: var(--gold); }
+  .health-badge.weak { background: rgba(224,71,63,0.15); color: var(--danger); border-color: var(--danger); }
+  .health-badge.unknown { color: var(--text-muted); }
+
+  .discovery-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    margin-left: 6px;
+    border: 1px solid rgba(203,191,168,0.4);
+    color: var(--gold);
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 230px;
+    margin: 0.5rem 0 0.75rem;
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+  }
+
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-legend i { display: inline-block; width: 11px; height: 2px; }
+  .chart-legend i.dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ---- 數據明細 ---- */
+  .detail-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 1rem 0 0.6rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .detail-title:first-of-type { margin-top: 0.25rem; }
+
+  .stats-row {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .stats-row .val { color: var(--text-primary); font-family: 'IBM Plex Mono', monospace; }
+
+  .sub-section { font-size: 12px; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .sub-section .val { color: var(--gold); font-family: 'IBM Plex Mono', monospace; }
+
+  .rs-row { display: flex; gap: 1.5rem; font-size: 12px; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .rs-row .val { font-family: 'IBM Plex Mono', monospace; }
+
+  .backtest-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .backtest-note b { color: var(--text-secondary); font-weight: 600; }
+
+  /* ---- M8:Score / Factor Attribution / 風險提示 ---- */
+  .score-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 999px;
+    border: 2px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  .score-badge .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .score-badge .lbl {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+  }
+
+  .score-badge.tier-high { border-color: var(--success); }
+  .score-badge.tier-high .num { color: var(--success); }
+  .score-badge.tier-mid { border-color: var(--gold); }
+  .score-badge.tier-mid .num { color: var(--gold); }
+  .score-badge.tier-low { border-color: var(--danger); }
+  .score-badge.tier-low .num { color: var(--danger); }
+
+  .card-head-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .factor-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0.5rem; }
+
+  .factor-row { font-size: 11.5px; }
+
+  .factor-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+    color: var(--text-secondary);
+  }
+
+  .factor-top .factor-name { color: var(--text-primary); }
+  .factor-top .factor-score { font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+
+  .factor-bar-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+
+  .factor-bar-fill { height: 100%; border-radius: 2px; background: var(--gold); }
+
+  .factor-reason { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  .reason-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0.75rem 0 0.4rem;
+  }
+
+  .reason-list, .warning-list {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    font-size: 12px;
+  }
+
+  .reason-list li, .warning-list li {
+    padding: 3px 0 3px 16px;
+    position: relative;
+    line-height: 1.45;
+  }
+
+  .reason-list li { color: var(--text-secondary); }
+  .reason-list li::before { content: '✓'; position: absolute; left: 0; color: var(--success); }
+
+  .warning-list li { color: #E8B4AE; }
+  .warning-list li::before { content: '!'; position: absolute; left: 2px; color: var(--danger); font-weight: 700; }
+
+  .warning-block {
+    background: rgba(224,71,63,0.06);
+    border: 1px solid rgba(224,71,63,0.25);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .warning-block-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--danger);
+    margin-bottom: 0.3rem;
+  }
+
+  /* ---- M8→視覺優化:Strategy Dashboard ---- */
+  .strategy-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.1rem;
+  }
+
+  .strategy-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.15rem 1.25rem 1.25rem 1.4rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+
+  .strategy-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+
+  /* 左側色條:突破型呼應成功綠、拉回型呼應金色——跟個股卡片上的badge配色是同一套語言 */
+  .strategy-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+  }
+
+  .strategy-card.accent-breakout::before { background: var(--success); }
+  .strategy-card.accent-pullback::before { background: var(--gold); }
+  .strategy-card.accent-other::before { background: var(--text-muted); }
+
+  .strategy-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .strategy-card-head-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
+
+  .strategy-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .strategy-icon.icon-breakout { background: rgba(63,166,107,0.12); color: var(--success); }
+  .strategy-icon.icon-pullback { background: rgba(203,191,168,0.12); color: var(--gold); }
+  .strategy-icon.icon-other { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+
+  .strategy-card h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 5px;
+  }
+
+  .strategy-card .desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .strategy-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .risk-badge {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .risk-badge.risk-low { color: var(--success); border-color: var(--success); }
+  .risk-badge.risk-medium { color: var(--gold); border-color: var(--gold); }
+  .risk-badge.risk-high { color: var(--danger); border-color: var(--danger); }
+
+  /* 勝率徽章:刻意跟個股卡片右上角的分數徽章用同一套視覺語言(圓形+分級變色),
+     讓使用者一眼就知道「這是這張卡片最重要的數字」,不用重新學一套新符號 */
+  .winrate-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    border: 2px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  .winrate-badge .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .winrate-badge .lbl {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .winrate-badge.tier-high { border-color: var(--success); }
+  .winrate-badge.tier-high .num { color: var(--success); }
+  .winrate-badge.tier-mid { border-color: var(--gold); }
+  .winrate-badge.tier-mid .num { color: var(--gold); }
+  .winrate-badge.tier-low { border-color: var(--danger); }
+  .winrate-badge.tier-low .num { color: var(--danger); }
+  .winrate-badge.tier-none { border-color: var(--border-strong); }
+  .winrate-badge.tier-none .num { color: var(--text-muted); font-size: 12px; }
+
+  .strategy-active-row { margin-bottom: 0.85rem; }
+
+  .strategy-active-row .row-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+
+  .strategy-active-row .row-top .val {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-primary);
+  }
+
+  .strategy-active-bar-track {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+
+  .strategy-active-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .strategy-mini-stats {
+    display: flex;
+    gap: 1.4rem;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .strategy-mini-stats .val {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-primary);
+    font-size: 14.5px;
+    margin-top: 3px;
+  }
+
+  .strategy-mini-stats .val.positive { color: var(--pnl-up); }
+  .strategy-mini-stats .val.negative { color: var(--pnl-down); }
+
+  .strategy-params {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 0.7rem;
+    font-family: 'IBM Plex Mono', monospace;
+    word-break: break-all;
+  }
+
+  .meta-status-badge { margin-left: 8px; }
+
+  /* ---- 卡片收合:分數拆解/回測明細/相對強弱/監控條件預設收起來,
+     只留結論+關鍵價位+K線圖在外面,降低單張卡片的資訊密度 ---- */
+  .card-details {
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-details summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0.65rem 0 0.6rem;
+    font-size: 12px;
+    color: var(--text-secondary);
+    user-select: none;
+  }
+
+  .card-details summary::-webkit-details-marker { display: none; }
+  .card-details summary:hover { color: var(--text-primary); }
+
+  .card-details summary .chevron {
+    color: var(--text-muted);
+    font-size: 10px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+
+  .card-details[open] summary .chevron { transform: rotate(180deg); }
+  .card-details[open] summary { border-bottom: 1px solid var(--border); }
+
+  /* ---- M12:前往完整分析頁 ---- */
+  .detail-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 0.9rem;
+    padding: 0.7rem 0.95rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 12.5px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+
+  .detail-link:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(203,191,168,0.05);
+  }
+
+  .detail-link .arrow { font-size: 13px; }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    padding: 2rem;
+  }
+
+  #loading { text-align: center; padding: 4rem; color: var(--text-secondary); }
+  #no-results { text-align: center; padding: 2rem; color: var(--text-muted); display: none; }
+
+  /* ---- M25/M26:封面 + 類別導覽 + 分頁檢視 ---- */
+  .cat-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    padding: 0.42rem 0.95rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .cat-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+  .cat-btn.active {
+    color: var(--gold);
+    border-color: rgba(203,191,168,0.45);
+    background: rgba(203,191,168,0.08);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* 封面:一屏、置中、極簡。
+     第一眼只該看到三件事——你賺賠多少、一個搜尋框、要去哪裡。
+     其餘全部往下收,滾動才出現。 */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+    /* 88vh 而非 100vh:刻意讓下一區露出一小截。
+       滿版會讓人以為「就這樣了」,還得再捲一次才發現下面有東西——
+       露出邊緣是最省力的引導,比任何提示文字都有效。
+       (曾經被改回 100vh 而註解沒跟著改,那正是「還要再滑一次」的來源。)
+
+       不加 scroll-snap-stop: always——那個屬性規定「一次手勢最多跨一個
+       snap point」,等於強迫使用者一格一格地捲。想一口氣滑到下面的人會覺得
+       畫面在跟他拔河。 */
+    min-height: 88vh; scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* 損益光暈:整個封面的背景會依損益染上極淡的色,
+     強度隨幅度變化。刻意做得很淡——它是氛圍不是資訊,
+     真正的資訊是中間那個數字。 */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -10% -20%;
+    background: radial-gradient(ellipse 60% 45% at 50% 42%, var(--pnl-glow) 0%, transparent 70%);
+    pointer-events: none;
+    transition: background 1.2s ease;
+    z-index: -1;
+  }
+
+  .hero-pnl-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 0.9rem;
+  }
+
+  /* ---- M31:金屬質感與動態 ----
+     參考的是產品形象頁的材質語言,但刻意只用在「重點」:主視覺、分數徽章、
+     模式卡片。全站鋪金屬會讓看數據時分心,而這是一個要長時間盯的儀表板,
+     不是看三十秒就走的行銷頁。 */
+
+  /* 鉻金屬掃光:一道高光橫向掃過,靠 background-position 動畫,
+     不用 JS、不影響版面、GPU 友善 */
+  @keyframes metal-sweep {
+    0%   { background-position: -180% center; }
+    100% { background-position: 280% center; }
+  }
+
+  .metal-sheen {
+    position: relative;
+    background-image: linear-gradient(
+      100deg,
+      transparent 0%, transparent 38%,
+      rgba(255,255,255,0.55) 47%,
+      rgba(255,255,255,0.85) 50%,
+      rgba(255,255,255,0.55) 53%,
+      transparent 62%, transparent 100%);
+    background-size: 220% 100%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: metal-sweep 4.5s ease-in-out infinite;
+    animation-delay: 1.2s;
+  }
+
+
+  .hero-pnl {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 60px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+  }
+  .hero-pnl.up { color: var(--pnl-up); text-shadow: 0 0 34px rgba(63,166,107,0.35); }
+  .hero-pnl.down { color: var(--pnl-down); text-shadow: 0 0 34px rgba(224,71,63,0.35); }
+  .hero-pnl.neutral { color: var(--text-primary); }
+  /* UI_SPEC 第二項:首頁主視覺現在顯示系統健康度,不是損益,所以用
+     --success/--danger,不是 --pnl-up/--pnl-down(理由見第一節的色碼拆分)。 */
+  .hero-pnl.health-ok { color: var(--success); text-shadow: 0 0 34px rgba(63,166,107,0.35); }
+  .hero-pnl.health-warn { color: var(--danger); text-shadow: 0 0 34px rgba(224,71,63,0.35); }
+
+  /* 掃光疊在數字上,用偽元素避免破壞語意色(漲綠跌紅不能被金屬色蓋掉) */
+  .hero-pnl.has-value::after {
+    content: attr(data-value);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background-image: linear-gradient(
+      100deg,
+      transparent 0%, transparent 40%,
+      rgba(255,255,255,0.7) 49%,
+      rgba(255,255,255,0.95) 50%,
+      rgba(255,255,255,0.7) 51%,
+      transparent 60%, transparent 100%);
+    background-size: 220% 100%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: metal-sweep 5s ease-in-out infinite;
+    animation-delay: 0.8s;
+    pointer-events: none;
+  }
+
+  /* ---- 滾動進場 ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1),
+                transform 0.7s cubic-bezier(0.22,1,0.36,1);
+    will-change: opacity, transform;
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---- 分頁換場:不再硬切 ---- */
+  @keyframes view-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .view.active { animation: view-in 0.45s cubic-bezier(0.22,1,0.36,1); }
+
+  /* 尊重使用者的系統偏好:開了「減少動態效果」就全部關掉。
+     這不是可選的貼心,是無障礙基本要求——前庭系統敏感的人看到
+     持續動的東西會頭暈。 */
+  @media (prefers-reduced-motion: reduce) {
+    /* 連 scroll-snap 一起關掉。對前庭系統敏感的人來說,「捲到一半被拉住」
+       跟動畫一樣會不舒服,只關 scroll-behavior 是關不乾淨的。 */
+    html { scroll-behavior: auto; scroll-snap-type: none; }
+    .hero-scroll-hint { animation: none; }
+    .metal-sheen, .hero-pnl.has-value::after { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .view.active { animation: none; }
+    .mode-card, .watchlist-item, .strategy-card { transition: none; }
+  }
+
+  .hero-pnl-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0.7rem 0 0;
+  }
+
+  .hero-setup {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin: 0.4rem 0 0;
+  }
+
+  /* 透明膠囊搜尋框 + 右側箭頭。
+     背景全透明只留一圈細邊——封面已經有損益光暈,搜尋框再填色會打架。 */
+  .hero-search {
+    margin-top: 3rem;
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+  }
+  .hero-search .search-wrap { max-width: none; width: 100%; }
+
+  .hero-search #search-box {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 999px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    text-align: center;
+    padding: 1rem 3.4rem 1rem 1.6rem;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+  .hero-search #search-box::placeholder { color: var(--text-muted); }
+  .hero-search #search-box:hover { border-color: rgba(255,255,255,0.45); }
+  .hero-search #search-box:focus {
+    outline: none;
+    text-align: left;
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.02);
+    box-shadow: 0 0 0 4px rgba(203,191,168,0.08);
+  }
+
+  .hero-search-go {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .hero-search-go:hover {
+    color: #1C1A15;
+    background: var(--gold);
+    border-color: var(--gold);
+    transform: translateY(-50%) translateX(2px);
+  }
+  .hero-search .search-dropdown { text-align: left; }
+
+  .hero-quick {
+    display: flex;
+    justify-content: center;
+    gap: 2.6rem;
+    flex-wrap: wrap;
+    margin-top: 3.2rem;
+  }
+
+  /* 提示改成真的可以按的按鈕——原本只是一段文字,寫著「向下捲動看今日決策」
+     但今日決策其實在另一個分頁,捲動根本到不了。承諾要跟行為一致。 */
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    animation: hint-float 2.6s ease-in-out infinite;
+    transition: color 0.2s;
+  }
+  .hero-scroll-hint:hover { color: var(--accent); }
+  @keyframes hint-float {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.45; }
+    50%      { transform: translateX(-50%) translateY(5px); opacity: 0.8; }
+  }
+
+  /* 新訊號通知的開啟提示——預設隱藏,setupNotificationBanner() 判斷後才顯示。
+     只在「瀏覽器支援 Notification API」且「還沒問過使用者」且「使用者沒手動關掉過」三個條件都成立時才出現,
+     不要每次都煩使用者。 */
+  .notif-banner {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin: 1.2rem auto 0;
+    padding: 0.6rem 1rem;
+    max-width: 420px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+  .notif-banner-text { line-height: 1.4; }
+  .notif-enable-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #1C1A15;
+    background: var(--gold);
+    border: none;
+    border-radius: 5px;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .notif-dismiss-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0.2rem 0.3rem;
+    line-height: 1;
+  }
+  .notif-dismiss-btn:hover { color: var(--text-secondary); }
+
+  .hero-below {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2.5rem 0 1rem;
+  }
+  .hero-below .mode-picker { margin-top: 0; margin-bottom: 1.5rem; }
+
+  /* ---- 大盤總覽 ---- */
+  .market-overview {
+    max-width: 1180px;
+    margin: 0 auto;
+    /* 不設 min-height:100vh。內容多的時候硬撐滿版會在下方留一大塊空白,
+       內容少的時候又逼使用者多捲一次。讓它照內容長,snap 對齊到起點就夠了。 */
+    padding: 1rem 2rem 3rem; box-sizing: border-box; scroll-snap-align: start;
+  }
+
+  .mo-head { margin-bottom: 1.5rem; }
+  .mo-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+  }
+  .mo-sub { font-size: 12.5px; color: var(--text-secondary); margin: 0; }
+
+  /* 台股主卡:給它兩倍的視覺重量,因為它是主角 */
+  .mo-primary {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem 1.6rem;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 1rem;
+  }
+
+  .mo-p-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.1rem;
+  }
+  .mo-p-name { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.05em; }
+  .mo-p-price {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 34px;
+    font-weight: 500;
+    line-height: 1.15;
+    margin-top: 4px;
+  }
+  .mo-p-change { font-family: 'IBM Plex Mono', monospace; font-size: 15px; margin-top: 3px; }
+
+  .mo-p-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 1.2rem;
+    text-align: right;
+  }
+  .mo-stat .s-lbl { display: block; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+  .mo-stat .s-val { font-family: 'IBM Plex Mono', monospace; font-size: 15px; margin-top: 3px; }
+
+  .mo-chart { height: 96px; margin-bottom: 0.9rem; }
+  .mo-chart svg { display: block; width: 100%; height: 100%; }
+
+  .mo-analysis {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* 對照組:五個小卡 */
+  .mo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .mo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.95rem 1.05rem;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  }
+  .mo-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .mo-c-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .mo-c-name { font-size: 12.5px; color: var(--text-secondary); }
+  .mo-c-change { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+  .mo-c-price { font-family: 'IBM Plex Mono', monospace; font-size: 19px; margin-top: 2px; }
+  .mo-c-chart { height: 40px; margin-top: 0.6rem; }
+  .mo-c-chart svg { display: block; width: 100%; height: 100%; }
+  .mo-c-note { font-size: 10.5px; color: var(--text-muted); margin-top: 0.55rem; line-height: 1.5; }
+
+  .mo-empty { color: var(--text-muted); font-size: 12.5px; padding: 1rem 0; }
+  .hero-quick-item .q-val {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 19px;
+    color: var(--text-primary);
+  }
+  .hero-quick-item .q-lbl { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+
+  /* 資產設定表單 */
+  .pf-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: flex-end;
+    padding: 0.95rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.2rem;
+  }
+  .pf-field { display: flex; flex-direction: column; gap: 4px; }
+  .pf-field label { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .pf-field input {
+    background: #050505;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 0.5rem 0.65rem;
+    width: 118px;
+  }
+  .pf-field input:focus { outline: none; border-color: var(--gold); }
+  .pf-hint { flex-basis: 100%; font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+  #pf-save-btn {
+    background: var(--gold);
+    color: #1C1A15;
+    border: none;
+    border-radius: 6px;
+    padding: 0.55rem 1.1rem;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(203,191,168,0.18);
+  }
+  #pf-save-btn:hover { box-shadow: 0 4px 16px rgba(203,191,168,0.28); }
+
+  /* T7:我的資產(手動核准帳戶)的核准按鈕,樣式比照 #pf-save-btn,
+     但體積小一點——這個按鈕會逐行重複出現在清單裡,不是單一表單動作。 */
+  .my-approve-btn {
+    background: var(--gold);
+    color: #1C1A15;
+    border: none;
+    border-radius: 5px;
+    padding: 0.3rem 0.7rem;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .my-approve-btn:hover { opacity: 0.88; }
+  .my-approve-btn:disabled { opacity: 0.5; cursor: default; }
+  .my-pending-item .wl-price { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+
+  .pf-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 1.2rem;
+  }
+  .pf-cell { background: var(--bg-card); padding: 0.95rem 1rem; }
+  .pf-cell .lbl { display: block; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+  .pf-cell .val { font-family: 'IBM Plex Mono', monospace; font-size: 17px; }
+  /* UI_SPEC 第五項:已實現/未實現標樣本數。1筆大賺跟10筆平均獲利體感完全
+     不同,尤其樣本小的時候(例如剛歸零重新累積)不標會讓人誤以為數字穩定。 */
+  .pf-cell .pf-n { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 3px; }
+  .pf-cell .pf-n.low { color: var(--gold); }
+
+  .pf-note {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--text-muted);
+    border-radius: 0 6px 6px 0;
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 1.1rem;
+    line-height: 1.6;
+  }
+  .pf-note.warn { border-left-color: var(--gold); }
+
+  /* Phase 4:相關係數矩陣。沿用 pf-summary 卡片同一套視覺語言,
+     跟前面 Portfolio Heat / 產業集中度是同一組風控資訊,不該長得像另一個功能。 */
+  .pf-corr { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+             padding: 0.95rem 1rem; margin-bottom: 1.1rem; }
+  .pf-corr-row { display: flex; justify-content: space-between; align-items: center;
+                 font-size: 12.5px; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+  .pf-corr-row:last-child { border-bottom: none; }
+  .pf-corr-row span:last-child { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---- M28:交易模式選擇 ---- */
+  .mode-picker {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 2.2rem;
+  }
+
+  .mode-card {
+    flex: 0 1 210px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+  .mode-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  /* 選中的模式卡片:回到單純的邊框+底色。
+     原本用雙層 background-image + background-clip 做金屬邊框,結果把文字
+     蓋掉了——那個技巧在按鈕元素上不可靠。可讀性優先於效果,直接拿掉。 */
+  .mode-card.active {
+    border-color: var(--accent);
+    background: rgba(203,191,168,0.07);
+    box-shadow: 0 6px 22px rgba(203,191,168,0.10);
+  }
+  .mode-card .mc-name { font-size: 14px; color: var(--text-primary); font-weight: 600; }
+  .mode-card.active .mc-name { color: var(--gold); }
+  .mode-card .mc-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .mode-card .mc-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    margin-top: 7px;
+  }
+
+  .mode-banner {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: rgba(203,191,168,0.06);
+    border: 1px solid rgba(203,191,168,0.25);
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    margin-bottom: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .dim-row { margin-bottom: 0.75rem; }
+  .dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; margin-bottom: 4px; }
+  .dim-name { color: var(--text-primary); }
+  .dim-score { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-muted); }
+  .dim-track { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .dim-fill { height: 100%; border-radius: 3px; background: var(--gold); }
+  .dim-reason { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+  .ev-warn {
+    background: rgba(224,71,63,0.08);
+    border: 1px solid rgba(224,71,63,0.3);
+    border-radius: 6px;
+    padding: 0.6rem 0.85rem;
+    font-size: 12px;
+    color: #E8B4AE;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  /* ---- 手機版排版(先前完全沒有@media,窄螢幕會直接套用桌機版間距/字級,
+     grid最小寬度380px在多數手機上會超出可視範圍造成橫向捲動) ---- */
+  @media (max-width: 680px) {
+    /* 手機:7個分類擠不進品牌旁邊,改成兩列——
+       上列品牌置中,下列分類可橫向捲動。右側功能區在手機上收掉,
+       系統狀態連結頁尾已經有一份,不需要在寸土寸金的頂欄重複。 */
+    .topbar {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem 0.6rem;
+    }
+    .topbar-left { order: 2; width: 100%; justify-content: flex-start; }
+    .brand { order: 1; font-size: 16px; letter-spacing: 0.36em; padding-left: 0.36em; }
+    .topbar-right { display: none; }
+
+    .search-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .search-wrap { max-width: none; }
+    #search-btn { justify-content: center; }
+    .watchlist-toggle { justify-content: flex-start; }
+    .watchlist-list { grid-template-columns: 1fr; }
+
+    main { padding: 1.5rem 1.1rem; }
+    .section-heading h2 { font-size: 19px; }
+    #market-regime-banner { padding: 1rem 1.1rem 0; }
+    .decision-cols { grid-template-columns: 1fr; gap: 1.25rem; }
+    .alert-form input, .alert-form select, .alert-form input.alert-code-input { width: 100%; flex-basis: 100%; }
+    #alert-add-btn { width: 100%; }
+
+    .ticker-item { padding: 0.7rem 1.1rem; font-size: 12.5px; }
+
+    .hero { padding: 0 1.25rem; min-height: 100vh; }
+    .hero-pnl { font-size: 42px; }
+    .hero-quick { gap: 1.5rem; margin-top: 2.4rem; }
+    .hero-search { margin-top: 2.2rem; }
+    .hero-search #search-box { font-size: 14px; padding: 0.9rem 3.1rem 0.9rem 1.2rem; }
+    .hero-below { padding: 0 1.1rem 1rem; }
+    .hero-scroll-hint { bottom: 1.2rem; }
+    .pf-field, .pf-field input { width: 100%; }
+    .pf-field { flex-basis: 100%; }
+    #pf-save-btn { width: 100%; }
+
+    .grid { grid-template-columns: 1fr; gap: 1rem; }
+    .strategy-cards { grid-template-columns: 1fr; gap: 0.9rem; }
+
+    .card { padding: 1.1rem 1.1rem 1.25rem; }
+    .card-head-left h2 { font-size: 18px; }
+
+    .key-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kn-val.entry { font-size: 16px; }
+
+    .chart-wrap { height: 190px; }
+
+    .strategy-card { padding: 1.05rem 1.1rem 1.15rem 1.3rem; }
+  }
+
+  @media (max-width: 380px) {
+    .brand { font-size: 14.5px; letter-spacing: 0.3em; padding-left: 0.3em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 三區橫欄:左選單 / 中品牌 / 右功能。
+     用 grid 的 1fr auto 1fr,品牌永遠落在真正的中心,
+     不會因為左右兩區寬度不同而偏掉。 -->
+<nav class="topbar">
+  <div class="topbar-left" id="cat-nav">
+    <button class="cat-btn active" data-view="home">總覽</button>
+    <button class="cat-btn" data-view="portfolio">我的資產</button>
+    <button class="cat-btn" data-view="decision">今日決策</button>
+    <button class="cat-btn" data-view="alerts">警報中心</button>
+    <button class="cat-btn" data-view="calendar">近期日程</button>
+    <button class="cat-btn" data-view="watchlist">觀察清單</button>
+    <button class="cat-btn" data-view="strategy">策略與驗證</button>
+  </div>
+
+  <a class="brand" href="#home" aria-label="LINIL 首頁">LINIL</a>
+
+  <div class="topbar-right">
+    <span class="topbar-updated" id="updated-line">載入中</span>
+    <a class="topbar-link" href="./screener.html">自訂篩選</a>
+    <a class="topbar-link" href="./strategy-builder.html">策略建構器</a>
+    <a class="topbar-link" href="./research.html">研究紀錄</a>
+    <a class="topbar-link" href="./failure_cases.html">失敗案例</a>
+    <a class="topbar-link" href="./health.html">系統狀態</a>
+  </div>
+</nav>
+
+<!-- ===== 封面 ===== -->
+<section class="view active" id="view-home">
+  <div class="hero">
+    <p class="hero-pnl-label">系統狀態</p>
+    <p class="hero-pnl neutral" id="hero-pnl">--</p>
+    <p class="hero-pnl-sub" id="hero-pnl-sub"></p>
+    <p class="hero-setup" id="hero-setup"></p>
+
+    <div class="hero-search">
+      <div class="search-wrap">
+        <input type="text" id="search-box" autocomplete="off" placeholder="搜尋任意股票">
+        <button class="hero-search-go" id="hero-search-go" type="button" aria-label="搜尋">→</button>
+        <div class="search-dropdown" id="search-dropdown"></div>
+      </div>
+    </div>
+
+    <div class="hero-quick" id="hero-quick"></div>
+
+    <!-- 新訊號通知——只是「打開網頁時如果有新訊號就跳系統通知」,不是背景推播,
+         沒開頁面不會收到。真正的盤中即時推播要等有即時報價來源才做得到(見 LINE 通知)。 -->
+    <div class="notif-banner" id="notif-banner">
+      <span class="notif-banner-text">今天有新訊號時,想讓瀏覽器跳提示嗎?</span>
+      <button class="notif-enable-btn" id="notif-enable-btn" type="button">開啟通知</button>
+      <button class="notif-dismiss-btn" id="notif-dismiss-btn" type="button" aria-label="不用了">✕</button>
+    </div>
+
+    <button class="hero-scroll-hint" id="hero-scroll-hint" type="button">大盤走勢 ↓</button>
+  </div>
+
+  <!-- 捲動下來第一件看到的事:大盤在哪裡。
+       台股是主角(大圖大字),其餘五個指數是對照組——用來判斷
+       「台股是自己的問題,還是跟著外圍一起走」。 -->
+  <div class="market-overview" id="market-overview">
+    <div class="mo-head">
+      <h2 class="mo-title">大盤走勢</h2>
+      <p class="mo-sub">台股為主,其餘為對照——外圍同步下跌時,台股的跌就不是個別事件。</p>
+    </div>
+
+    <div class="mo-primary" id="mo-primary"></div>
+    <div class="mo-grid" id="mo-grid"></div>
+
+    <div class="hero-below">
+      <div class="mode-picker" id="mode-picker"></div>
+      <div id="ticker-strip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 我的資產(T7:手動核准帳戶) ===== -->
+<section class="view" id="view-portfolio">
+<main id="my-account-main">
+  <div class="section-heading">
+    <h2 class="voice">我的資產</h2>
+    <p class="section-sub">跟「策略與驗證」不一樣——那裡是全自動、不問人,量的是策略本身;這裡量的是<b>你的決策品質</b>:系統只列出今天觸發的訊號,要不要進場由你逐筆核准,沒核准的訊號永遠不會出現在下面的持倉裡。出場沿用系統的機械式停損停利判斷,核准的是「要不要進場」,不是「要不要出場」。資料存在 Supabase(不是這台瀏覽器),換裝置也看得到。</p>
+  </div>
+
+  <div id="my-account-pending">
+    <h3 class="decision-subhead">待核准 · 今日觸發訊號</h3>
+    <div class="watchlist-list" id="my-pending-list"></div>
+    <p class="decision-empty" id="my-pending-empty">今天沒有觸發中的訊號可以核准。</p>
+  </div>
+
+  <div id="my-account-body"></div>
+</main>
+
+</section>
+
+<!-- ===== 今日決策 ===== -->
+<section class="view" id="view-decision">
+<div id="market-regime-banner"></div>
+<div id="ai-digest-banner"></div>
+<main id="decision-main">
+  <div class="section-heading">
+    <h2 class="voice">今日決策摘要</h2>
+    <p class="section-sub">全市場約650檔中訊號分數最高的機會,以及你觀察清單裡值得留意的風險——不用逐檔翻,先看這裡。</p>
+  </div>
+  <div id="decision-mode-banner"></div>
+  <div class="decision-cols">
+    <div>
+      <h3 class="decision-subhead">機會 · 全市場訊號分數最高</h3>
+      <div class="watchlist-list" id="opportunity-list"></div>
+      <p class="decision-empty" id="opportunity-empty">今天全市場尚無符合條件的機會(尚無觸發訊號,或索引尚未載入完成)。</p>
+      <!-- UI_SPEC 第三項:near_miss。訊號0檔時顯示,取代純空白畫面。 -->
+      <div id="near-miss-block" style="display:none;">
+        <p class="near-miss-note">以下是<b>差一點觸發訊號</b>的股票,不是進場建議,只是讓你看看「差多遠」——不用因為空手焦慮就自己放寬進場條件。</p>
+        <div class="watchlist-list" id="near-miss-list"></div>
+      </div>
+    </div>
+    <div>
+      <h3 class="decision-subhead risk">風險 · 觀察清單需留意</h3>
+      <div id="risk-market-note"></div>
+      <div class="watchlist-list" id="risk-list"></div>
+      <p class="decision-empty" id="risk-empty">觀察清單目前沒有明顯風險提示,或尚未加入任何股票。</p>
+    </div>
+  </div>
+</main>
+</section>
+
+<!-- ===== 警報中心 ===== -->
+<section class="view" id="view-alerts">
+<main id="alert-main">
+  <div class="section-heading">
+    <h2 class="voice">警報中心</h2>
+    <p class="section-sub">上面的「今日決策摘要」是系統依固定規則挑給你看的;這裡是你自己設定的條件——設定後每天打開網站就會自動比對,不用自己記住在等哪個價位。警報只存在這台瀏覽器,不會上傳。</p>
+  </div>
+
+  <div class="alert-form">
+    <input type="text" id="alert-code" class="alert-code-input" placeholder="股票代號(如2330)" maxlength="6">
+    <select id="alert-type">
+      <option value="price_above">價格突破</option>
+      <option value="price_below">價格跌破</option>
+      <option value="drop_pct">單日跌幅達</option>
+      <option value="signal">出現進場訊號</option>
+      <option value="health_weak">基本面轉弱</option>
+    </select>
+    <input type="number" id="alert-value" placeholder="數值" step="0.01" min="0">
+    <button id="alert-add-btn">新增警報</button>
+    <p class="alert-form-hint">「出現進場訊號」與「基本面轉弱」不需要填數值。</p>
+    <p class="alert-error" id="alert-error"></p>
+  </div>
+
+  <div class="decision-cols">
+    <div>
+      <h3 class="decision-subhead">今日觸發</h3>
+      <div class="watchlist-list" id="alert-fired-list"></div>
+      <p class="decision-empty" id="alert-fired-empty">今天沒有任何警報條件被觸發。</p>
+    </div>
+    <div>
+      <h3 class="decision-subhead">已設定的警報</h3>
+      <div class="watchlist-list" id="alert-rule-list"></div>
+      <p class="decision-empty" id="alert-rule-empty">還沒有設定任何警報,在上方填入股票代號與條件後點「新增警報」。</p>
+    </div>
+  </div>
+</main>
+
+</section>
+
+<!-- ===== 近期日程 ===== -->
+<section class="view" id="view-calendar">
+<main id="calendar-main" style="display:none;">
+  <div class="section-heading">
+    <h2 class="voice">近期重要日程</h2>
+    <p class="section-sub">上面幾區講的是「今天」,這裡是時間維度——接下來哪些已知的日子會影響盤面。每個事件都標註資料來源類型,因為三類的可靠度本來就不同,你有權知道看到的這一條是哪來的。</p>
+  </div>
+  <div class="cal-list" id="calendar-list"></div>
+  <p class="decision-empty" id="calendar-empty">未來這段期間沒有已知的重要日程。</p>
+  <div id="calendar-notice"></div>
+</main>
+</section>
+
+<!-- ===== 觀察清單 ===== -->
+<section class="view" id="view-watchlist">
+<main id="watchlist-main">
+  <div class="section-heading">
+    <h2 class="voice">我的觀察清單</h2>
+    <p class="section-sub">在總覽頁的搜尋欄加入任意股票,即可在這裡看到完整分析(全市場約650檔皆可加入,不限於下方追蹤清單)。</p>
+  </div>
+  <div id="watchlist-empty" class="watchlist-empty">還沒有加入任何股票,到總覽頁搜尋股票代號或名稱後點「+」加入觀察清單。</div>
+  <div class="watchlist-list" id="watchlist-list"></div>
+</main>
+
+<main id="tracked-main">
+  <div class="section-heading">
+    <h2 class="voice">追蹤清單 · 每日深度分析</h2>
+    <p class="section-sub">config設定檔裡指定固定追蹤的股票,每天自動跑完整分析(K線/回測/分數拆解全都有)。目前未設定,可到總覽頁搜尋任意股票加入「我的觀察清單」。</p>
+  </div>
+  <div class="search-row" style="margin-bottom:1.1rem;">
+    <label class="watchlist-toggle">
+      <input type="checkbox" id="watchlist-filter">
+      只顯示我的觀察清單
+    </label>
+  </div>
+  <div id="loading">正在讀取最新分析資料...</div>
+  <div class="grid" id="cards"></div>
+  <div id="no-results">找不到符合的股票,確認代號是否在追蹤清單內。</div>
+</main>
+</section>
+
+<!-- ===== 策略與驗證 ===== -->
+<section class="view" id="view-strategy">
+<main id="paper-trading-main" style="display:none;">
+  <div class="section-heading">
+    <h2 class="voice">Paper Trading · Live Validation</h2>
+    <p class="section-sub">回測是回頭看歷史,這裡是從今天開始往前走——訊號觸發當天用建議進場價視為進場,之後每天用收盤價模擬(非即時報價)追蹤停損/停利/持有到期,驗證回測宣稱的勝率有沒有真的兌現。</p>
+    <p class="section-sub" id="pt-cost-note">
+      <b>以下報酬皆已扣除交易成本</b>:手續費 0.1425%(買+賣)、證交稅 0.3%(賣出),
+      合計 0.585%,另加依流動性分級的滑價假設(單邊 0.05%~0.30%)。
+      <b>滑價是假設,不是事實</b>——冷門股的實際滑價可能更高。
+      未計入單筆最低手續費(未滿 20 元以 20 元計收),小額部位的真實成本會比這裡高。
+    </p>
+  </div>
+  <div class="strategy-cards" id="pt-strategy-cards"></div>
+  <div class="decision-cols" style="margin-top:1.1rem;">
+    <div>
+      <h3 class="decision-subhead">模擬中的部位</h3>
+      <div class="watchlist-list" id="pt-open-list"></div>
+      <p class="decision-empty" id="pt-open-empty">目前沒有模擬中的部位。</p>
+    </div>
+    <div>
+      <h3 class="decision-subhead">最近平倉紀錄</h3>
+      <div class="watchlist-list" id="pt-closed-list"></div>
+      <p class="decision-empty" id="pt-closed-empty">目前沒有已平倉的紀錄。</p>
+    </div>
+  </div>
+</main>
+
+<!-- 個人資金模擬回放(原「我的資產」內容,2026-08-17 搬來這裡——這裡跟
+     上面的「模擬中的部位」一樣是100%自動、不需要核准,差別只在這裡套用
+     你的本金/風控設定重新跑一次;需要核准才進場的是「我的資產」分頁的
+     手動帳戶,兩者資料來源不同,不要混用。 -->
+<main id="portfolio-main">
+  <div class="section-heading">
+    <h2 class="voice">個人資金模擬回放</h2>
+    <p class="section-sub">輸入你的本金與風險偏好,系統會把「策略驗證裡實際發生的交易」用你的錢重新跑一次:資金有限時依進場當下的分數挑最高的幾檔,依停損距離決定買幾股(台股零股可買,不湊整張),並計入手續費與證交稅。設定只存在這台瀏覽器,不會上傳。跟「我的資產」不一樣——這裡全自動、不需要核准。</p>
+  </div>
+
+  <div class="pf-form">
+    <div class="pf-field"><label for="pf-capital">本金(元)</label><input type="number" id="pf-capital" min="0" step="10000"></div>
+    <div class="pf-field"><label for="pf-risk">每筆風險(%)</label><input type="number" id="pf-risk" min="0.1" max="100" step="0.1"></div>
+    <div class="pf-field"><label for="pf-max">最多同時持有幾檔</label><input type="number" id="pf-max" min="1" max="100" step="1"></div>
+    <div class="pf-field"><label for="pf-fee-buy">買進手續費(%)</label><input type="number" id="pf-fee-buy" min="0" step="0.001"></div>
+    <div class="pf-field"><label for="pf-fee-sell">賣出手續費(%)</label><input type="number" id="pf-fee-sell" min="0" step="0.001"></div>
+    <div class="pf-field"><label for="pf-tax">證交稅(%)</label><input type="number" id="pf-tax" min="0" step="0.01"></div>
+    <div class="pf-field"><label for="pf-fee-min">最低手續費(元)</label><input type="number" id="pf-fee-min" min="0" step="1"></div>
+    <button id="pf-save-btn" type="button">套用</button>
+    <p class="pf-hint">
+      <b>每筆風險%</b>:單筆交易最多虧掉本金的這個比例。停損距離遠的自動買少、近的買多,讓每筆的最壞情況一致。<br>
+      <b>最多同時持有幾檔</b>:同一時間最多壓幾檔股票,上限 100。訊號比這個數字多的時候,依進場當下的分數由高到低填補空位,其餘跳過。<br>
+      <b>最低手續費</b>:台股公定手續費 0.1425%,但未滿 20 元以 20 元計收;多數券商折扣後最低是 1 元。<b>買零股或小額部位時這一項比費率還關鍵</b>——買 1000 元的零股,照比例算是 1.4 元,實際可能要付 20 元,佔成本 2%。填你券商實際的數字,不然小額試算會失真。
+    </p>
+  </div>
+
+  <div id="pf-body"></div>
+  <div id="pf-correlation"></div>
+</main>
+
+<!-- T6:交易帳本 · 成交對帳 -->
+<main id="ledger-main" style="display:none;">
+  <div class="section-heading">
+    <h2 class="voice">交易帳本 · 成交對帳</h2>
+    <p class="section-sub">
+      上面的「模擬中的部位」講的是策略判斷,這裡是**帳**——每一筆成交的價格、股數、費用,
+      以及最重要的一件事:<b>那個價格在成交當天的市場上,真的出現過嗎</b>。
+    </p>
+    <p class="section-sub">
+      這一區存在的理由是一次真實的事故:先前有一版拿「從沒成交過的價格」去算報酬,
+      33 筆已平倉裡 19 筆單日報酬超過台股 ±10% 漲跌幅上限。它能活那麼久,
+      不是因為邏輯難寫,而是<b>沒有成交紀錄就沒有東西可以對帳</b>。
+    </p>
+  </div>
+  <div id="ledger-summary" class="ledger-summary"></div>
+  <div id="ledger-empty" class="watchlist-empty">交易帳本尚未載入。</div>
+  <div class="watchlist-list" id="ledger-list"></div>
+</main>
+
+<main id="strategy-dashboard-main" style="display:none;">
+  <div class="section-heading">
+    <h2 class="voice">策略儀表板</h2>
+    <p class="section-sub">目前系統註冊的策略邏輯,以及在追蹤清單上的歷史回測表現彙總(雛形版,樣本數會隨追蹤股票增加而更有參考性)。</p>
+  </div>
+  <div class="strategy-cards" id="strategy-cards"></div>
+</main>
+
+<main id="discovered-main">
+  <div class="section-heading">
+    <h2 class="voice">今日發現 · 全市場掃描候選</h2>
+    <p class="section-sub">系統每天自動掃描全市場,篩出技術面+基本面條件較佳的候選股,不受限於你追蹤的清單。</p>
+  </div>
+  <div id="discovered-empty" class="discovered-empty">今天尚未掃描到符合條件的候選股,或掃描尚未執行。</div>
+  <div class="grid" id="discovered-cards"></div>
+</main>
+</section>
+
+<footer>
+  資料來源:yfinance,每個交易日收盤後自動更新一次。進場參考價為系統回測驗算後的建議價位,非當日收盤價。所有分析僅供參考,不構成投資建議。
+  <br><a href="./health.html" style="color:var(--text-muted);font-size:12px;">系統資料健康狀態 →</a>
+  <a href="./research.html" style="color:var(--text-muted);font-size:12px;margin-left:12px;">研究紀錄 →</a>
+  <a href="./failure_cases.html" style="color:var(--text-muted);font-size:12px;margin-left:12px;">失敗案例集 →</a>
+  <a href="./screener.html" style="color:var(--text-muted);font-size:12px;margin-left:12px;">自訂篩選 →</a>
+  <a href="./strategy-builder.html" style="color:var(--text-muted);font-size:12px;margin-left:12px;">策略建構器(Beta) →</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.1/dist/chartjs-chart-financial.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<!-- Phase 1 後端(見 MIGRATION_PLAN.md):Supabase JS client,只用來讀寫 watchlist/alerts/portfolio_settings 三張表 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+function fmtChange(change, pct) {
+  const sign = change >= 0 ? '+' : '';
+  return `${sign}${change} (${sign}${pct}%)`;
+}
+
+function healthClass(status) {
+  return { healthy: 'healthy', watch: 'watch', weak: 'weak', unknown: 'unknown' }[status] || 'unknown';
+}
+
+// ---------------------------------------------------------
+// M8:Score / Factor Attribution / 風險提示(M6資料的呈現層)
+// ---------------------------------------------------------
+function scoreTier(total) {
+  if (total >= 70) return 'high';
+  if (total >= 40) return 'mid';
+  return 'low';
+}
+
+function buildScoreBadge(score) {
+  if (!score || score.total_score === undefined || score.total_score === null) return '';
+  const tier = scoreTier(score.total_score);
+  return `<div class="score-badge tier-${tier}"><span class="num">${Math.round(score.total_score)}</span><span class="lbl">分數</span></div>`;
+}
+
+function buildRiskWarnings(score) {
+  if (!score || !score.risk_warnings || !score.risk_warnings.length) return '';
+  const items = score.risk_warnings.map(w => `<li>${w}</li>`).join('');
+  return `<div class="warning-block"><div class="warning-block-title">風險提示</div><ul class="warning-list">${items}</ul></div>`;
+}
+
+function buildFactorBreakdown(score) {
+  if (!score || !score.factors) return '';
+
+  const factorsHtml = score.factors.map(f => `
+    <div class="factor-row">
+      <div class="factor-top">
+        <span class="factor-name">${f.name}</span>
+        <span class="factor-score">${f.score}分 · 佔${Math.round(f.weight * 100)}%</span>
+      </div>
+      <div class="factor-bar-track"><div class="factor-bar-fill" style="width:${Math.max(0, Math.min(100, f.score))}%"></div></div>
+      <div class="factor-reason">${f.reason}</div>
+    </div>
+  `).join('');
+
+  let reasonsHtml = '';
+  if (score.recommendation_reasons && score.recommendation_reasons.length) {
+    const items = score.recommendation_reasons.map(r => `<li>${r}</li>`).join('');
+    reasonsHtml = `<div class="reason-title">推薦原因</div><ul class="reason-list">${items}</ul>`;
+  }
+
+  return `
+    <div class="detail-title">分數拆解(總分 ${score.total_score ?? '--'})</div>
+    <div class="factor-list">${factorsHtml}</div>
+    ${reasonsHtml}
+  `;
+}
+
+// ---------------------------------------------------------
+// 觀察清單。本機 localStorage 永遠是即時來源、離線也能動;
+// 如果下面設定了 Supabase,會盡力同步到雲端,失敗就悄悄退回本機資料,
+// 不是「保證跨裝置即時同步」(見 Phase 1 / MIGRATION_PLAN.md)。
+// ---------------------------------------------------------
+function getWatchlist() {
+  try { return JSON.parse(localStorage.getItem('myWatchlist') || '[]'); }
+  catch (e) { return []; }
+}
+function isInWatchlist(ticker) { return getWatchlist().includes(ticker); }
+function toggleWatchlist(ticker) {
+  const list = getWatchlist();
+  const idx = list.indexOf(ticker);
+  const adding = idx === -1;
+  if (adding) list.push(ticker); else list.splice(idx, 1);
+  localStorage.setItem('myWatchlist', JSON.stringify(list));
+  cloudSaveWatchlistToggle(ticker, adding);
+  renderWatchlistSection();
+  renderOpportunityRiskSummary();
+  return list.includes(ticker);
+}
+
+// ---------------------------------------------------------
+// Phase 1 雲端同步(Supabase)。見 MIGRATION_PLAN.md 第一階段、
+// supabase/schema.sql。這一層是「加強」不是「取代」——
+// 上面 getWatchlist/getAlerts/getPortfolioSettings 讀的永遠是 localStorage,
+// 這裡只負責背景把本機資料寫去 Supabase、以及開站時把雲端資料拉回本機。
+// 沒填 SUPABASE_URL/ANON_KEY 之前,sb 是 null,以下函式全部直接跳過,
+// 網站行為跟接雲端之前完全一樣。
+// ---------------------------------------------------------
+// 這把是 publishable key(新版命名,等同舊版 anon key),設計上就是要公開放在前端,
+// 真正的防線是資料表的 RLS policy(見 supabase/schema.sql),不是把金鑰藏起來。
+// 千萬不要換成 sb_secret_ 開頭那把——那把能繞過 RLS,不能出現在前端。
+const SUPABASE_URL = 'https://ldyhrumgdxfyrgyundix.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_HOAvwY9j1l0lbJZwxPQD5w_WnK6fi9H';
+
+// let 不是 const:測試環境需要在 eval 之後注入假的 client(見
+// tests/test_index_my_account_js.js 的 __setSb),生產環境不會有別的地方重新賦值。
+let sb = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+async function cloudSyncWatchlist() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('watchlist').select('code');
+    if (error) throw error;
+    if (Array.isArray(data)) {
+      localStorage.setItem('myWatchlist', JSON.stringify(data.map(r => r.code)));
+      renderWatchlistSection();
+      renderOpportunityRiskSummary();
+    }
+  } catch (e) {
+    console.warn('Watchlist 雲端同步失敗,使用本機資料:', e);
+  }
+}
+
+async function cloudSaveWatchlistToggle(ticker, adding) {
+  if (!sb) return;
+  try {
+    if (adding) await sb.from('watchlist').upsert({ code: ticker });
+    else await sb.from('watchlist').delete().eq('code', ticker);
+  } catch (e) {
+    console.warn('Watchlist 雲端寫入失敗,已寫入本機,稍後可能需要手動補同步:', e);
+  }
+}
+
+async function cloudSyncAlerts() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('alerts').select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    if (Array.isArray(data)) {
+      localStorage.setItem('myAlerts', JSON.stringify(data));
+      renderAlertCenter();
+    }
+  } catch (e) {
+    console.warn('Alerts 雲端同步失敗,使用本機資料:', e);
+  }
+}
+
+async function cloudSaveAlerts(list) {
+  if (!sb) return;
+  try {
+    // 警報筆數少(通常個位數),用「清空再整批寫入」保持雲端跟本機一致,
+    // 不做逐筆 diff——簡單、不容易錯,代價是離線時漏同步的那幾秒有機會被覆蓋,
+    // 這在單人使用的情境下可接受(見 schema.sql 的單人假設)。
+    await sb.from('alerts').delete().neq('id', '__never__');
+    if (list.length) await sb.from('alerts').insert(list);
+  } catch (e) {
+    console.warn('Alerts 雲端寫入失敗,已寫入本機,稍後可能需要手動補同步:', e);
+  }
+}
+
+// ---------------------------------------------------------
+// T6:交易帳本 · 成交對帳
+//
+// 資料直接從 Supabase 讀(trades / fills 對 anon 開放 select),
+// 不走 docs/*.json。理由:帳本是「發生過的事實」的累積,不是當天的衍生報告——
+// 塞進每日 JSON 會讓檔案無限長大,而且看的是快照不是現況。
+//
+// **這一區的重點不是列出交易,是對帳。**
+// 每一筆成交都帶著當天的市場區間(day_low/day_high),所以
+// 「這個價格當天真的出現過嗎」是可以直接驗的。先前那個 bug
+// (拿從沒成交過的價格算報酬)之所以能活很久,就是因為沒有這個東西。
+// ---------------------------------------------------------
+const LEDGER_LIMIT = 200;   // 只看最近這些筆。帳本會一直長,畫面不該跟著無限長
+
+function ledgerFillProblem(f) {
+  // 回傳問題描述,沒問題回 null。
+  // 舊資料沒有 day_low/day_high——那是「不知道」,不是「有問題」。
+  // 把兩者混為一談會讓整份歷史變紅字,真正的問題反而被淹沒。
+  if (f.day_low == null || f.day_high == null || f.price == null) return null;
+  const p = Number(f.price), lo = Number(f.day_low), hi = Number(f.day_high);
+  if (p >= lo && p <= hi) return null;
+  return `成交價 ${p} 不在當天區間 [${lo}, ${hi}] 內`;
+}
+
+function renderLedger(trades, fills) {
+  const main = document.getElementById('ledger-main');
+  const listEl = document.getElementById('ledger-list');
+  const emptyEl = document.getElementById('ledger-empty');
+  const sumEl = document.getElementById('ledger-summary');
+  if (!main || !listEl) return;
+
+  if (!trades || !trades.length) {
+    main.style.display = '';
+    listEl.innerHTML = '';
+    sumEl.innerHTML = '';
+    sumEl.className = 'ledger-summary';
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = '交易帳本目前是空的。pipeline 跑過且設定了寫入金鑰之後,'
+      + '每一筆模擬成交都會出現在這裡。';
+    return;
+  }
+
+  main.style.display = '';
+  emptyEl.style.display = 'none';
+
+  const byTrade = {};
+  for (const f of (fills || [])) {
+    (byTrade[f.trade_id] = byTrade[f.trade_id] || []).push(f);
+  }
+
+  let problemCount = 0;
+  let checkable = 0;
+  const rows = trades.map(t => {
+    const fs = (byTrade[t.trade_id] || []).slice()
+      .sort((a, b) => String(a.fill_date).localeCompare(String(b.fill_date)));
+
+    const fillHtml = fs.map(f => {
+      const problem = ledgerFillProblem(f);
+      if (f.day_low != null && f.day_high != null) checkable++;
+      if (problem) problemCount++;
+      const range = (f.day_low == null || f.day_high == null)
+        ? '<span class="ok">(當天區間未記錄)</span>'
+        : `當天 ${fmtIdx(Number(f.day_low))}–${fmtIdx(Number(f.day_high))}`;
+      const verdict = problem
+        ? `<span class="bad">✗ ${escapeHtml(problem)}</span>`
+        : (f.day_low == null ? '<span class="ok">—</span>' : '<span class="ok">✓ 對得上</span>');
+      return `<div class="ledger-fill">
+        <span>${f.side === 'buy' ? '買進' : '賣出'}</span>
+        <span>${escapeHtml(String(f.fill_date || ''))}</span>
+        <span>${fmtIdx(Number(f.price))} × ${fmtIdx(Number(f.shares))} 股 · ${range}
+              · 費用 ${fmtMoney(Number(f.fee || 0) + Number(f.tax || 0))}</span>
+        <span>${verdict}</span>
+      </div>`;
+    }).join('');
+
+    // 平均成本由 fills 現算,不讀 trades 上的欄位——
+    // 存兩份必然分岔,這個專案已經吃過一次虧。
+    const buys = fs.filter(f => f.side === 'buy');
+    const shares = buys.reduce((s, f) => s + Number(f.shares || 0), 0);
+    const avg = shares > 0
+      ? buys.reduce((s, f) => s + Number(f.price) * Number(f.shares), 0) / shares
+      : null;
+
+    const closed = !!t.exit_date;
+    const net = t.return_pct == null ? null : Number(t.return_pct);
+    const cls = net == null ? '' : (net >= 0 ? 'up' : 'down');
+
+    return `<details class="ledger-row">
+      <summary>
+        <span class="lg-name">${escapeHtml(t.name || t.ticker || '')}</span>
+        <span class="lg-meta">${escapeHtml(t.strategy || '')} · ${escapeHtml(String(t.entry_date || ''))}
+          ${closed ? '→ ' + escapeHtml(String(t.exit_date)) : '· 未平倉'}</span>
+        <span class="lg-ret ${cls}">${net == null ? '—' : fmtSigned(net)}</span>
+      </summary>
+      <div class="ledger-fills">
+        ${fillHtml || '<div class="ledger-fill"><span>(無成交紀錄)</span></div>'}
+        <div class="ledger-note">
+          平均買進成本 ${avg == null ? '—' : fmtIdx(avg)} 元(由成交紀錄以金額加權現算)
+          ${t.return_pct_gross == null ? '' :
+            ` · 未扣成本 ${fmtSigned(Number(t.return_pct_gross))} → 扣完 ${fmtSigned(net)}`}
+        </div>
+      </div>
+    </details>`;
+  }).join('');
+
+  listEl.innerHTML = rows;
+
+  // 摘要放最上面,而且要講「驗了幾筆」而不是只講「幾筆有問題」。
+  // 只報「0 筆異常」而不說有幾筆根本沒驗到,是用沉默把樣本數藏起來。
+  const skipped = (fills || []).length - checkable;
+  if (problemCount > 0) {
+    sumEl.className = 'ledger-summary has-problem';
+    sumEl.innerHTML = `<div class="big">⚠ ${problemCount} 筆成交的價格,當天市場上沒有出現過</div>
+      這代表那幾筆的報酬是憑空產生的,不能拿來評估策略。
+      展開下面對應的交易可以看到是哪一筆。
+      <br>已驗證 ${checkable} 筆成交${skipped > 0 ? `,另有 ${skipped} 筆因未記錄當天區間而無法驗證` : ''}。`;
+  } else {
+    sumEl.className = 'ledger-summary reconciled';
+    sumEl.innerHTML = `<div class="big">✓ 已驗證的 ${checkable} 筆成交,價格全部落在成交當天的市場區間內</div>
+      共 ${trades.length} 筆交易、${(fills || []).length} 筆成交。
+      ${skipped > 0 ? `其中 ${skipped} 筆是舊資料、沒有記錄當天區間,無法驗證——這不代表它們有問題,但也不代表沒有。` : ''}`;
+  }
+}
+
+async function loadLedger() {
+  const main = document.getElementById('ledger-main');
+  if (!sb || !main) return;   // 沒設定 Supabase 就整區不顯示,不留一塊空白讓人以為壞了
+  try {
+    const [tRes, fRes] = await Promise.all([
+      sb.from('trades').select('*').order('entry_date', { ascending: false }).limit(LEDGER_LIMIT),
+      sb.from('fills').select('*').limit(LEDGER_LIMIT * 3),
+    ]);
+    if (tRes.error) throw tRes.error;
+    if (fRes.error) throw fRes.error;
+    renderLedger(tRes.data || [], fRes.data || []);
+  } catch (e) {
+    console.warn('交易帳本讀取失敗:', e);
+    main.style.display = '';
+    document.getElementById('ledger-list').innerHTML = '';
+    document.getElementById('ledger-summary').innerHTML = '';
+    const emptyEl = document.getElementById('ledger-empty');
+    emptyEl.style.display = 'block';
+    // 明講「讀不到」而不是顯示「沒有交易」——後者會讓人以為系統沒在跑。
+    emptyEl.textContent = `交易帳本讀取失敗(${e.message || e})。這不影響其他區塊的資料。`;
+  }
+}
+
+async function cloudSyncPortfolio() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('portfolio_settings').select('*').eq('id', 1).maybeSingle();
+    if (error) throw error;
+    if (data) {
+      const { id, updated_at, ...settings } = data;
+      localStorage.setItem('myPortfolio', JSON.stringify(settings));
+      renderPortfolio();
+    }
+  } catch (e) {
+    console.warn('Portfolio 設定雲端同步失敗,使用本機資料:', e);
+  }
+}
+
+async function cloudSavePortfolio(settings) {
+  if (!sb) return;
+  try {
+    await sb.from('portfolio_settings').upsert({ id: 1, ...settings, updated_at: new Date().toISOString() });
+  } catch (e) {
+    console.warn('Portfolio 設定雲端寫入失敗,已寫入本機,稍後可能需要手動補同步:', e);
+  }
+}
+
+// ---------------------------------------------------------
+// M13:全市場搜尋索引(docs/index/stocks.json,約650檔輕量資料,
+// 只含代號/名稱/價格/分數/訊號,不含K線,確保載入快)
+// ---------------------------------------------------------
+let MARKET_INDEX = [];
+const MARKET_INDEX_BY_CODE = {};
+let marketIndexLoadFailed = false;
+
+async function loadMarketIndex() {
+  try {
+    const res = await fetch('./index/stocks.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    MARKET_INDEX = data.stocks || [];
+    MARKET_INDEX.forEach(s => { MARKET_INDEX_BY_CODE[s.code] = s; });
+  } catch (e) {
+    // 全市場索引抓不到不該讓整個網站掛掉——追蹤清單跟今日發現仍然是獨立的資料來源,
+    // 只是搜尋範圍會退回只剩追蹤清單,觀察清單裡「還沒查到資料」的項目會明確標示,而不是消失不見。
+    marketIndexLoadFailed = true;
+    console.warn('全市場搜尋索引讀取失敗,搜尋範圍將只限追蹤清單:', e);
+  }
+  renderWatchlistSection();
+  renderOpportunityRiskSummary();
+  renderAlertCenter();
+  renderPortfolio();   // 首頁的快速摘要要等索引載入完才算得出機會/警報數量
+  renderMyAccountPending();   // T7:待核准清單同樣要等索引載入完才有訊號可列
+}
+
+function searchMarketIndex(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const codeMatches = [];
+  const nameMatches = [];
+  for (const s of MARKET_INDEX) {
+    if (s.code.startsWith(q)) codeMatches.push(s);
+    else if (s.name.toLowerCase().includes(q)) nameMatches.push(s);
+  }
+  return codeMatches.concat(nameMatches).slice(0, 8);
+}
+
+function fmtChangePct(pct) {
+  if (pct === null || pct === undefined) return '';
+  const sign = pct >= 0 ? '+' : '';
+  return `<span class="chg ${pct >= 0 ? 'up' : 'down'}">${sign}${pct}%</span>`;
+}
+
+function renderSearchDropdown(query) {
+  const dropdown = document.getElementById('search-dropdown');
+  const q = query.trim();
+
+  if (!q) { dropdown.classList.remove('open'); dropdown.innerHTML = ''; return; }
+
+  if (marketIndexLoadFailed && MARKET_INDEX.length === 0) {
+    dropdown.innerHTML = '<div class="search-dropdown-note">全市場搜尋暫時無法使用,僅能在下方追蹤清單內搜尋。</div>';
+    dropdown.classList.add('open');
+    return;
+  }
+
+  const results = searchMarketIndex(q);
+  if (!results.length) {
+    dropdown.innerHTML = `<div class="search-dropdown-note">找不到符合「${q}」的股票(僅涵蓋成交量達門檻的上市普通股)。</div>`;
+    dropdown.classList.add('open');
+    return;
+  }
+
+  const watchlist = getWatchlist();
+  dropdown.innerHTML = results.map(s => {
+    const inList = watchlist.includes(s.ticker);
+    return `
+      <div class="search-result-item" data-code="${s.code}">
+        <div class="sr-mid">
+          <div class="sr-name">${s.name}</div>
+          <div class="sr-code">${s.ticker}</div>
+        </div>
+        <div class="sr-price">${s.close_price ?? '--'}${fmtChangePct(s.change_pct)}</div>
+        <button class="sr-add-btn${inList ? ' active' : ''}" data-ticker="${s.ticker}" title="加入觀察清單">${inList ? '✓' : '+'}</button>
+      </div>`;
+  }).join('');
+  dropdown.classList.add('open');
+}
+
+function closeSearchDropdown() {
+  document.getElementById('search-dropdown').classList.remove('open');
+}
+
+// ---------------------------------------------------------
+// M13:我的觀察清單獨立區塊 —— 可加入全市場任意股票,即有完整分析資料
+// ---------------------------------------------------------
+function renderWatchlistSection() {
+  const watchlist = getWatchlist();
+  const listEl = document.getElementById('watchlist-list');
+  const emptyEl = document.getElementById('watchlist-empty');
+
+  if (!watchlist.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  listEl.innerHTML = watchlist.map(ticker => {
+    const code = ticker.replace('.TW', '');
+    const s = MARKET_INDEX_BY_CODE[code];
+
+    if (!s) {
+      // 資料還沒抓到(索引載入失敗)或這檔不在分析範圍內(例如ETF、流動性不足)——
+      // 明確標示原因,而不是讓這個項目悄悄消失讓人以為加入失敗
+      const reason = marketIndexLoadFailed ? '索引讀取失敗,稍後重新整理再試' : '不在目前的分析範圍內(可能是ETF或成交量不足)';
+      return `
+        <div class="watchlist-item wl-unavailable">
+          <div class="wl-mid">
+            <div class="wl-name">${ticker}</div>
+            <div class="wl-unavailable-note">${reason}</div>
+          </div>
+          <button class="wl-remove" data-ticker="${ticker}" title="移除">✕</button>
+        </div>`;
+    }
+
+    return `
+      <a class="watchlist-item" href="./stock.html?code=${s.code}">
+        <div class="wl-mid">
+          <div class="wl-name">${s.name}</div>
+          <div class="wl-code">${s.ticker}${s.total_score !== null && s.total_score !== undefined ? ' · 分數 ' + Math.round(s.total_score) : ''}</div>
+        </div>
+        <div class="wl-price">${s.close_price ?? '--'}${fmtChangePct(s.change_pct)}</div>
+        <button class="wl-remove" data-ticker="${s.ticker}" title="移除">✕</button>
+      </a>`;
+  }).join('');
+}
+
+function applyFilters() {
+  const q = document.getElementById('search-box').value.trim().toLowerCase();
+  const onlyWatchlist = document.getElementById('watchlist-filter').checked;
+  const watchlist = getWatchlist();
+  const cards = document.querySelectorAll('#cards .card');
+  let visibleCount = 0;
+  cards.forEach(card => {
+    const matchSearch = !q || card.dataset.ticker.includes(q) || card.dataset.name.toLowerCase().includes(q);
+    const matchWatchlist = !onlyWatchlist || watchlist.includes(card.dataset.tickerOriginal);
+    const match = matchSearch && matchWatchlist;
+    card.classList.toggle('hidden', !match);
+    if (match) visibleCount++;
+  });
+  document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+// ---------------------------------------------------------
+// Phase 6(Decision Center)續:今日市場環境(Market Regime)
+// 跟個股卡片的結論橫幅是同一套視覺語言,但講的是「大盤」而不是單一股票——
+// 放在頁面最上方,使用者看個股訊號之前先知道今天整體環境是什麼樣子。
+// ---------------------------------------------------------
+function marketRegimeTone(mr) {
+  if (!mr || mr.trend === 'unknown') return 'watch';
+  if (mr.trend === 'bearish' && mr.volatility === 'high') return 'danger';
+  if (mr.trend === 'bearish') return 'caution';
+  if (mr.trend === 'bullish' && mr.volatility === 'high') return 'caution';
+  if (mr.trend === 'bullish') return 'go';
+  return 'watch'; // sideways
+}
+
+function buildMarketRegimeBanner(data) {
+  const el = document.getElementById('market-regime-banner');
+  const mr = data.market_regime;
+  if (!mr) { el.innerHTML = ''; return; }
+
+  const tone = marketRegimeTone(mr);
+  const mark = tone === 'go' ? '✓' : tone === 'danger' ? '⚠' : tone === 'caution' ? '!' : '·';
+  const reasonsHtml = (mr.reasons && mr.reasons.length)
+    ? `<span class="mr-reasons">${mr.reasons.join('; ')}</span>` : '';
+  const noteText = mr.risk_note ? mr.risk_note : (mr.trend === 'unknown' ? '指數資料不足,暫無法判斷今日市場環境。' : '');
+
+  el.innerHTML = `
+    <div class="conclusion-banner tone-${tone}">
+      <span class="mark voice">${mark}</span>
+      <span><span class="mr-label">今日市場環境:${mr.label}</span>${noteText}${reasonsHtml}</span>
+    </div>`;
+}
+
+// ---------------------------------------------------------
+// Phase 8續(M73):AI每日摘要——網站版。M64的LINE版留下「不出現在
+// 網站上」的缺口(見src/daily_digest_stage.py檔頭說明),這裡讀
+// docs/ai_digest.json(pipeline獨立Stage產生,今天就有)。
+//
+// status不是"ok"或沒有text時整個div留空、不佔位置——不像市場環境
+// 橫幅在資料不足時仍會顯示一行說明,這裡刻意更保守:AI沒有話可說時,
+// 安靜不出現比硬擠一句「AI暫時沒有話說」更不打擾使用者。
+// ---------------------------------------------------------
+function renderAiDigestBanner(digest) {
+  const el = document.getElementById('ai-digest-banner');
+  if (!el) return;
+  if (!digest || digest.status !== 'ok' || !digest.text) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `
+    <div class="conclusion-banner tone-watch">
+      <span class="mark voice">🤖</span>
+      <span><span class="ad-label">AI每日摘要:</span>${escapeHtml(digest.text)}</span>
+    </div>`;
+}
+
+// ---------------------------------------------------------
+// Phase 6(Decision Center)續:今日決策摘要(Today's Risk/Opportunity)
+// 機會:全市場約650檔裡,訊號分數最高的幾檔——不限於使用者的觀察清單,
+// 因為「今天全市場有什麼好機會」本來就該是全市場範圍的問題。
+// 風險:使用者觀察清單裡值得留意的股票——風險是跟「使用者持有/關注什麼」
+// 綁在一起才有意義,對全市場654檔都喊風險等於沒講。
+// 兩者都只用已經載入的 MARKET_INDEX / LAST_RENDER_DATA,不額外發請求。
+// ---------------------------------------------------------
+let LAST_RENDER_DATA = null;
+
+// ---------------------------------------------------------
+// 交易模式(M28)。規範第1節:不提供單一選股結果,而是依交易週期
+// 套用不同的模型與標準。使用者選了模式之後,「今日機會」的排序與
+// 篩選都改用該模式的分數與硬性條件。
+//
+// 模式定義在 config/settings.yaml,前端只保留顯示用的文案——
+// 參數的單一事實來源在後端,前端不重複定義一份會漂移的副本。
+// ---------------------------------------------------------
+const MODE_DISPLAY = {
+  short_term: { name: '短線交易', desc: '1～10個交易日。看動能、量能與趨勢強度,基本面權重低。', meta: '止損2-3% · 停利4-8% · RR≥1:2' },
+  swing:      { name: '波段交易', desc: '2～12週。趨勢與基本面並重,容忍較大波動換取較大報酬。', meta: '止損3-5% · 停利10-20% · RR≥1:3' },
+};
+
+function getActiveMode() {
+  const saved = localStorage.getItem('myTradingMode');
+  return MODE_DISPLAY[saved] ? saved : 'short_term';
+}
+
+function setActiveMode(mode) {
+  if (!MODE_DISPLAY[mode]) return;
+  localStorage.setItem('myTradingMode', mode);
+  renderModePicker();
+  renderOpportunityRiskSummary();
+  renderPortfolio();
+}
+
+function renderModePicker() {
+  const el = document.getElementById('mode-picker');
+  if (!el) return;
+  const active = getActiveMode();
+  el.innerHTML = Object.entries(MODE_DISPLAY).map(([key, d]) => `
+    <button class="mode-card${key === active ? ' active' : ''}" data-mode="${key}">
+      <div class="mc-name">${d.name}</div>
+      <div class="mc-desc">${d.desc}</div>
+      <div class="mc-meta">${d.meta}</div>
+    </button>`).join('');
+}
+
+function modeScoreOf(stock, mode) {
+  const m = stock.modes && stock.modes[mode];
+  return m && m.score !== null && m.score !== undefined ? m.score : null;
+}
+
+function computeTopOpportunities(limit = 5) {
+  const mode = getActiveMode();
+
+  // 舊版索引沒有 modes 欄位時退回原本的 total_score 排序——
+  // 網站不該因為資料還沒重新產生就整個空掉。
+  const hasModeData = MARKET_INDEX.some(s => s.modes && s.modes[mode]);
+  if (hasModeData) {
+    return MARKET_INDEX
+      .filter(s => {
+        const m = s.modes && s.modes[mode];
+        if (!m || m.score === null || m.score === undefined) return false;
+        if (m.pass === false) return false;           // 未通過該模式的硬性篩選
+        return s.health_status !== 'weak';
+      })
+      .sort((a, b) => modeScoreOf(b, mode) - modeScoreOf(a, mode))
+      .slice(0, limit);
+  }
+  return computeTopOpportunitiesLegacy(limit);
+}
+
+function computeTopOpportunitiesLegacy(limit = 5) {
+  return MARKET_INDEX
+    .filter(s => (s.breakout_signal || s.pullback_signal)
+      && s.health_status !== 'weak'
+      && s.total_score !== null && s.total_score !== undefined)
+    .sort((a, b) => (b.total_score || 0) - (a.total_score || 0))
+    .slice(0, limit);
+}
+
+function computeWatchlistRisks() {
+  const risks = [];
+  getWatchlist().forEach(ticker => {
+    const s = MARKET_INDEX_BY_CODE[ticker.replace('.TW', '')];
+    if (!s) return;
+    const reasons = [];
+    if (s.health_status === 'weak') reasons.push('基本面轉弱');
+    if (s.change_pct !== null && s.change_pct !== undefined && s.change_pct <= -5) {
+      reasons.push(`單日跌幅達${s.change_pct}%`);
+    }
+    if (reasons.length) risks.push({ stock: s, reasons });
+  });
+  return risks;
+}
+
+function buildOpportunityItem(s, mode) {
+  const badges = [];
+  if (s.breakout_signal) badges.push('突破');
+  if (s.pullback_signal) badges.push('拉回');
+  // 有模式分數就顯示模式分數(那才是這份清單的排序依據),
+  // 舊版索引沒有時退回綜合分數,不會變成空白。
+  const ms = mode ? modeScoreOf(s, mode) : null;
+  const scoreText = ms !== null ? `${MODE_DISPLAY[mode].name}評分 ${Math.round(ms)}`
+                                : `分數 ${Math.round(s.total_score)}`;
+  return `
+    <a class="watchlist-item" href="./stock.html?code=${s.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${s.name}</div>
+        <div class="wl-code">${s.ticker} · ${scoreText}${badges.length ? ' · ' + badges.join('/') : ''}</div>
+      </div>
+      <div class="wl-price">${s.close_price ?? '--'}${fmtChangePct(s.change_pct)}</div>
+    </a>`;
+}
+
+function buildNearMissItem(c) {
+  const kindLabel = c.kind === 'breakout' ? '突破' : '拉回';
+  return `
+    <a class="watchlist-item" href="./stock.html?code=${c.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${c.name}</div>
+        <div class="wl-code">${c.ticker}<span class="wl-nm-badge">差${c.distance_pct}%到${kindLabel}訊號</span></div>
+      </div>
+      <div class="wl-price">${c.close_price ?? '--'}</div>
+    </a>`;
+}
+
+function buildRiskItem({ stock, reasons }) {
+  return `
+    <a class="watchlist-item decision-risk-item" href="./stock.html?code=${stock.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${stock.name}</div>
+        <div class="wl-code">${stock.ticker}</div>
+        <div class="wl-reason">${reasons.join('、')}</div>
+      </div>
+      <div class="wl-price">${stock.close_price ?? '--'}${fmtChangePct(stock.change_pct)}</div>
+    </a>`;
+}
+
+function renderOpportunityRiskSummary() {
+  const oppList = document.getElementById('opportunity-list');
+  const oppEmpty = document.getElementById('opportunity-empty');
+  const riskList = document.getElementById('risk-list');
+  const riskEmpty = document.getElementById('risk-empty');
+  const marketNoteEl = document.getElementById('risk-market-note');
+  if (!oppList || !riskList) return;
+
+  const mode = getActiveMode();
+  const modeInfo = MODE_DISPLAY[mode];
+  const banner = document.getElementById('decision-mode-banner');
+  if (banner && modeInfo) {
+    banner.innerHTML = `<div class="mode-banner">目前使用「${modeInfo.name}」的標準篩選與排序:${modeInfo.meta}。
+      未通過該模式硬性條件(趨勢強度、量能確認)的股票不會出現在下方清單。到總覽頁可切換模式。</div>`;
+  }
+
+  const opportunities = computeTopOpportunities();
+  oppList.innerHTML = opportunities.map(s => buildOpportunityItem(s, mode)).join('');
+  oppEmpty.style.display = opportunities.length ? 'none' : 'block';
+
+  // UI_SPEC 第三項:訊號0檔時顯示near_miss清單,取代純空白畫面。
+  // 用 opportunities.length(前端自己算出來的今日機會數)當開關,不依賴
+  // near_miss.json 裡的 total_signals_today——那個數字只是給人工核對用,
+  // 兩邊萬一算出不同答案時,畫面該不該顯示由前端這份「使用者實際看到的」為準。
+  const nmBlock = document.getElementById('near-miss-block');
+  const nmList = document.getElementById('near-miss-list');
+  if (nmBlock && nmList) {
+    const candidates = (LAST_NEAR_MISS && LAST_NEAR_MISS.candidates) || [];
+    const showNearMiss = opportunities.length === 0 && candidates.length > 0;
+    nmBlock.style.display = showNearMiss ? 'block' : 'none';
+    if (showNearMiss) nmList.innerHTML = candidates.map(buildNearMissItem).join('');
+  }
+
+  const risks = computeWatchlistRisks();
+  riskList.innerHTML = risks.map(buildRiskItem).join('');
+
+  const mr = LAST_RENDER_DATA && LAST_RENDER_DATA.market_regime;
+  const tone = mr ? marketRegimeTone(mr) : null;
+  const showMarketNote = !!(mr && mr.risk_note && (tone === 'danger' || tone === 'caution'));
+  marketNoteEl.innerHTML = showMarketNote
+    ? `<div class="conclusion-banner tone-${tone}" style="margin-bottom:0.8rem;">
+        <span class="mark voice">${tone === 'danger' ? '⚠' : '!'}</span>
+        <span>大盤層級:${mr.risk_note}</span></div>`
+    : '';
+
+  riskEmpty.style.display = (risks.length || showMarketNote) ? 'none' : 'block';
+}
+
+// ---------------------------------------------------------
+// Phase 6(Decision Center)續:警報中心(Alert Center,M22)
+//
+// 跟「今日決策摘要」的分工:那邊是系統依固定規則(有訊號、非轉弱、依分數排序)
+// 挑給你看的,規則寫死在程式裡;這邊是使用者自己定義的條件,系統只負責每天
+// 比對並告訴你哪些成立了。兩者都在回答「今天我需要知道什麼」,但來源不同。
+//
+// 跟觀察清單一樣以 localStorage 為即時來源;Phase 1 起如果設定了 Supabase
+// (見 MASTER_PLAN.md 架構決策 A、MIGRATION_PLAN.md 第一階段),會盡力同步到雲端,
+// 但那是「背景加強」,不是保證——網站沒有後端排程,不會主動幫你在雲端評估警報。
+//
+// 警報只在「打開網站時」比對,不是推播——靜態網站沒有背景執行的能力,
+// 說成「即時提醒」會是誇大功能,這件事 Phase 1 之後也還是一樣。
+// ---------------------------------------------------------
+const ALERT_TYPES = {
+  price_above:  { label: '價格突破',     needsValue: true,  unit: '元' },
+  price_below:  { label: '價格跌破',     needsValue: true,  unit: '元' },
+  drop_pct:     { label: '單日跌幅達',   needsValue: true,  unit: '%' },
+  signal:       { label: '出現進場訊號', needsValue: false, unit: '' },
+  health_weak:  { label: '基本面轉弱',   needsValue: false, unit: '' },
+};
+
+function getAlerts() {
+  try {
+    const list = JSON.parse(localStorage.getItem('myAlerts') || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+
+function saveAlerts(list) {
+  localStorage.setItem('myAlerts', JSON.stringify(list));
+  cloudSaveAlerts(list);
+}
+
+function alertConditionText(alert) {
+  const t = ALERT_TYPES[alert.type];
+  if (!t) return alert.type;
+  return t.needsValue ? `${t.label} ${alert.value}${t.unit}` : t.label;
+}
+
+function addAlert(code, type, value) {
+  code = (code || '').trim().replace('.TW', '');
+  const typeDef = ALERT_TYPES[type];
+  if (!code) return { ok: false, error: '請輸入股票代號。' };
+  if (!typeDef) return { ok: false, error: '不支援的警報類型。' };
+
+  const stock = MARKET_INDEX_BY_CODE[code];
+  if (!stock) {
+    // 不擋下來但要講清楚——索引還沒載入完成、或這檔不在分析範圍內(ETF/成交量不足),
+    // 兩種情況原因不同,不要含糊地說「找不到」讓人以為是自己打錯代號。
+    const reason = marketIndexLoadFailed
+      ? '全市場索引讀取失敗,請稍後重新整理再試。'
+      : `找不到代號 ${code},可能是打錯,或這檔不在分析範圍內(ETF、成交量不足)。`;
+    return { ok: false, error: reason };
+  }
+
+  if (typeDef.needsValue) {
+    const num = parseFloat(value);
+    if (!isFinite(num) || num <= 0) return { ok: false, error: `「${typeDef.label}」需要填入大於0的數值。` };
+    value = num;
+  } else {
+    value = null;
+  }
+
+  const list = getAlerts();
+  const duplicate = list.some(a => a.code === code && a.type === type && a.value === value);
+  if (duplicate) return { ok: false, error: '這個警報已經設定過了。' };
+
+  list.push({
+    id: `${code}-${type}-${Date.now()}`,
+    code,
+    ticker: stock.ticker,
+    name: stock.name,
+    type,
+    value,
+  });
+  saveAlerts(list);
+  return { ok: true };
+}
+
+function removeAlert(id) {
+  saveAlerts(getAlerts().filter(a => a.id !== id));
+}
+
+function evaluateAlerts() {
+  // 回傳已觸發的警報(附上「為什麼觸發」的白話說明)。
+  // 索引還沒載入時查不到該檔資料,該筆警報當天就不評估——不知道現況
+  // 就不該說「沒觸發」,那跟「確認過沒觸發」是兩件事。
+  const fired = [];
+  getAlerts().forEach(alert => {
+    const s = MARKET_INDEX_BY_CODE[alert.code];
+    if (!s) return;
+
+    let hit = false;
+    let reason = '';
+
+    if (alert.type === 'price_above') {
+      if (s.close_price !== null && s.close_price !== undefined && s.close_price >= alert.value) {
+        hit = true;
+        reason = `收盤 ${s.close_price} 元,已達設定的 ${alert.value} 元`;
+      }
+    } else if (alert.type === 'price_below') {
+      if (s.close_price !== null && s.close_price !== undefined && s.close_price <= alert.value) {
+        hit = true;
+        reason = `收盤 ${s.close_price} 元,已跌破設定的 ${alert.value} 元`;
+      }
+    } else if (alert.type === 'drop_pct') {
+      if (s.change_pct !== null && s.change_pct !== undefined && s.change_pct <= -Math.abs(alert.value)) {
+        hit = true;
+        reason = `今日下跌 ${s.change_pct}%,已達設定的 ${alert.value}%`;
+      }
+    } else if (alert.type === 'signal') {
+      if (s.breakout_signal || s.pullback_signal) {
+        hit = true;
+        const names = [];
+        if (s.breakout_signal) names.push('突破型');
+        if (s.pullback_signal) names.push('拉回型');
+        reason = `今日觸發${names.join('、')}進場訊號`;
+      }
+    } else if (alert.type === 'health_weak') {
+      if (s.health_status === 'weak') {
+        hit = true;
+        reason = '基本面健康度已轉為「轉弱」';
+      }
+    }
+
+    if (hit) fired.push({ alert, stock: s, reason });
+  });
+  return fired;
+}
+
+function buildFiredAlertItem({ alert, stock, reason }) {
+  return `
+    <a class="watchlist-item alert-fired-item" href="./stock.html?code=${stock.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${stock.name}</div>
+        <div class="wl-code">${stock.ticker} · ${alertConditionText(alert)}</div>
+        <div class="wl-reason">${reason}</div>
+      </div>
+      <div class="wl-price">${stock.close_price ?? '--'}${fmtChangePct(stock.change_pct)}</div>
+    </a>
+  `;
+}
+
+function buildAlertRuleItem(alert) {
+  return `
+    <div class="alert-rule-item">
+      <div class="ar-mid">
+        <div class="ar-name">${alert.name || alert.ticker}</div>
+        <div class="ar-cond">${alert.code} · ${alertConditionText(alert)}</div>
+      </div>
+      <button class="ar-remove" data-alert-id="${alert.id}" title="刪除警報">✕</button>
+    </div>
+  `;
+}
+
+function renderAlertCenter() {
+  const firedList = document.getElementById('alert-fired-list');
+  const firedEmpty = document.getElementById('alert-fired-empty');
+  const ruleList = document.getElementById('alert-rule-list');
+  const ruleEmpty = document.getElementById('alert-rule-empty');
+  if (!firedList || !ruleList) return;
+
+  const fired = evaluateAlerts();
+  firedList.innerHTML = fired.map(buildFiredAlertItem).join('');
+  firedEmpty.style.display = fired.length ? 'none' : 'block';
+
+  const alerts = getAlerts();
+  ruleList.innerHTML = alerts.map(buildAlertRuleItem).join('');
+  ruleEmpty.style.display = alerts.length ? 'none' : 'block';
+}
+
+function showAlertError(message) {
+  const el = document.getElementById('alert-error');
+  if (!el) return;
+  el.textContent = message || '';
+  el.style.display = message ? 'block' : 'none';
+}
+
+function handleAddAlert() {
+  const codeEl = document.getElementById('alert-code');
+  const typeEl = document.getElementById('alert-type');
+  const valueEl = document.getElementById('alert-value');
+
+  const result = addAlert(codeEl.value, typeEl.value, valueEl.value);
+  if (!result.ok) { showAlertError(result.error); return; }
+
+  showAlertError('');
+  codeEl.value = '';
+  valueEl.value = '';
+  renderAlertCenter();
+}
+
+// ---------------------------------------------------------
+// 結論生成:綜合訊號+健康度,先講結論
+// ---------------------------------------------------------
+function buildConclusion(s) {
+  const signal = s.breakout_signal || s.pullback_signal;
+  const health = (s.health && s.health.status) || 'unknown';
+  const healthLabel = (s.health && s.health.label) || '資料不足';
+
+  if (signal) {
+    const structureType = s.breakout_signal ? '突破結構' : '拉回結構';
+    if (health === 'healthy') {
+      return { tone: 'go', mark: '✓', text: `${structureType}成立,基本面健康(${healthLabel})—— 具備進場條件,可參考建議進場價分批布局。` };
+    }
+    if (health === 'weak') {
+      return { tone: 'caution', mark: '!', text: `${structureType}成立,但基本面轉弱(${healthLabel})—— 建議保守看待,嚴設停損。` };
+    }
+    return { tone: 'caution', mark: '!', text: `${structureType}成立,基本面${healthLabel}—— 請自行評估基本面風險再決定是否進場。` };
+  }
+
+  if (s.watch) {
+    const distB = s.watch.distance_to_breakout_pct;
+    if (distB !== null && distB !== undefined && distB <= 5) {
+      return { tone: 'watch', mark: '·', text: `尚無訊號,距突破觸發價僅剩 ${distB}% —— 值得持續追蹤。` };
+    }
+    if (s.watch.pullback_zone_low) {
+      return { tone: 'watch', mark: '·', text: `尚無訊號,關注拉回區間 ${s.watch.pullback_zone_low} ~ ${s.watch.pullback_zone_high} —— 持續觀察是否進入。` };
+    }
+  }
+  return { tone: 'watch', mark: '·', text: '尚無訊號,目前不建議進場,持續觀察中。' };
+}
+
+// ---------------------------------------------------------
+// M4/M8:回測明細文字(勝率/平均報酬 + Sharpe/最大回撤等進階指標)
+// ---------------------------------------------------------
+function fmtBacktestLine(label, bt) {
+  if (!bt || !bt.signal_count) {
+    return `${label}:歷史訊號不足,暫無回測數據`;
+  }
+  const parts = [
+    `<b>${bt.signal_count}次</b>`,
+    `勝率<b>${bt.win_rate ?? '--'}%</b>`,
+    `平均<b>${bt.avg_return ?? '--'}%</b>`,
+  ];
+  if (bt.sharpe_ratio !== null && bt.sharpe_ratio !== undefined) parts.push(`Sharpe<b>${bt.sharpe_ratio}</b>`);
+  if (bt.max_drawdown_pct !== null && bt.max_drawdown_pct !== undefined) parts.push(`最大回撤<b>${bt.max_drawdown_pct}%</b>`);
+  if (bt.profit_factor !== null && bt.profit_factor !== undefined) parts.push(`Profit Factor<b>${bt.profit_factor}</b>`);
+  return `${label}:${parts.join('、')}`;
+}
+
+function buildStockCard(s, index, chartPrefix, holdDays) {
+  const dir = s.change >= 0 ? 'up' : 'down';
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.ticker = s.ticker.toLowerCase();
+  card.dataset.name = s.name;
+  card.dataset.tickerOriginal = s.ticker;
+
+  const health = s.health || { status: 'unknown', label: '資料不足' };
+  const inWatchlist = isInWatchlist(s.ticker);
+  const conclusion = buildConclusion(s);
+
+  let healthDetail = '';
+  if (health.revenue_growth_pct !== undefined && health.revenue_growth_pct !== null) {
+    healthDetail = ` <span style="color:var(--text-muted);font-size:10px;">(營收年增 ${health.revenue_growth_pct}%)</span>`;
+  }
+
+  let discoveryBadge = '';
+  if (s.discovery_reason) {
+    const r = s.discovery_reason;
+    const parts = [];
+    if (r.change_pct_on_scan_day !== undefined) parts.push(`掃描當日+${r.change_pct_on_scan_day}%`);
+    if (r.revenue_yoy !== null && r.revenue_yoy !== undefined) parts.push(`營收年增${r.revenue_yoy}%`);
+    if (parts.length) discoveryBadge = `<span class="discovery-badge">${parts.join(' · ')}</span>`;
+  }
+
+  let badges = '';
+  if (s.breakout_signal) badges += '<span class="badge active-breakout">突破結構</span>';
+  if (s.pullback_signal) badges += '<span class="badge active-pullback">拉回結構</span>';
+  if (!s.breakout_signal && !s.pullback_signal) badges += '<span class="badge">無訊號</span>';
+
+  let watchHtml = '';
+  if (s.watch && !s.breakout_signal && !s.pullback_signal) {
+    watchHtml = `
+      <div class="detail-title">進場監控</div>
+      <div class="sub-section">
+        <div>突破觸發價 <span class="val">${s.watch.breakout_trigger_price}</span>(還差 <span class="val">${s.watch.distance_to_breakout_pct}%</span>)</div>
+        ${s.watch.pullback_zone_low ? `<div>拉回關注區 <span class="val">${s.watch.pullback_zone_low} ~ ${s.watch.pullback_zone_high}</span></div>` : ''}
+      </div>`;
+  }
+
+  let rsHtml = '';
+  if (s.relative_strength_twii || s.relative_strength_sox) {
+    let rows = '';
+    if (s.relative_strength_twii) {
+      const r = s.relative_strength_twii.relative_strength_pct;
+      rows += `<div>對大盤 <span class="val" style="color:${r>=0?'var(--pnl-up)':'var(--pnl-down)'}">${r>=0?'+':''}${r}%</span></div>`;
+    }
+    if (s.relative_strength_sox) {
+      const r = s.relative_strength_sox.relative_strength_pct;
+      rows += `<div>對費半 <span class="val" style="color:${r>=0?'var(--pnl-up)':'var(--pnl-down)'}">${r>=0?'+':''}${r}%</span></div>`;
+    }
+    rsHtml = `<div class="detail-title">相對強弱(近20日)</div><div class="rs-row">${rows}</div>`;
+  }
+
+  const bo = s.backtest.breakout;
+  const pb = s.backtest.pullback;
+  const backtestHtml = `
+    <div class="detail-title">歷史回測(持有${holdDays}天)</div>
+    <div class="backtest-note">${fmtBacktestLine('突破型', bo)}</div>
+    <div class="backtest-note">${fmtBacktestLine('拉回型', pb)}</div>`;
+
+  const factorBreakdownHtml = buildFactorBreakdown(s.score);
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-head-left">
+        <h2>${s.name}</h2>
+        <span class="ticker-code">${s.ticker}</span>
+      </div>
+      <div class="card-head-right">
+        ${buildScoreBadge(s.score)}
+        <button class="star-btn${inWatchlist ? ' active' : ''}" data-ticker="${s.ticker}">
+          ${inWatchlist ? '★ 已加入' : '☆ 加入觀察清單'}
+        </button>
+      </div>
+    </div>
+
+    <div class="conclusion-banner tone-${conclusion.tone}">
+      <span class="mark voice">${conclusion.mark}</span>
+      <span>${conclusion.text}</span>
+    </div>
+
+    ${buildRiskWarnings(s.score)}
+
+    <div class="key-numbers">
+      <div class="kn"><span class="kn-label">收盤價</span><span class="kn-val close">${s.close_price}</span></div>
+      <div class="kn"><span class="kn-label">進場參考</span><span class="kn-val entry">${s.verified_entry_price}</span></div>
+      <div class="kn"><span class="kn-label">停損(${s.stop_loss_pct}%)</span><span class="kn-val stop">${s.stop_loss}</span></div>
+      <div class="kn"><span class="kn-label">停利1倍</span><span class="kn-val target">${s.take_profit_1x}</span></div>
+      <div class="kn"><span class="kn-label">停利1.5倍</span><span class="kn-val target">${s.take_profit_1_5x}</span></div>
+    </div>
+
+    <div class="badges">${badges}<span class="health-badge ${healthClass(health.status)}">健康度:${health.label}${healthDetail}</span>${discoveryBadge}</div>
+
+    <div class="chart-legend">
+      <span><i class="dot" style="background:#3FA66B"></i>進場價</span>
+      <span><i class="dot" style="background:#E0473F"></i>停損</span>
+      <span><i style="background:rgba(63,166,107,0.35)"></i>停利區</span>
+      <span><i style="background:rgba(224,71,63,0.35)"></i>風險區</span>
+    </div>
+    <div class="chart-wrap"><canvas id="${chartPrefix}-${index}" role="img" aria-label="${s.name}K線圖,含進場價、停損停利區間"></canvas></div>
+
+    <div class="stats-row">
+      <span>RSI14 <span class="val">${s.rsi ?? '--'}</span></span>
+      <span>量能倍數 <span class="val">${s.vol_ratio ?? '--'}</span></span>
+    </div>
+
+    ${backtestHtml}
+    ${(watchHtml || rsHtml || factorBreakdownHtml) ? `
+    <details class="card-details">
+      <summary><span>展開詳情 · 監控條件/相對強弱/分數拆解</span><span class="chevron">▾</span></summary>
+      <div class="card-details-body">
+        ${watchHtml}
+        ${rsHtml}
+        ${factorBreakdownHtml}
+      </div>
+    </details>` : ''}
+    <a class="detail-link" href="./stock.html?code=${s.ticker.replace('.TW','')}">
+      <span>查看完整分析 · 全部績效指標與策略說明</span><span class="arrow">→</span>
+    </a>
+  `;
+
+  const ctx = card.querySelector(`#${chartPrefix}-${index}`);
+  const candleData = s.history.map(h => ({
+    x: new Date(h.date + 'T00:00:00').getTime(),
+    o: h.open, h: h.high, l: h.low, c: h.close,
+  }));
+
+  const entryPrice = s.verified_entry_price;
+  const stopPrice = s.stop_loss;
+  const targetPrice = s.take_profit_1x;
+  const target15xPrice = s.take_profit_1_5x;
+
+  new Chart(ctx, {
+    type: 'candlestick',
+    data: {
+      datasets: [{
+        label: s.name,
+        data: candleData,
+        color: { up: '#3FA66B', down: '#E0473F', unchanged: '#9C9A93' },
+        borderColor: { up: '#3FA66B', down: '#E0473F', unchanged: '#9C9A93' },
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true },
+        annotation: {
+          annotations: {
+            entryLine: {
+              type: 'line', yMin: entryPrice, yMax: entryPrice,
+              borderColor: '#3FA66B', borderWidth: 1, borderDash: [4, 3],
+              label: {
+                display: true, content: `進場 ${entryPrice}`, position: 'start',
+                backgroundColor: 'rgba(63,166,107,0.85)', color: '#000', font: { size: 9, weight: '500' },
+                padding: { x: 4, y: 1 },
+              },
+            },
+            stopLine: {
+              type: 'line', yMin: stopPrice, yMax: stopPrice,
+              borderColor: '#E0473F', borderWidth: 1, borderDash: [4, 3],
+              label: {
+                display: true, content: `停損 ${stopPrice}`, position: 'start',
+                backgroundColor: 'rgba(224,71,63,0.85)', color: '#000', font: { size: 9, weight: '500' },
+                padding: { x: 4, y: 1 },
+              },
+            },
+            // 首頁卡片同步補上停利1x/1.5x線,跟 stock.html 的 renderChart() 一致——
+            // 兩份實作各自獨立(沒有共用模組),同一個視覺語言只能兩邊各改一次維持一致。
+            target1xLine: {
+              type: 'line', yMin: targetPrice, yMax: targetPrice,
+              borderColor: '#3FA66B', borderWidth: 1, borderDash: [2, 2],
+              label: {
+                display: true, content: `停利1x ${targetPrice}`, position: 'end',
+                backgroundColor: 'rgba(63,166,107,0.85)', color: '#000', font: { size: 9, weight: '500' },
+                padding: { x: 4, y: 1 },
+              },
+            },
+            target15xLine: {
+              type: 'line', yMin: target15xPrice, yMax: target15xPrice,
+              borderColor: '#CBBFA8', borderWidth: 1, borderDash: [2, 2],
+              label: {
+                display: true, content: `停利1.5x ${target15xPrice}`, position: 'end',
+                backgroundColor: 'rgba(203,191,168,0.9)', color: '#000', font: { size: 9, weight: '500' },
+                padding: { x: 4, y: 1 },
+              },
+            },
+            rewardZone: {
+              type: 'box', yMin: entryPrice, yMax: targetPrice,
+              backgroundColor: 'rgba(63,166,107,0.08)', borderWidth: 0,
+            },
+            extendedRewardZone: {
+              type: 'box', yMin: targetPrice, yMax: target15xPrice,
+              backgroundColor: 'rgba(203,191,168,0.06)', borderWidth: 0,
+            },
+            riskZone: {
+              type: 'box', yMin: stopPrice, yMax: entryPrice,
+              backgroundColor: 'rgba(224,71,63,0.08)', borderWidth: 0,
+            },
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'week' },
+          display: true,
+          grid: { display: false },
+          ticks: { color: '#63615A', font: { size: 9 }, maxRotation: 0 },
+        },
+        y: {
+          display: true,
+          position: 'right',
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#63615A', font: { size: 10 } },
+        }
+      }
+    }
+  });
+
+  return card;
+}
+
+// ---------------------------------------------------------
+// M7/M8:資料狀態徽章(串接標準化 metadata)
+// ---------------------------------------------------------
+// 錯誤訊息來自後端(裡面可能有 URL、例外文字),塞進 title 屬性前要跳脫。
+// 這裡不是理論上的謹慎:錯誤訊息裡出現一個引號就會把 title 屬性提前關掉,
+// 後面的內容變成一堆亂七八糟的 HTML 屬性。
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function buildMetadataBadge(metadata, watchlistSource) {
+  if (!metadata) return '';
+  const labelMap = { ok: '正常', partial: '部分缺漏', failed: '執行失敗', empty: '無資料' };
+  const classMap = { ok: 'healthy', partial: 'watch', failed: 'weak', empty: 'unknown' };
+  const label = labelMap[metadata.status] || metadata.status;
+  const cls = classMap[metadata.status] || 'unknown';
+  let html = `<span class="health-badge ${cls} meta-status-badge">資料狀態:${label}(${metadata.total_succeeded}/${metadata.total_tracked})</span>`;
+
+  // T3:雲端追蹤清單今天讀到了沒有。
+  //
+  // 少了這一塊,「雲端掛了」跟「你本來就沒加股票」在畫面上都是「無資料(0/0)」,
+  // 完全分不出來——後端好不容易把狀態算出來寫進 JSON,前端不顯示就等於沒做。
+  // 只在**異常**時顯示:正常運作的東西不需要占用畫面,一直亮著的警示等於沒有警示。
+  if (watchlistSource && watchlistSource.cloud === 'unreachable') {
+    html += `<span class="health-badge weak meta-status-badge"
+      title="今天沒讀到雲端清單,顯示的是設定檔裡的清單。原因:${escapeHtml(watchlistSource.error || '未知')}"
+      >雲端清單未讀取</span>`;
+  }
+  return html;
+}
+
+// ---------------------------------------------------------
+// M8→視覺優化:Strategy Dashboard —— 列出註冊策略 + 跨追蹤清單的回測表現彙總
+// ---------------------------------------------------------
+function strategyLabel(name) {
+  return { breakout: '突破型', pullback: '拉回型' }[name] || name;
+}
+
+function strategyVisual(name) {
+  // 圖示+色系跟個股卡片上的badge是同一套語言(突破=綠、拉回=金),
+  // 未來新增策略時,不認得的名字會退回中性灰色,不會誤套用到現有配色上。
+  if (name === 'breakout') return { icon: '▲', accent: 'accent-breakout', iconClass: 'icon-breakout', barColor: 'var(--success)' };
+  if (name === 'pullback') return { icon: '↺', accent: 'accent-pullback', iconClass: 'icon-pullback', barColor: 'var(--gold)' };
+  return { icon: '●', accent: 'accent-other', iconClass: 'icon-other', barColor: 'var(--text-muted)' };
+}
+
+function winRateTier(rate) {
+  if (rate === null || rate === undefined) return 'none';
+  if (rate >= 60) return 'high';
+  if (rate >= 40) return 'mid';
+  return 'low';
+}
+
+function buildStrategyDashboard(data) {
+  const dashboardMain = document.getElementById('strategy-dashboard-main');
+  const container = document.getElementById('strategy-cards');
+  const strategiesInfo = data.strategies;
+  const stocks = data.stocks || [];
+
+  if (!strategiesInfo || !strategiesInfo.length) {
+    dashboardMain.style.display = 'none';
+    return;
+  }
+  dashboardMain.style.display = '';
+  container.innerHTML = '';
+
+  strategiesInfo.forEach(strat => {
+    const perStockBt = stocks
+      .map(s => s.backtest && s.backtest[strat.name])
+      .filter(bt => bt && bt.signal_count > 0 && bt.win_rate !== null && bt.win_rate !== undefined);
+
+    // 注意:目前後端只有breakout_signal/pullback_signal兩個明確欄位(對應現有兩個策略)。
+    // 這裡刻意用明確比對而非「非breakout就當pullback」的二分法,萬一未來新增第三個策略,
+    // 在後端補上對應欄位之前,新策略會正確顯示「今日觸發0檔」而不是被誤算進pullback_signal裡。
+    const activeToday = stocks.filter(s => {
+      if (strat.name === 'breakout') return s.breakout_signal;
+      if (strat.name === 'pullback') return s.pullback_signal;
+      return false;
+    }).length;
+
+    const visual = strategyVisual(strat.name);
+
+    let winRateNum, winRateDisplay, totalSignalsDisplay, sharpeDisplay, sharpeClass;
+    if (perStockBt.length) {
+      winRateNum = perStockBt.reduce((sum, bt) => sum + bt.win_rate, 0) / perStockBt.length;
+      winRateDisplay = winRateNum.toFixed(1) + '%';
+      totalSignalsDisplay = perStockBt.reduce((sum, bt) => sum + bt.signal_count, 0);
+
+      const sharpeVals = perStockBt.map(bt => bt.sharpe_ratio).filter(v => v !== null && v !== undefined);
+      const avgSharpe = sharpeVals.length ? sharpeVals.reduce((a, b) => a + b, 0) / sharpeVals.length : null;
+      sharpeDisplay = avgSharpe !== null ? avgSharpe.toFixed(2) : '--';
+      sharpeClass = avgSharpe === null ? '' : (avgSharpe >= 0 ? 'positive' : 'negative');
+    } else {
+      winRateNum = null;
+      winRateDisplay = '--';
+      totalSignalsDisplay = '樣本不足';
+      sharpeDisplay = '--';
+      sharpeClass = '';
+    }
+
+    const tier = winRateTier(winRateNum);
+    const activePct = stocks.length ? Math.round((activeToday / stocks.length) * 100) : 0;
+
+    const riskClass = { low: 'risk-low', medium: 'risk-medium', high: 'risk-high' }[strat.risk_level] || '';
+    const paramsText = Object.entries(strat.parameters || {}).map(([k, v]) => `${k}=${v}`).join('、');
+
+    const card = document.createElement('div');
+    card.className = `strategy-card ${visual.accent}`;
+    card.innerHTML = `
+      <div class="strategy-card-head">
+        <div class="strategy-card-head-left">
+          <div class="strategy-icon ${visual.iconClass}">${visual.icon}</div>
+          <div>
+            <h3>${strategyLabel(strat.name)}</h3>
+            <div class="strategy-meta">
+              <span class="risk-badge ${riskClass}">風險:${strat.risk_level || '未知'}</span>
+              <span class="risk-badge">v${strat.version}</span>
+            </div>
+          </div>
+        </div>
+        <div class="winrate-badge tier-${tier}">
+          <span class="num">${winRateDisplay}</span>
+          <span class="lbl">平均勝率</span>
+        </div>
+      </div>
+
+      <div class="desc">${strat.description || ''}</div>
+
+      <div class="strategy-active-row">
+        <div class="row-top"><span>今日觸發</span><span class="val">${activeToday}/${stocks.length}</span></div>
+        <div class="strategy-active-bar-track">
+          <div class="strategy-active-bar-fill" style="width:${activePct}%;background:${visual.barColor}"></div>
+        </div>
+      </div>
+
+      <div class="strategy-mini-stats">
+        <div>歷史訊號數<span class="val">${totalSignalsDisplay}</span></div>
+        <div>平均Sharpe<span class="val ${sharpeClass}">${sharpeDisplay}</span></div>
+      </div>
+
+      ${paramsText ? `<div class="strategy-params">參數:${paramsText}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ---------------------------------------------------------
+// Phase 6(Decision Center)最後一塊:Economic Calendar(M24)
+//
+// Market Regime 講「今天環境長怎樣」、今日決策摘要講「今天看哪幾檔」、
+// 警報中心講「你設的條件成立了沒」——都是「今天」。這裡補上時間維度:
+// 接下來有哪些已知的日子會影響盤面。
+//
+// 三種資料來源的可靠度不同,所以每一條都標註出來:
+//   statutory   法規推算(月營收10日、財報各季期限)——最穩,不依賴任何API
+//   market_data 證交所抓取(除權息集中日)——真實資料
+//   manual      人工維護的設定——會過期,所以另外有狀態提示
+// ---------------------------------------------------------
+const CAL_SOURCE_LABELS = {
+  statutory: '法規推算',
+  market_data: '證交所資料',
+  manual: '人工設定',
+};
+
+function daysUntilText(isoDate, todayIso) {
+  const target = new Date(isoDate + 'T00:00:00');
+  const today = new Date((todayIso || isoDate) + 'T00:00:00');
+  const diff = Math.round((target - today) / 86400000);
+  if (diff <= 0) return '今天';
+  if (diff === 1) return '明天';
+  return `${diff} 天後`;
+}
+
+function buildCalendarItem(event, todayIso) {
+  const [, mm, dd] = event.date.split('-');
+  const target = new Date(event.date + 'T00:00:00');
+  const today = new Date((todayIso || event.date) + 'T00:00:00');
+  const diff = Math.round((target - today) / 86400000);
+  const soon = diff <= 7 ? ' cal-soon' : '';
+  const srcLabel = CAL_SOURCE_LABELS[event.source_type] || event.source_type || '';
+
+  return `
+    <div class="cal-item${soon}">
+      <div class="cal-date">
+        <span class="cal-md">${mm}/${dd}</span>
+        <span class="cal-in">${daysUntilText(event.date, todayIso)}</span>
+      </div>
+      <div class="cal-body">
+        <div class="cal-title">${event.title}</div>
+        ${event.note ? `<div class="cal-note">${event.note}</div>` : ''}
+        <div class="cal-tags">
+          <span class="cal-tag cat">${event.category}</span>
+          <span class="cal-tag src-${event.source_type}">${srcLabel}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderEconomicCalendar(cal) {
+  const main = document.getElementById('calendar-main');
+  if (!main) return;
+  if (!cal) { main.style.display = 'none'; return; }
+  main.style.display = '';
+
+  const listEl = document.getElementById('calendar-list');
+  const emptyEl = document.getElementById('calendar-empty');
+  const noticeEl = document.getElementById('calendar-notice');
+
+  const events = cal.events || [];
+  listEl.innerHTML = events.map(e => buildCalendarItem(e, cal.generated_for_date)).join('');
+  emptyEl.style.display = events.length ? 'none' : 'block';
+
+  // 人工維護的資料一定會過期,系統要主動講,不是等使用者自己發現
+  // 行事曆好幾個月沒有新東西。
+  const status = cal.manual_events_status || {};
+  if (status.message) {
+    const cls = status.status === 'stale' || status.status === 'error' ? ' stale' : '';
+    noticeEl.innerHTML = `<div class="cal-notice${cls}">${status.message}</div>`;
+  } else {
+    noticeEl.innerHTML = '';
+  }
+}
+
+// ---------------------------------------------------------
+// Paper Trading / Live Validation(paper_trading.json,Phase 3續,M21)
+// 刻意重用strategyVisual()/winRateTier()/strategyLabel()跟策略儀表板卡片
+// 同一套視覺語言(色系/勝率徽章分級)——同一個「勝率」概念沒理由在
+// 網站兩個地方長得不一樣,使用者不用重新理解一套新符號。
+// ---------------------------------------------------------
+function exitReasonBadge(reason) {
+  const map = {
+    stop_loss: ['risk-badge risk-high', '停損出場'],
+    take_profit_1x: ['risk-badge risk-low', '停利出場'],
+    time_exit: ['risk-badge', '持有到期'],
+  };
+  const [cls, label] = map[reason] || ['risk-badge', reason || '未知'];
+  return `<span class="${cls}">${label}</span>`;
+}
+
+function buildPaperTradingCard(strategyName, stat) {
+  const visual = strategyVisual(strategyName);
+  const tier = winRateTier(stat.win_rate_pct);
+  const fmtPct = (v) => v === null || v === undefined ? '--' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+  const liveWinDisplay = stat.win_rate_pct !== null && stat.win_rate_pct !== undefined ? stat.win_rate_pct.toFixed(1) + '%' : '--';
+  const liveReturnClass = stat.avg_return_pct === null || stat.avg_return_pct === undefined ? '' : (stat.avg_return_pct >= 0 ? 'positive' : 'negative');
+  const btWinDisplay = stat.avg_backtest_win_rate_at_entry !== null && stat.avg_backtest_win_rate_at_entry !== undefined ? stat.avg_backtest_win_rate_at_entry.toFixed(1) + '%' : '--';
+
+  const card = document.createElement('div');
+  card.className = `strategy-card ${visual.accent}`;
+  card.innerHTML = `
+    <div class="strategy-card-head">
+      <div class="strategy-card-head-left">
+        <div class="strategy-icon ${visual.iconClass}">${visual.icon}</div>
+        <div>
+          <h3>${strategyLabel(strategyName)}</h3>
+          <div class="strategy-meta">
+            <span class="risk-badge">已平倉 ${stat.n_closed} 筆</span>
+          </div>
+        </div>
+      </div>
+      <div class="winrate-badge tier-${tier}">
+        <span class="num">${liveWinDisplay}</span>
+        <span class="lbl">實盤勝率</span>
+      </div>
+    </div>
+
+    <div class="desc">${stat.reason || '從訊號觸發當天的建議進場價開始逐日累積的模擬結果,不是回頭挑選過的歷史區間。'}</div>
+
+    <div class="strategy-mini-stats">
+      <div>實盤平均報酬<span class="val ${liveReturnClass}">${fmtPct(stat.avg_return_pct)}</span></div>
+      <div>回測宣稱勝率<span class="val">${btWinDisplay}</span></div>
+      <div>回測宣稱報酬<span class="val">${fmtPct(stat.avg_backtest_avg_return_at_entry)}</span></div>
+    </div>
+    <!-- T1:這兩個數字的基準不同,不講清楚會被誤讀成「策略衰退」。
+         實盤已扣成本、回測還沒扣,兩者天生差一個來回成本(約1.2個百分點)。
+         直接把差距寫出來,比讓人自己去猜為什麼實盤總是輸可靠得多。 -->
+    <div class="desc" style="margin-top:.5rem;font-size:11.5px;">
+      注意:<b>實盤平均報酬已扣交易成本,回測宣稱報酬尚未扣</b>。
+      兩者天生就差一個來回成本(約 1.2 個百分點),
+      實盤數字略低於回測是預期中的,不等於策略衰退。
+    </div>
+  `;
+  return card;
+}
+
+function buildPtPositionItem(pos, isOpen) {
+  const pct = isOpen ? pos.unrealized_return_pct : pos.return_pct;
+  const hasPct = pct !== null && pct !== undefined;
+  const pctClass = hasPct ? (pct >= 0 ? 'up' : 'down') : '';
+  const pctDisplay = hasPct ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '--';
+  const badge = isOpen
+    ? `<span class="risk-badge">${strategyLabel(pos.strategy)} · 第${pos.days_held}/${pos.max_hold_days}天</span>`
+    : exitReasonBadge(pos.exit_reason);
+
+  return `
+    <a class="watchlist-item" href="./stock.html?code=${pos.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${pos.name || pos.ticker}</div>
+        <div class="wl-code">${pos.code} · ${isOpen ? '進場 ' + pos.entry_date : '出場 ' + pos.exit_date}</div>
+        <div style="margin-top:5px;">${badge}</div>
+      </div>
+      <div class="wl-price">
+        <span class="${pctClass}">${pctDisplay}</span>
+        <span class="chg">${isOpen ? '未實現' : '已實現'}</span>
+      </div>
+    </a>
+  `;
+}
+
+function renderPaperTrading(pt) {
+  const main = document.getElementById('paper-trading-main');
+  if (!main) return;
+  if (!pt) { main.style.display = 'none'; return; }
+  main.style.display = '';
+
+  const cardContainer = document.getElementById('pt-strategy-cards');
+  cardContainer.innerHTML = '';
+  ['breakout', 'pullback'].forEach(name => {
+    const stat = pt.by_strategy && pt.by_strategy[name];
+    if (stat) cardContainer.appendChild(buildPaperTradingCard(name, stat));
+  });
+
+  const openList = document.getElementById('pt-open-list');
+  const openEmpty = document.getElementById('pt-open-empty');
+  const opens = pt.open_positions || [];
+  openList.innerHTML = opens.map(p => buildPtPositionItem(p, true)).join('');
+  openEmpty.style.display = opens.length ? 'none' : 'block';
+
+  const closedList = document.getElementById('pt-closed-list');
+  const closedEmpty = document.getElementById('pt-closed-empty');
+  const closedPositions = pt.recent_closed_positions || [];
+  closedList.innerHTML = closedPositions.map(p => buildPtPositionItem(p, false)).join('');
+  closedEmpty.style.display = closedPositions.length ? 'none' : 'block';
+}
+
+// ---------------------------------------------------------
+// 我的模擬資產(Portfolio,M25)
+//
+// 架構分層(這是這個功能最重要的設計決定):
+//   Python 層 = 「發生了哪些交易」。對全市場所有訊號開倉,不受資金限制,
+//               因為策略驗證要的是完整樣本。這是客觀的、所有人一樣的。
+//   前端這一層 = 「那是多少錢」。你的本金、風險偏好、手續費設定以
+//               localStorage 為即時來源,不會被 commit 進 repo;Phase 1 起
+//               如果設定了 Supabase 會盡力同步備份,但不影響上面那層的驗證統計。
+//
+// 資金有限時挑哪幾檔:依「進場當下」的綜合分數由高到低填補空位
+// (用 score_at_entry 而不是今天的分數——事後用今天的分數去挑當初該買哪檔,
+//  那是未來資訊,會讓回放結果好看到不真實)。
+//
+// 部位大小:固定風險%。每筆最多虧掉本金的 riskPct%,依該檔停損距離反推股數。
+// 台股零股可交易,所以算到「股」不湊整張。
+// ---------------------------------------------------------
+const PORTFOLIO_DEFAULTS = {
+  capital: 500000,      // 本金(元)
+  riskPct: 2,           // 每筆最多虧掉本金的百分之多少
+  maxPositions: 10,     // 同時最多持有幾檔
+  feeBuyPct: 0.1425,    // 買進手續費%(台股公定,券商常有折扣,可自行調低)
+  feeSellPct: 0.1425,   // 賣出手續費%
+  taxSellPct: 0.3,      // 賣出證交稅%(台股現股)
+  feeMin: 20,           // 單筆最低手續費(元)。台股公定未滿20元以20元計收;
+                        // 多數券商折扣後最低1元,用哪個要看你的券商,填錯會讓小額部位的成本失真。
+  enabled: false,       // 使用者還沒設定過本金時不顯示金額,避免用預設值假裝是他的錢
+};
+
+// 同時最多持有幾檔的合理上限。跟 HTML input 的 max 必須一致——
+// 只在 HTML 設 max 是擋不住的(使用者可以貼值、也可以是舊資料),
+// 真正的防線要寫在 JS 這一層。
+const MAX_POSITIONS_LIMIT = 100;
+
+// ---------------------------------------------------------
+// 台股交易成本。兩件事會讓「金額不準」,兩件都要處理:
+//
+// 1. 最低手續費:公定費率 0.1425%,但未滿 20 元以 20 元計收。
+//    這對零股/小額部位影響極大——買 1000 元的零股,照比例算手續費是 1.4 元,
+//    實際卻要付 20 元,佔成本 2%。不處理的話小額回測會樂觀到不能看。
+// 2. 進位:手續費與證交稅都以整數元計收,不是小數。
+//
+// 券商折扣後最低手續費常見是 1 元,所以做成可設定(feeMin),不是寫死 20。
+// ---------------------------------------------------------
+function tradingFee(gross, pct, feeMin) {
+  const raw = Math.floor(gross * (pct / 100));    // 手續費取整數元
+  const min = isFinite(feeMin) && feeMin >= 0 ? feeMin : 0;
+  return Math.max(min, raw);
+}
+
+function transactionTax(gross, pct) {
+  return Math.floor(gross * (pct / 100));         // 證交稅同樣取整數元
+}
+
+function getPortfolioSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('myPortfolio') || '{}');
+    const merged = { ...PORTFOLIO_DEFAULTS, ...(saved && typeof saved === 'object' ? saved : {}) };
+
+    // 讀取時也要鉗制,不能只靠存檔時把關:舊資料可能是在還沒有上限的版本存的
+    // (實際發生過,存進了 maxPositions: 5000)。設定值不合法時安靜修正成合法值,
+    // 總比拿一個假的上限去算一整份損益好。
+    merged.maxPositions = Math.min(
+      MAX_POSITIONS_LIMIT,
+      Math.max(1, Math.round(Number(merged.maxPositions) || PORTFOLIO_DEFAULTS.maxPositions))
+    );
+    if (!isFinite(merged.feeMin) || merged.feeMin < 0) merged.feeMin = PORTFOLIO_DEFAULTS.feeMin;
+
+    return merged;
+  } catch (e) { return { ...PORTFOLIO_DEFAULTS }; }
+}
+
+function savePortfolioSettings(settings) {
+  localStorage.setItem('myPortfolio', JSON.stringify(settings));
+  cloudSavePortfolio(settings);
+}
+
+function fmtMoney(v) {
+  if (v === null || v === undefined || !isFinite(v)) return '--';
+  return Math.round(v).toLocaleString('zh-TW');
+}
+
+function positionShares(capitalAtEntry, entryPrice, stopLoss, riskPct, cashAvailable, settings, dailyCapacityTwd) {
+  // 固定風險%:每股風險 = 進場價 - 停損價。能買的股數 = 可承受虧損 / 每股風險。
+  // 再受限於「手上還有多少現金」——算得出來不代表買得起。
+  const riskPerShare = entryPrice - stopLoss;
+  if (!(riskPerShare > 0) || !(entryPrice > 0)) return 0;
+  const riskBudget = capitalAtEntry * (riskPct / 100);
+  const byRisk = Math.floor(riskBudget / riskPerShare);
+
+  // 現金上限要把手續費算進去,否則會出現「買完現金變負數」——
+  // 那等於偷偷用了融資,回測結果會比實際好。先抓一個不含費的上限,
+  // 再往下修到「連手續費一起付得出來」為止。
+  const feeBuyPct = settings ? settings.feeBuyPct : 0;
+  const feeMin = settings ? settings.feeMin : 0;
+  let byCash = Math.floor(cashAvailable / entryPrice);
+  while (byCash > 0) {
+    const gross = byCash * entryPrice;
+    if (gross + tradingFee(gross, feeBuyPct, feeMin) <= cashAvailable) break;
+    byCash--;
+  }
+
+  // Phase 4(投資組合風控)最後一項:流動性上限。dailyCapacityTwd是這檔
+  // 股票「粗估一天大約能吃下多少資金,而不至於自己的買單把成交金額墊
+  // 出去太多」(見src/analytics/report_metrics.py的capacity_estimate(),
+  // 用近期成交金額中位數 × 參與率,參與率是config/settings.yaml的
+  // capacity_participation_rate_pct,不是這裡臨時發明的數字)。
+  //
+  // 用的是「現在」查到的容量去套在這一筆(可能是歷史上的)進場,是刻意
+  // 的簡化——沒有逐日的歷史容量快照可查。這樣做寧可在流動性真的變差的
+  // 個股上偏保守一點,也不假裝精確到「進場那一天」的真實容量。
+  // dailyCapacityTwd是null/undefined(例如該股當時抓不到成交量)時不設
+  // 這道上限,不因為索引缺欄位就誤擋原本有效的交易。
+  let byCapacity = Infinity;
+  if (dailyCapacityTwd != null && dailyCapacityTwd > 0) {
+    byCapacity = Math.floor(dailyCapacityTwd / entryPrice);
+  }
+
+  return Math.max(0, Math.min(byRisk, byCash, byCapacity));
+}
+
+// ---------------------------------------------------------
+// Phase 4(投資組合風控)續:Portfolio Heat + Market Regime 連動曝險建議
+//
+// positionShares() 已經用 riskPct% 限制「單筆」風險,但那管不到「全部同時
+// 出事」的情況——尤其大盤系統性下跌時,持有的股票反而最容易一起觸發停損,
+// 機率不是零。Portfolio Heat 算的就是這個:如果手上每一筆未平倉部位
+// 「同時」都跌到停損價,總共會虧掉本金的百分之多少。
+//
+// 上限刻意不用某個憑感覺訂的產業慣例數字(例如常聽到的「總風險不超過20%」),
+// 而是直接從使用者自己設定的 riskPct × maxPositions 推出來——這是使用者
+// 已經同意的「每筆最多虧多少、最多同時開幾筆」兩個數字的自然乘積,不是
+// 另外發明一個新門檻要使用者重新理解。
+// ---------------------------------------------------------
+function computePortfolioHeat(openHoldings, capital) {
+  if (!(capital > 0)) return null;
+  let totalRisk = 0;
+  for (const h of (openHoldings || [])) {
+    const entryPrice = h.entry_price;
+    const stopLoss = h.stop_loss;
+    if (!(entryPrice > 0) || !(stopLoss > 0) || !(h.shares > 0)) continue;
+    // 已經跌破停損卻還沒平倉(例如當天資料還沒更新)不會倒扣出負風險,下限取0
+    const riskPerShare = Math.max(0, entryPrice - stopLoss);
+    totalRisk += h.shares * riskPerShare;
+  }
+  return (totalRisk / capital) * 100;
+}
+
+// 依今日大盤環境(Market Regime)建議把曝險上限打幾折。
+// 這裡只給「建議」,不會自動改變已經算好的部位大小——加碼與否是使用者的
+// 決定,系統只負責在危險的環境組合下明講「現在不是加碼的時候」。
+function marketRegimeExposureAdjustment(mr) {
+  if (!mr || mr.trend === 'unknown') return { factor: 1.0, note: null };
+  const bearish = mr.trend === 'bearish';
+  const highVol = mr.volatility === 'high';
+  if (bearish && highVol) {
+    return {
+      factor: 0.5,
+      note: '今天空頭+高波動同時出現,建議把下面的曝險上限打對折——這是這套風控會給的最保守建議,不是加碼危險的時候。',
+    };
+  }
+  if (bearish) {
+    return { factor: 0.8, note: '大盤偏空,建議把曝險上限打8折,保留更多現金應對後續下跌。' };
+  }
+  if (highVol) {
+    return { factor: 0.8, note: '波動偏高,建議把曝險上限打8折,單筆進出的滑價與跳空風險都比平常大。' };
+  }
+  return { factor: 1.0, note: null };
+}
+
+// ---------------------------------------------------------
+// Phase 4(投資組合風控)續:產業集中度
+//
+// 產業別查表用的是全市場搜尋索引(MARKET_INDEX_BY_CODE,見上方 M13 區塊)
+// 裡的 industry_name 欄位——頁面載入時本來就會抓這份索引做搜尋用,這裡
+// 直接查表不用再發一次請求。資料來源與代碼對照表見
+// src/data/industry_classification.py 檔頭(2026-08-18 查證)。
+//
+// 50% 這條警戒線本身就是字面意義的「過半數」,不是另外調查出來的
+// 業界慣例數字——單一產業占比過半,代表那個產業出事時虧的不會只是一筆。
+// ---------------------------------------------------------
+const INDUSTRY_CONCENTRATION_WARN_PCT = 50;
+
+function computeIndustryConcentration(openHoldings) {
+  const byIndustry = new Map();
+  let totalValue = 0;
+  for (const h of (openHoldings || [])) {
+    const idxEntry = (typeof MARKET_INDEX_BY_CODE !== 'undefined') ? MARKET_INDEX_BY_CODE[h.code] : null;
+    const name = (idxEntry && idxEntry.industry_name) || '未分類';
+    const value = h.value || 0;
+    byIndustry.set(name, (byIndustry.get(name) || 0) + value);
+    totalValue += value;
+  }
+  const rows = [...byIndustry.entries()].map(([industryName, value]) => ({
+    industry: industryName,
+    value,
+    pct: totalValue > 0 ? (value / totalValue) * 100 : 0,
+  }));
+  rows.sort((a, b) => b.value - a.value);
+  return rows;
+}
+
+// ---------------------------------------------------------
+// Phase 4(投資組合風控)續:相關係數矩陣
+//
+// 產業集中度管的是「帳面上分類成不同產業」,但同產業以外的股票也可能
+// 漲跌高度連動(例如上下游關係、同受匯率影響的出口股)——分屬不同產業、
+// 實際上卻是同一個風險來源,產業集中度看不出來,相關係數才看得出來。
+//
+// 用每檔股票 docs/stocks/<code>.json 裡現有的 history(近60個交易日
+// 收盤價,legacy_analyzer.py 輸出)換算日報酬率,兩兩配對算 Pearson 相關係數。
+// 對齊方式用「日期交集」,不假設兩檔股票的交易日曆完全對應——這跟
+// src/analytics 算 alpha/beta 用的是同一個原則(見 tests/test_benchmark.py
+// 情境4:不同交易日曆只取交集,不強行套用不對齊的資料)。
+// 重疊天數門檻(20天)也直接沿用該處的判斷,不是另外發明的數字。
+// ---------------------------------------------------------
+const MIN_OVERLAP_DAYS_FOR_CORRELATION = 20;
+// |r| >= 0.7 是統計學教科書常見的「高度相關」門檻,不是本站發明的業務規則。
+const HIGH_CORRELATION_THRESHOLD = 0.7;
+
+function dailyReturnsByDate(history) {
+  const map = new Map();
+  const sorted = (history || []).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (let i = 1; i < sorted.length; i++) {
+    const prevClose = sorted[i - 1].close;
+    const close = sorted[i].close;
+    if (!(prevClose > 0) || !(close > 0)) continue;
+    map.set(sorted[i].date, (close - prevClose) / prevClose);
+  }
+  return map;
+}
+
+function pearsonCorrelation(returnsA, returnsB) {
+  const dates = [...returnsA.keys()].filter(d => returnsB.has(d));
+  const n = dates.length;
+  if (n < MIN_OVERLAP_DAYS_FOR_CORRELATION) return null;   // 樣本太少,係數沒有統計意義
+
+  const xs = dates.map(d => returnsA.get(d));
+  const ys = dates.map(d => returnsB.get(d));
+  const meanX = xs.reduce((a, b) => a + b, 0) / n;
+  const meanY = ys.reduce((a, b) => a + b, 0) / n;
+
+  let cov = 0, varX = 0, varY = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - meanX;
+    const dy = ys[i] - meanY;
+    cov += dx * dy;
+    varX += dx * dx;
+    varY += dy * dy;
+  }
+  if (varX === 0 || varY === 0) return null;   // 其中一檔近期完全沒波動,相關係數沒有意義
+  return cov / Math.sqrt(varX * varY);
+}
+
+function computeCorrelationMatrix(histories) {
+  // histories: [{code, history}]。回傳所有配對的 {codeA, codeB, correlation}
+  // (n檔部位共 n*(n-1)/2 對),correlation 可能是 null(樣本不足或零波動)。
+  const returnsByCode = new Map(histories.map(h => [h.code, dailyReturnsByDate(h.history)]));
+  const codes = histories.map(h => h.code);
+  const pairs = [];
+  for (let i = 0; i < codes.length; i++) {
+    for (let j = i + 1; j < codes.length; j++) {
+      pairs.push({
+        codeA: codes[i],
+        codeB: codes[j],
+        correlation: pearsonCorrelation(returnsByCode.get(codes[i]), returnsByCode.get(codes[j])),
+      });
+    }
+  }
+  return pairs;
+}
+
+function renderCorrelationHtml(pairs, nameByCode) {
+  if (!pairs.length) return '';
+  const valid = pairs.filter(p => p.correlation !== null);
+  if (!valid.length) {
+    return `<p class="pf-note">目前持股天數不足,無法計算相關係數(至少需要${MIN_OVERLAP_DAYS_FOR_CORRELATION}個重疊交易日)。</p>`;
+  }
+  const sorted = valid.slice().sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+  const label = (code) => nameByCode[code] || code;
+  const rows = sorted.slice(0, 5).map(p => `
+    <div class="pf-corr-row">
+      <span>${label(p.codeA)} × ${label(p.codeB)}</span>
+      <span class="${Math.abs(p.correlation) >= HIGH_CORRELATION_THRESHOLD ? 'down' : ''}">${p.correlation.toFixed(2)}</span>
+    </div>`).join('');
+
+  const top = sorted[0];
+  const warn = Math.abs(top.correlation) >= HIGH_CORRELATION_THRESHOLD
+    ? `<p class="pf-note warn">${label(top.codeA)} 跟 ${label(top.codeB)} 的相關係數達 ${top.correlation.toFixed(2)},漲跌幾乎連動——同時持有兩者,分散效果有限,等於變相集中在同一個風險來源。</p>`
+    : '';
+
+  return `<div class="pf-corr"><h4 class="decision-subhead">持股相關性(近60個交易日)</h4>${rows}</div>${warn}`;
+}
+
+// 用持股組合(排序後的代號清單)當快取 key,避免每次 renderPortfolio() 都
+// 重新對外抓取——renderPortfolio() 會在切分頁、存設定等情境下頻繁重跑,
+// 但持股組合沒變時,相關係數的計算結果也不會變。
+let _correlationCacheKey = null;
+// 遞增序號,只有「目前全域最新一次發出的請求」能真的寫入畫面(見下方函式內說明)。
+let _correlationRequestSeq = 0;
+
+async function renderPortfolioCorrelation(openHoldings) {
+  const container = document.getElementById('pf-correlation');
+  if (!container) return;
+
+  const codes = (openHoldings || []).map(h => h.code).sort();
+  if (codes.length < 2) {
+    container.innerHTML = '';
+    _correlationCacheKey = null;
+    return;
+  }
+
+  const key = codes.join(',');
+  if (_correlationCacheKey === key) return;   // 畫面已經是這組持股的結果,不重算不重抓
+
+  // 2026-08-18 修正:原本只靠比對 key 判斷「結果是否過期」,但這樣防不住
+  // 三個以上請求交錯的情況——例如 A(舊)→B(新)→A(又一次,LAST_PAPER_TRADING
+  // 還沒變前被其他非同步流程重新觸發)依序發出,B 的 fetch 比較慢,最後一個
+  // resolve 的反而是第二個 A,它的 key 剛好又等於自己出發時的 key,
+  // 會被誤判成「還是最新的」而把 B 的結果蓋回去。改用嚴格遞增的 requestId,
+  // 不管幾個請求怎麼交錯完成,只有「目前全域最新一次發出的請求」能真的寫畫面。
+  const requestId = ++_correlationRequestSeq;
+  container.innerHTML = '<p class="pf-note">正在計算持股相關性…</p>';
+
+  const nameByCode = {};
+  (openHoldings || []).forEach(h => { nameByCode[h.code] = h.name || h.ticker; });
+
+  const histories = await Promise.all(codes.map(async (code) => {
+    const stock = (typeof fetchStockJson === 'function') ? await fetchStockJson(code) : null;
+    return { code, history: (stock && stock.history) || [] };
+  }));
+
+  // 等待抓取期間如果又發出了更新的請求,這次結果已經過期,不能蓋掉新畫面
+  if (requestId !== _correlationRequestSeq) return;
+  _correlationCacheKey = key;
+
+  const pairs = computeCorrelationMatrix(histories);
+  container.innerHTML = renderCorrelationHtml(pairs, nameByCode);
+}
+
+// ---------------------------------------------------------
+// T7:我的模擬帳戶(逐筆核准)——「我的資產」分頁
+//
+// 跟上面(下面 simulatePortfolio,現在放在「策略與驗證」的個人資金模擬回放)
+// 是兩回事:那裡100%自動,量的是策略本身;這裡進場要你逐筆核准,量的是
+// 你的決策品質。資料寫在 Supabase 的 my_positions 表(見
+// supabase/schema_my_account.sql),anon可讀寫,信任模型比照 watchlist——
+// 單人使用,還沒有登入系統(2026-08-17 跟使用者確認過,不做真登入)。
+//
+// 狀態機:pending_entry(核准了,排隊等下一個交易日的K棒判定成不成交)
+//        → open(成交)→ closed(平倉,含排隊時沒成交的 unfilled)。
+// 這是刻意跟後端 queue_pending_entries()/resolve_pending_entries() 對齊的
+// T+1 設計——核准當下(訊號日)只能記錄「想用什麼價格買」,不能當天就假裝
+// 成交,不然手動帳戶會重演一次 P0-21 的 look-ahead bug,只是換個地方發生。
+// ---------------------------------------------------------
+
+let LAST_MY_POSITIONS = [];
+
+async function fetchStockJson(code) {
+  try {
+    const res = await fetch(`./stocks/${code}.json?t=` + Date.now());
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.stock ? data.stock : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function _nextBarAfter(history, date) {
+  // history 是 legacy_analyzer.py 輸出的 {date, open, high, low, close} 陣列,
+  // 依日期由舊到新。找「訊號日之後,第一個有資料的交易日」——這就是後端
+  // resolve_pending_entries() 講的「下一個有資料的交易日」,道理相同:
+  // 訊號當天收盤後盤已經走完,不可能回頭在當天成交。
+  const after = (history || []).filter(h => h.date > date).sort((a, b) => a.date < b.date ? -1 : 1);
+  return after.length ? after[0] : null;
+}
+
+function myPositionKey(ticker, signalDate) {
+  return `${ticker}|${signalDate}`;
+}
+
+// ---- 待核准清單 ----
+
+function computeMyPendingCandidates() {
+  // 跟「今日決策」的 computeTopOpportunities() 不一樣:那裡只列前5檔、
+  // 套用交易模式的硬性篩選,是「系統推薦」;這裡要讓使用者自己看到「今天
+  // 全部觸發中的訊號」再決定核不核准,不能先幫他篩掉——核准與否本來就是
+  // 要把判斷權交還給使用者。
+  const existingKeys = new Set(
+    (LAST_MY_POSITIONS || [])
+      .filter(p => p.status !== 'closed' || p.signal_date)
+      .map(p => myPositionKey(p.ticker, p.signal_date))
+  );
+  return MARKET_INDEX
+    .filter(s => (s.breakout_signal || s.pullback_signal) && s.health_status !== 'weak')
+    .filter(s => !existingKeys.has(myPositionKey(s.ticker, TODAY_STR())))
+    .sort((a, b) => (b.total_score || 0) - (a.total_score || 0))
+    .slice(0, 30);
+}
+
+function TODAY_STR() {
+  // 用瀏覽器當地日期,跟其他前端邏輯(alerts/watchlist)一致,不特別處理時區——
+  // 這是「使用者今天看到訊號、按下核准」的日期,不是伺服器的資料日期。
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function buildMyPendingItem(s) {
+  const badges = [];
+  if (s.breakout_signal) badges.push('突破');
+  if (s.pullback_signal) badges.push('拉回');
+  return `
+    <div class="watchlist-item my-pending-item">
+      <div class="wl-mid">
+        <div class="wl-name">${s.name}</div>
+        <div class="wl-code">${s.ticker} · 分數 ${Math.round(s.total_score || 0)}${badges.length ? ' · ' + badges.join('/') : ''}</div>
+      </div>
+      <div class="wl-price">
+        <span>${s.close_price ?? '--'}</span>
+        <button class="my-approve-btn" type="button" data-code="${s.code}" data-strategy="${s.breakout_signal ? 'breakout' : 'pullback'}">核准</button>
+      </div>
+    </div>`;
+}
+
+function renderMyAccountPending() {
+  const listEl = document.getElementById('my-pending-list');
+  const emptyEl = document.getElementById('my-pending-empty');
+  if (!listEl || !emptyEl) return;
+  if (typeof MARKET_INDEX === 'undefined' || !MARKET_INDEX.length) return;   // 索引還沒載完,先不畫
+
+  const candidates = computeMyPendingCandidates();
+  listEl.innerHTML = candidates.map(buildMyPendingItem).join('');
+  emptyEl.style.display = candidates.length ? 'none' : 'block';
+
+  listEl.querySelectorAll('.my-approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => approveSignal(btn.dataset.code, btn.dataset.strategy, btn));
+  });
+}
+
+async function approveSignal(code, strategy, btnEl) {
+  if (!sb) {
+    alert('雲端未連線,無法核准(需要 Supabase 才能記錄手動帳戶)。');
+    return;
+  }
+  const settings = getPortfolioSettings();
+  if (!settings.enabled) {
+    alert('請先到「策略與驗證」的個人資金模擬回放設定本金,才能核准進場(核准後會依你的風控設定計算股數)。');
+    return;
+  }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '核准中…'; }
+
+  try {
+    const stock = await fetchStockJson(code);
+    if (!stock) throw new Error('個股資料讀取失敗');
+
+    const entryPriceTarget = stock.verified_entry_price;
+    const stopLoss = stock.stop_loss;
+    const takeProfit = stock.take_profit_1x;
+    if (![entryPriceTarget, stopLoss, takeProfit].every(v => typeof v === 'number' && isFinite(v))) {
+      throw new Error('這檔股票的進場價/停損停利算不出來,無法核准');
+    }
+
+    const signalDate = TODAY_STR();
+    const row = {
+      id: myPositionKey(stock.ticker, signalDate),
+      ticker: stock.ticker,
+      code: stock.ticker.replace('.TW', ''),
+      name: stock.name,
+      strategy: strategy || (stock.breakout_signal ? 'breakout' : 'pullback'),
+      status: 'pending_entry',
+      signal_date: signalDate,
+      entry_price: entryPriceTarget,   // 排隊目標價,不代表已成交(見上方狀態機說明)
+      stop_loss: stopLoss,
+      take_profit: takeProfit,
+      max_hold_days: HOLD_DAYS_FRONTEND,
+    };
+    const { error } = await sb.from('my_positions').insert(row);
+    if (error) throw error;
+
+    await loadMyPositions();
+    renderMyAccountPending();
+  } catch (e) {
+    console.warn('核准失敗:', e);
+    alert('核准失敗,請稍後再試(' + (e.message || e) + ')。');
+  } finally {
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = '核准'; }
+  }
+}
+
+// 前端沒有後端 config/settings.yaml 可讀,hold_days 用一個保守預設值——
+// 只影響「排隊太久沒觸價要不要放棄」跟「開倉太久沒觸停損停利要不要到期出場」
+// 這兩個邊界情況的判斷,不影響核心的核准/成交/停損停利邏輯。
+const HOLD_DAYS_FRONTEND = 20;
+
+// ---- 排隊成交判定(pending_entry → open / closed(unfilled)) ----
+
+async function resolveMyPendingEntries() {
+  if (!sb) return;
+  const pending = (LAST_MY_POSITIONS || []).filter(p => p.status === 'pending_entry');
+  for (const p of pending) {
+    const stock = await fetchStockJson(p.code);
+    const history = stock && stock.history;
+    if (!history || !history.length) continue;   // 抓不到就繼續等,不放棄
+
+    const bar = _nextBarAfter(history, p.signal_date);
+    if (!bar) continue;   // 訊號日之後還沒有新的一根K棒,繼續排隊
+
+    const fillable = bar.low != null && bar.high != null && bar.low <= p.entry_price && p.entry_price <= bar.high;
+    let update;
+    if (fillable) {
+      const settings = getPortfolioSettings();
+      const openCost = (LAST_MY_POSITIONS || [])
+        .filter(x => x.status === 'open')
+        .reduce((sum, x) => sum + (x.shares || 0) * (x.entry_price || 0), 0);
+      const cashAvailable = settings.capital - openCost;
+      const idxEntryForCap = (typeof MARKET_INDEX_BY_CODE !== 'undefined') ? MARKET_INDEX_BY_CODE[p.code] : null;
+      const dailyCapacityTwd = idxEntryForCap ? idxEntryForCap.capacity_daily_twd : null;
+      const shares = positionShares(settings.capital, p.entry_price, p.stop_loss, settings.riskPct, cashAvailable, settings, dailyCapacityTwd);
+      if (shares <= 0) {
+        update = { status: 'closed', exit_date: bar.date, exit_reason: 'unfilled', updated_at: new Date().toISOString() };
+      } else {
+        update = { status: 'open', entry_date: bar.date, shares, updated_at: new Date().toISOString() };
+      }
+    } else {
+      // 單日限價單語意:碰不到價位就放棄排隊,不留著繼續等(同後端規則)。
+      update = { status: 'closed', exit_date: bar.date, exit_reason: 'unfilled', updated_at: new Date().toISOString() };
+    }
+    await sb.from('my_positions').update(update).eq('id', p.id);
+  }
+}
+
+// ---- 出場判定(open → closed,盤中觸價,跟 P0-27 同一套邏輯) ----
+
+async function resolveMyOpenExits() {
+  if (!sb) return;
+  const open = (LAST_MY_POSITIONS || []).filter(p => p.status === 'open');
+  for (const p of open) {
+    const stock = await fetchStockJson(p.code);
+    const history = stock && stock.history;
+    if (!history || !history.length) continue;
+
+    const afterEntry = history.filter(h => h.date > p.entry_date).sort((a, b) => a.date < b.date ? -1 : 1);
+    let update = null;
+    for (const bar of afterEntry) {
+      const stopTouched = bar.low != null && bar.low <= p.stop_loss;
+      const tpTouched = bar.high != null && bar.high >= p.take_profit;
+      if (stopTouched) {
+        update = { status: 'closed', exit_date: bar.date, exit_price: Math.min(bar.close, p.stop_loss), exit_reason: 'stop_loss' };
+        break;
+      }
+      if (tpTouched) {
+        update = { status: 'closed', exit_date: bar.date, exit_price: p.take_profit, exit_reason: 'take_profit_1x' };
+        break;
+      }
+    }
+    if (!update && afterEntry.length) {
+      const daysHeld = afterEntry.length;
+      if (daysHeld >= (p.max_hold_days || HOLD_DAYS_FRONTEND)) {
+        const last = afterEntry[afterEntry.length - 1];
+        update = { status: 'closed', exit_date: last.date, exit_price: last.close, exit_reason: 'time_exit' };
+      }
+    }
+    if (update) {
+      update.updated_at = new Date().toISOString();
+      await sb.from('my_positions').update(update).eq('id', p.id);
+    }
+  }
+}
+
+async function loadMyPositions() {
+  if (!sb) { LAST_MY_POSITIONS = []; renderMyAccountBody(); return; }
+  try {
+    const { data, error } = await sb.from('my_positions').select('*').order('signal_date', { ascending: false });
+    if (error) throw error;
+    LAST_MY_POSITIONS = data || [];
+  } catch (e) {
+    console.warn('我的資產(手動帳戶)讀取失敗:', e);
+    LAST_MY_POSITIONS = [];
+  }
+  renderMyAccountBody();
+}
+
+function renderMyAccountBody() {
+  const bodyEl = document.getElementById('my-account-body');
+  if (!bodyEl) return;
+
+  if (!sb) {
+    bodyEl.innerHTML = `<p class="pf-note warn">雲端未連線,無法顯示手動帳戶(需要 Supabase)。</p>`;
+    return;
+  }
+
+  const pending = LAST_MY_POSITIONS.filter(p => p.status === 'pending_entry');
+  const open = LAST_MY_POSITIONS.filter(p => p.status === 'open');
+  const closedAll = LAST_MY_POSITIONS.filter(p => p.status === 'closed');
+  const closed = closedAll.filter(p => p.exit_reason !== 'unfilled');   // unfilled不算一筆交易,不進報酬統計
+  const unfilled = closedAll.filter(p => p.exit_reason === 'unfilled');
+
+  const pnlOf = (p) => (p.exit_price - p.entry_price) * p.shares;
+  const realizedPnl = closed.reduce((sum, p) => sum + pnlOf(p), 0);
+
+  const unrealizedPnl = open.reduce((sum, p) => {
+    const idxEntry = (typeof MARKET_INDEX_BY_CODE !== 'undefined') ? MARKET_INDEX_BY_CODE[p.code] : null;
+    const currentPrice = idxEntry && idxEntry.close_price != null ? idxEntry.close_price : p.entry_price;
+    return sum + (currentPrice - p.entry_price) * p.shares;
+  }, 0);
+
+  const MIN_TRADES_FOR_STATS = 10;
+  const sampleNote = (n) => {
+    const low = n < MIN_TRADES_FOR_STATS;
+    return `<span class="pf-n${low ? ' low' : ''}">${n} 筆${low ? '(樣本不足,僅供參考)' : ''}</span>`;
+  };
+
+  const openRows = open.map(p => `
+    <a class="watchlist-item" href="./stock.html?code=${p.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${p.name || p.ticker}</div>
+        <div class="wl-code">${(p.shares || 0).toLocaleString('zh-TW')} 股 · 成本 ${p.entry_price} · ${p.entry_date}</div>
+      </div>
+      <div class="wl-price"><span class="chg">停損 ${p.stop_loss} · 停利 ${p.take_profit}</span></div>
+    </a>`).join('');
+
+  const closedRows = closed.slice(0, 30).map(p => `
+    <a class="watchlist-item" href="./stock.html?code=${p.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${p.name || p.ticker}</div>
+        <div class="wl-code">${(p.shares || 0).toLocaleString('zh-TW')} 股 · ${p.entry_date} → ${p.exit_date}(${p.exit_reason || '--'})</div>
+      </div>
+      <div class="wl-price">
+        <span class="${pnlOf(p) >= 0 ? 'up' : 'down'}">${pnlOf(p) >= 0 ? '+' : ''}${fmtMoney(pnlOf(p))}</span>
+      </div>
+    </a>`).join('');
+
+  const pendingNote = pending.length
+    ? `<p class="pf-note">${pending.length} 筆已核准、排隊等下一個交易日判定成不成交(碰不到目標價會自動放棄,不留倉等待)。</p>` : '';
+  const unfilledNote = unfilled.length
+    ? `<p class="pf-note">另有 ${unfilled.length} 筆核准後排隊沒成交(價位沒被碰到),不計入下方統計。</p>` : '';
+
+  bodyEl.innerHTML = `
+    <div class="pf-summary">
+      <div class="pf-cell"><span class="lbl">已實現</span><span class="val ${realizedPnl >= 0 ? 'up' : 'down'}">${realizedPnl >= 0 ? '+' : ''}${fmtMoney(realizedPnl)}</span>${sampleNote(closed.length)}</div>
+      <div class="pf-cell"><span class="lbl">未實現</span><span class="val ${unrealizedPnl >= 0 ? 'up' : 'down'}">${unrealizedPnl >= 0 ? '+' : ''}${fmtMoney(unrealizedPnl)}</span>${sampleNote(open.length)}</div>
+    </div>
+    ${pendingNote}${unfilledNote}
+    <div class="decision-cols">
+      <div>
+        <h3 class="decision-subhead">持有中 (${open.length})</h3>
+        <div class="watchlist-list">${openRows}</div>
+        ${open.length ? '' : '<p class="decision-empty" style="display:block;">目前沒有核准成交的持倉。</p>'}
+      </div>
+      <div>
+        <h3 class="decision-subhead">已平倉 (${closed.length})</h3>
+        <div class="watchlist-list">${closedRows}</div>
+        ${closed.length ? '' : '<p class="decision-empty" style="display:block;">目前沒有平倉紀錄。</p>'}
+      </div>
+    </div>`;
+}
+
+async function refreshMyAccount() {
+  // 順序:先讀現況 → 判定排隊訊號成不成交 → 判定已開倉的出場 → 重新讀一次
+  // 最新狀態 → 畫面。中間兩步會寫回 Supabase,所以要在畫面渲染前跑完。
+  await loadMyPositions();
+  await resolveMyPendingEntries();
+  await resolveMyOpenExits();
+  await loadMyPositions();
+  renderMyAccountPending();
+}
+
+function simulatePortfolio(pt, settings) {
+  // 依時間順序回放所有交易,算出「如果當初照這套規則用你的錢做,今天會是多少」。
+  //
+  // 為什麼要回放而不是直接把報酬率乘上本金:因為資金是有限的。某天同時有20個
+  // 訊號但你只買得起3檔,買了哪3檔會影響後面每一筆的可用資金。不回放就算不對。
+  if (!pt) return null;
+
+  const closed = pt.closed_positions || [];
+  const open = pt.open_positions || [];
+
+  // 把開倉/平倉組成事件序列。同一天先處理平倉再處理開倉——賣掉的錢當天可以再買。
+  const events = [];
+  closed.forEach(p => {
+    events.push({ date: p.entry_date, type: 'open', pos: p });
+    events.push({ date: p.exit_date, type: 'close', pos: p });
+  });
+  open.forEach(p => events.push({ date: p.entry_date, type: 'open', pos: p }));
+  events.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    if (a.type !== b.type) return a.type === 'close' ? -1 : 1;   // 先賣後買
+    return (b.pos.score_at_entry || 0) - (a.pos.score_at_entry || 0); // 同日開倉:分數高的先
+  });
+
+  let cash = settings.capital;
+  let realizedPnl = 0;
+  let totalFees = 0;
+  const held = new Map();       // key -> {shares, cost, pos}
+  const skipped = [];           // 因資金/持股上限而沒買到的
+  const closedTrades = [];
+  let nLiquidityCapped = 0;     // 買得起、也沒超過風險上限,但被流動性上限縮小股數的筆數
+
+  const keyOf = (p) => `${p.ticker}|${p.strategy}|${p.entry_date}`;
+
+  for (const ev of events) {
+    const p = ev.pos;
+    const key = keyOf(p);
+
+    if (ev.type === 'open') {
+      if (held.size >= settings.maxPositions) { skipped.push({ pos: p, reason: '已達最大持股數' }); continue; }
+      const idxEntryForCap = (typeof MARKET_INDEX_BY_CODE !== 'undefined') ? MARKET_INDEX_BY_CODE[p.code] : null;
+      const dailyCapacityTwd = idxEntryForCap ? idxEntryForCap.capacity_daily_twd : null;
+      const shares = positionShares(settings.capital, p.entry_price, p.stop_loss, settings.riskPct, cash, settings, dailyCapacityTwd);
+      if (shares <= 0) { skipped.push({ pos: p, reason: '現金不足或停損距離無效' }); continue; }
+      // 判斷這一筆是不是被流動性上限縮小了股數:拿掉容量限制重算一次、比較股數。
+      // 不重複實作capacity的算法,直接借positionShares()自己的邏輯來比,兩邊
+      // 一旦公式改了也會自動保持一致,不會出現「判斷條件」跟「實際限制」對不上的情況。
+      const sharesWithoutCapacity = positionShares(settings.capital, p.entry_price, p.stop_loss, settings.riskPct, cash, settings);
+      if (shares < sharesWithoutCapacity) nLiquidityCapped++;
+
+      const gross = shares * p.entry_price;
+      const fee = tradingFee(gross, settings.feeBuyPct, settings.feeMin);
+      cash -= (gross + fee);
+      totalFees += fee;
+      held.set(key, { shares, cost: gross, fee, pos: p });
+    } else {
+      const h = held.get(key);
+      if (!h) continue;   // 當初沒買到,自然也沒得賣
+      const gross = h.shares * p.exit_price;
+      const fee = tradingFee(gross, settings.feeSellPct, settings.feeMin);
+      const tax = transactionTax(gross, settings.taxSellPct);
+      const net = gross - fee - tax;
+      const pnl = net - h.cost - h.fee;
+      cash += net;
+      totalFees += fee + tax;
+      realizedPnl += pnl;
+      closedTrades.push({ ...p, shares: h.shares, pnl, exit_net: net });
+      held.delete(key);
+    }
+  }
+
+  // 未平倉部位用今天收盤價估市值(unrealized_return_pct 是後端用今天收盤價算的)
+  let holdingsValue = 0;
+  let unrealizedPnl = 0;
+  const openHoldings = [];
+  held.forEach(h => {
+    const pct = h.pos.unrealized_return_pct;
+    const currentPrice = (pct === null || pct === undefined)
+      ? h.pos.entry_price                       // 今天沒抓到報價就用成本價,不亂猜
+      : h.pos.entry_price * (1 + pct / 100);
+    const value = h.shares * currentPrice;
+    holdingsValue += value;
+    unrealizedPnl += value - h.cost - h.fee;
+    openHoldings.push({ ...h.pos, shares: h.shares, cost: h.cost, value, pnl: value - h.cost - h.fee });
+  });
+
+  const totalValue = cash + holdingsValue;
+  const totalPnl = totalValue - settings.capital;
+
+  return {
+    capital: settings.capital,
+    cash,
+    holdingsValue,
+    totalValue,
+    totalPnl,
+    totalPnlPct: settings.capital > 0 ? (totalPnl / settings.capital) * 100 : null,
+    realizedPnl,
+    unrealizedPnl,
+    totalFees,
+    openHoldings: openHoldings.sort((a, b) => b.value - a.value),
+    closedTrades: closedTrades.slice().reverse(),
+    nSkipped: skipped.length,
+    nLiquidityCapped,
+    truncated: !!pt.closed_positions_truncated,
+    portfolioHeatPct: computePortfolioHeat(openHoldings, settings.capital),
+  };
+}
+
+let LAST_PAPER_TRADING = null;
+
+function renderPortfolio() {
+  const body = document.getElementById('pf-body');
+  if (!body) return;
+
+  const settings = getPortfolioSettings();
+  ['pf-capital', 'pf-risk', 'pf-max', 'pf-fee-buy', 'pf-fee-sell', 'pf-tax', 'pf-fee-min'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el && el.value === '') {
+      el.value = [settings.capital, settings.riskPct, settings.maxPositions,
+                  settings.feeBuyPct, settings.feeSellPct, settings.taxSellPct, settings.feeMin][i];
+    }
+  });
+
+  if (!LAST_PAPER_TRADING) {
+    body.innerHTML = `<p class="pf-note">模擬交易資料尚未產生(需要每日 pipeline 至少跑過一次)。等有交易紀錄之後,這裡就會用你的本金重新計算。</p>`;
+    renderHero(null);
+    const corrEl = document.getElementById('pf-correlation');
+    if (corrEl) corrEl.innerHTML = '';
+    return;
+  }
+
+  const sim = simulatePortfolio(LAST_PAPER_TRADING, settings);
+  renderHero(settings.enabled ? sim : null);
+
+  if (!settings.enabled) {
+    body.innerHTML = `<p class="pf-note warn">還沒設定過本金。上方填入你的實際可投入金額後點「套用」,系統才會開始用你的錢計算——在那之前不顯示金額,免得你把預設值誤當成自己的數字。</p>`;
+    const corrEl = document.getElementById('pf-correlation');
+    if (corrEl) corrEl.innerHTML = '';
+    return;
+  }
+
+  const pnlCls = sim.totalPnl >= 0 ? 'up' : 'down';
+  // UI_SPEC 第五項:已實現/未實現各標樣本數。門檻沿用後端
+  // paper_trading.min_trades_for_stats(=10,見 config/settings.yaml)——
+  // 全站統一同一套「樣本不足」的說法,不要各自發明一個數字。
+  const PF_MIN_TRADES_FOR_STATS = 10;
+  const nRealized = sim.closedTrades.length;
+  const nUnrealized = sim.openHoldings.length;
+  const pfSampleNote = (n) => {
+    const low = n < PF_MIN_TRADES_FOR_STATS;
+    return `<span class="pf-n${low ? ' low' : ''}">${n} 筆${low ? '(樣本不足,僅供參考)' : ''}</span>`;
+  };
+  const notes = [];
+  if (sim.truncated) {
+    notes.push(`<p class="pf-note warn">平倉歷史超過輸出上限,更早的交易未納入計算,實際損益會與此處有落差。</p>`);
+  }
+
+  // Phase 4:Portfolio Heat(全部未平倉部位同時觸發停損會虧掉本金的百分比)
+  // + Market Regime 連動的曝險上限建議。上限 = 使用者自己設定的
+  // riskPct% × maxPositions,不是另外發明的門檻;大盤環境不好時再打折。
+  const mrForHeat = LAST_RENDER_DATA && LAST_RENDER_DATA.market_regime;
+  const regimeAdj = marketRegimeExposureAdjustment(mrForHeat);
+  const heatCeilingPct = settings.riskPct * settings.maxPositions * regimeAdj.factor;
+  const heatPct = sim.portfolioHeatPct;
+  const heatOverCeiling = heatPct !== null && heatPct > heatCeilingPct;
+  if (regimeAdj.note) {
+    notes.push(`<p class="pf-note warn">${regimeAdj.note}</p>`);
+  }
+  if (heatOverCeiling) {
+    notes.push(`<p class="pf-note warn">目前 Portfolio Heat(${heatPct.toFixed(1)}%)已經超過建議上限(${heatCeilingPct.toFixed(1)}%)——如果手上部位同時觸發停損,虧損比例會超過你原本設定的風控範圍,考慮先不要再開新倉。</p>`);
+  }
+
+  // Phase 4:產業集中度。用已經載入的全市場索引查表,不額外發請求。
+  const concentration = computeIndustryConcentration(sim.openHoldings);
+  const topIndustry = concentration[0];
+  if (topIndustry && topIndustry.pct > INDUSTRY_CONCENTRATION_WARN_PCT) {
+    notes.push(`<p class="pf-note warn">目前持股有 ${topIndustry.pct.toFixed(0)}% 集中在「${topIndustry.industry}」單一產業,超過一半——那個產業出事時,虧的不會只是一筆,考慮分散到其他產業。</p>`);
+  }
+  if (sim.nSkipped > 0) {
+    const taken = sim.openHoldings.length + sim.closedTrades.length;
+    const total = taken + sim.nSkipped;
+    const takenPct = total > 0 ? Math.round((taken / total) * 100) : 0;
+    notes.push(`<p class="pf-note">這段期間總共有 ${total} 筆訊號,你的本金只吃得下 ${taken} 筆(${takenPct}%),其餘 ${sim.nSkipped} 筆因為已達最大持股數或現金不足而沒進場——這是資金有限的真實狀況,不是漏算。</p>`);
+    if (takenPct <= 20) {
+      notes.push(`<p class="pf-note warn">提醒:實際成交的比例偏低,上面這個報酬率主要由少數幾筆決定,運氣成分高,不足以代表策略本身的好壞。想讓數字更有代表性,得提高本金或降低每筆風險%讓部位變小。</p>`);
+    }
+  }
+  // Phase 4 最後一項:流動性上限。這裡是「有買到,但股數比風控算出來的
+  // 理想值小」,跟上面「完全沒買到」不是同一件事,所以另外提示,不要
+  // 混在nSkipped的敘述裡讓使用者誤以為錯過了整筆訊號。
+  if (sim.nLiquidityCapped > 0) {
+    notes.push(`<p class="pf-note">其中 ${sim.nLiquidityCapped} 筆買進股數受該股當時的流動性上限影響,比原本風控算出來的理想股數少——避免下單金額佔該股單日成交金額比例過高、實際成交價會比預期差。</p>`);
+  }
+
+  const holdingsRows = sim.openHoldings.map(h => `
+    <a class="watchlist-item" href="./stock.html?code=${h.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${h.name || h.ticker}</div>
+        <div class="wl-code">${h.shares.toLocaleString('zh-TW')} 股 · 成本 ${h.entry_price} · ${h.entry_date}</div>
+      </div>
+      <div class="wl-price">
+        <span class="${h.pnl >= 0 ? 'up' : 'down'}">${h.pnl >= 0 ? '+' : ''}${fmtMoney(h.pnl)}</span>
+        <span class="chg">市值 ${fmtMoney(h.value)}</span>
+      </div>
+    </a>`).join('');
+
+  const closedRows = sim.closedTrades.slice(0, 20).map(t => `
+    <a class="watchlist-item" href="./stock.html?code=${t.code}">
+      <div class="wl-mid">
+        <div class="wl-name">${t.name || t.ticker}</div>
+        <div class="wl-code">${t.shares.toLocaleString('zh-TW')} 股 · ${t.entry_date} → ${t.exit_date}</div>
+      </div>
+      <div class="wl-price">
+        <span class="${t.pnl >= 0 ? 'up' : 'down'}">${t.pnl >= 0 ? '+' : ''}${fmtMoney(t.pnl)}</span>
+        <span class="chg">${t.return_pct >= 0 ? '+' : ''}${t.return_pct}%</span>
+      </div>
+    </a>`).join('');
+
+  body.innerHTML = `
+    <div class="pf-summary">
+      <div class="pf-cell"><span class="lbl">總資產</span><span class="val">${fmtMoney(sim.totalValue)}</span></div>
+      <div class="pf-cell"><span class="lbl">總損益</span><span class="val ${pnlCls}">${sim.totalPnl >= 0 ? '+' : ''}${fmtMoney(sim.totalPnl)}</span></div>
+      <div class="pf-cell"><span class="lbl">已實現</span><span class="val ${sim.realizedPnl >= 0 ? 'up' : 'down'}">${sim.realizedPnl >= 0 ? '+' : ''}${fmtMoney(sim.realizedPnl)}</span>${pfSampleNote(nRealized)}</div>
+      <div class="pf-cell"><span class="lbl">未實現</span><span class="val ${sim.unrealizedPnl >= 0 ? 'up' : 'down'}">${sim.unrealizedPnl >= 0 ? '+' : ''}${fmtMoney(sim.unrealizedPnl)}</span>${pfSampleNote(nUnrealized)}</div>
+      <div class="pf-cell"><span class="lbl">可用現金</span><span class="val">${fmtMoney(sim.cash)}</span></div>
+      <div class="pf-cell"><span class="lbl">累計手續費稅</span><span class="val">${fmtMoney(sim.totalFees)}</span></div>
+      <div class="pf-cell"><span class="lbl">Portfolio Heat</span><span class="val${heatOverCeiling ? ' down' : ''}">${heatPct === null ? '--' : heatPct.toFixed(1) + '%'}</span><span class="pf-n${heatOverCeiling ? ' low' : ''}">上限 ${heatCeilingPct.toFixed(1)}%${regimeAdj.factor < 1 ? '(已依大盤環境打折)' : ''}</span></div>
+      <div class="pf-cell"><span class="lbl">最大產業曝險</span><span class="val${topIndustry && topIndustry.pct > INDUSTRY_CONCENTRATION_WARN_PCT ? ' down' : ''}">${topIndustry ? topIndustry.industry : '--'}</span><span class="pf-n${topIndustry && topIndustry.pct > INDUSTRY_CONCENTRATION_WARN_PCT ? ' low' : ''}">${topIndustry ? topIndustry.pct.toFixed(0) + '%' : ''}</span></div>
+    </div>
+    ${notes.join('')}
+    <div class="decision-cols">
+      <div>
+        <h3 class="decision-subhead">持有中 (${sim.openHoldings.length})</h3>
+        <div class="watchlist-list">${holdingsRows}</div>
+        ${sim.openHoldings.length ? '' : '<p class="decision-empty" style="display:block;">目前沒有持有部位。</p>'}
+      </div>
+      <div>
+        <h3 class="decision-subhead">已平倉 (${sim.closedTrades.length})</h3>
+        <div class="watchlist-list">${closedRows}</div>
+        ${sim.closedTrades.length ? '' : '<p class="decision-empty" style="display:block;">目前沒有平倉紀錄。</p>'}
+      </div>
+    </div>`;
+
+  // 相關係數矩陣要對外抓每檔持股的歷史價格,不能像上面那些同步算完——
+  // 這裡刻意不 await,renderPortfolio() 本身維持同步,算完之後非同步補上
+  // #pf-correlation 區塊,不擋住其餘畫面的顯示速度。
+  renderPortfolioCorrelation(sim.openHoldings);
+}
+
+// ---------------------------------------------------------
+// M31:動態效果。三件事——數字滾動、滾動進場、金屬掃光。
+//
+// 一個貫穿的原則:動態只能加強理解,不能妨礙操作。所以
+//   - 數字滾動用 requestAnimationFrame 且會被新值中斷(不會兩個動畫打架)
+//   - 進場動畫只跑一次,不會每次捲動都重播
+//   - 全部尊重 prefers-reduced-motion(CSS 那邊已處理)
+// ---------------------------------------------------------
+function prefersReducedMotion() {
+  return typeof matchMedia === 'function'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+const _countUpTimers = new WeakMap();
+
+function animateNumber(el, to, format, duration = 900) {
+  if (!el) return;
+  // 已在跑的動畫先取消,避免使用者快速切換時兩個動畫互相覆寫
+  const prev = _countUpTimers.get(el);
+  if (prev) cancelAnimationFrame(prev);
+
+  if (prefersReducedMotion() || typeof requestAnimationFrame !== 'function') {
+    el.textContent = format(to);
+    return;
+  }
+
+  const from = Number(el.dataset.numValue || 0);
+  if (from === to) { el.textContent = format(to); return; }
+
+  const t0 = Date.now();
+  const step = () => {
+    const p = Math.min((Date.now() - t0) / duration, 1);
+    // easeOutExpo:一開始衝很快、尾端慢慢收,數字跑起來才有重量感
+    const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+    const current = from + (to - from) * eased;
+    el.textContent = format(current);
+    if (p < 1) {
+      _countUpTimers.set(el, requestAnimationFrame(step));
+    } else {
+      el.dataset.numValue = String(to);
+      _countUpTimers.delete(el);
+      if (el.dataset.value !== undefined) el.dataset.value = format(to);
+    }
+  };
+  el.dataset.numValue = String(to);
+  _countUpTimers.set(el, requestAnimationFrame(step));
+}
+
+let _revealObserver = null;
+function setupScrollReveal() {
+  if (typeof IntersectionObserver !== 'function') return;
+  if (!_revealObserver) {
+    _revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          _revealObserver.unobserve(e.target);   // 只跑一次,不重播
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  }
+  document.querySelectorAll('main .section-heading, .pf-summary, .cal-item, .strategy-card')
+    .forEach(el => {
+      if (!el.classList.contains('reveal') && !el.classList.contains('in')) {
+        el.classList.add('reveal');
+        _revealObserver.observe(el);
+      }
+    });
+}
+
+// 損益調色:整個封面的背景光暈依報酬率變化。
+//
+// 兩個刻意的節制:
+//  1) 只染「氛圍」不染「資訊」——數字本身維持既有的漲綠跌紅語意色,
+//     背景光暈才是變動的部分。整個介面跟著變色會讓數據難讀。
+//  2) 強度封頂在 ±15%——超過就不再更濃。否則大賺大賠時整片螢幕發光,
+//     反而看不清數字,而那正是你最需要看清楚的時候。
+//
+// 另外紅綠對色覺辨識異常的人不友善,所以色彩只是輔助,
+// 正負號與文字敘述才是主要判斷依據(這點沒有因為加了顏色而改變)。
+function applyPnlTheme(pnlPct) {
+  const root = document.documentElement;
+  if (!root || !root.style) return;
+
+  if (pnlPct === null || pnlPct === undefined || !isFinite(pnlPct)) {
+    root.style.setProperty('--pnl-glow', 'rgba(255,255,255,0.05)');
+    root.style.setProperty('--pnl-tint', 'rgba(255,255,255,0.02)');
+    return;
+  }
+
+  const magnitude = Math.min(Math.abs(pnlPct) / 15, 1);      // ±15% 封頂
+  const alpha = 0.05 + magnitude * 0.16;                      // 0.05 ~ 0.21
+  const rgb = pnlPct >= 0 ? '63,166,107' : '224,71,63';
+  root.style.setProperty('--pnl-glow', `rgba(${rgb},${alpha.toFixed(3)})`);
+  root.style.setProperty('--pnl-tint', `rgba(${rgb},${(alpha * 0.25).toFixed(3)})`);
+}
+
+// ---------------------------------------------------------
+// 大盤總覽(M37)。捲動下來第一件該看到的事:大盤在哪裡。
+//
+// 台股是主角(大卡、大字、完整統計),其餘五個是對照組——
+// 用途是判斷「台股今天的跌是自己的問題,還是外圍一起跌」。
+// 這個對照關係比單看台股一個數字有用得多。
+//
+// 走勢圖用行內 SVG 而不是 Chart.js:這裡要的只是「形狀」,
+// 六張圖各開一個 Chart 實例太浪費,而且 Chart.js 的初始化成本
+// 會拖慢首屏。
+// ---------------------------------------------------------
+function sparklinePath(series, w, h, pad = 2) {
+  if (!series || series.length < 2) return null;
+  const min = Math.min(...series), max = Math.max(...series);
+  const span = max - min || 1;
+  const stepX = w / (series.length - 1);
+  const pts = series.map((v, i) => {
+    const x = i * stepX;
+    const y = pad + (1 - (v - min) / span) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  return { line: pts.join(' '), area: `0,${h} ${pts.join(' ')} ${w},${h}` };
+}
+
+function buildSparkline(series, up, w = 600, h = 96) {
+  const p = sparklinePath(series, w, h);
+  if (!p) return '<div class="mo-empty">走勢資料不足</div>';
+  const color = up ? 'var(--pnl-up)' : 'var(--pnl-down)';
+  const id = 'g' + Math.random().toString(36).slice(2, 8);
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img"
+         aria-label="近期走勢${up ? '上行' : '下行'}">
+      <defs>
+        <linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${p.area}" fill="url(#${id})"/>
+      <polyline points="${p.line}" fill="none" stroke="${color}"
+                stroke-width="1.5" vector-effect="non-scaling-stroke"
+                stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function fmtIdx(v) {
+  return (v === null || v === undefined) ? '--' : v.toLocaleString('zh-TW', { maximumFractionDigits: 2 });
+}
+function fmtSigned(v, suffix = '%') {
+  if (v === null || v === undefined) return '--';
+  return `${v >= 0 ? '+' : ''}${v.toFixed(2)}${suffix}`;
+}
+
+function renderMarketOverview(indices) {
+  const primaryEl = document.getElementById('mo-primary');
+  const gridEl = document.getElementById('mo-grid');
+  if (!primaryEl || !gridEl) return;
+
+  if (!indices || !Object.keys(indices).length) {
+    primaryEl.innerHTML = '<div class="mo-empty">大盤資料尚未載入。</div>';
+    gridEl.innerHTML = '';
+    return;
+  }
+
+  const entries = Object.entries(indices);
+  const primaryEntry = entries.find(([, v]) => v.primary) || entries[0];
+  const others = entries.filter(([k]) => k !== primaryEntry[0]);
+
+  const [, p] = primaryEntry;
+  const pUp = (p.change_pct ?? 0) >= 0;
+  const st = p.stats || {};
+
+  primaryEl.innerHTML = `
+    <div class="mo-p-top">
+      <div>
+        <div class="mo-p-name">${p.name}</div>
+        <div class="mo-p-price">${fmtIdx(p.price)}</div>
+        <div class="mo-p-change ${pUp ? 'up' : 'down'}">${fmtSigned(p.change_pct)}</div>
+      </div>
+      <div class="mo-p-stats">
+        <div class="mo-stat"><span class="s-lbl">近5日</span>
+          <span class="s-val ${(st.change_5d_pct ?? 0) >= 0 ? 'up' : 'down'}">${fmtSigned(st.change_5d_pct)}</span></div>
+        <div class="mo-stat"><span class="s-lbl">近20日</span>
+          <span class="s-val ${(st.change_20d_pct ?? 0) >= 0 ? 'up' : 'down'}">${fmtSigned(st.change_20d_pct)}</span></div>
+        <div class="mo-stat"><span class="s-lbl">區間位階</span>
+          <span class="s-val">${st.position_in_range_pct === null || st.position_in_range_pct === undefined ? '--' : st.position_in_range_pct.toFixed(0) + '%'}</span></div>
+        <div class="mo-stat"><span class="s-lbl">月線</span>
+          <span class="s-val ${st.above_ma20 ? 'up' : 'down'}">${st.above_ma20 === null || st.above_ma20 === undefined ? '--' : (st.above_ma20 ? '站上' : '跌破')}</span></div>
+      </div>
+    </div>
+    <div class="mo-chart">${buildSparkline(p.history, pUp)}</div>
+    <p class="mo-analysis">${p.analysis || ''}</p>`;
+
+  gridEl.innerHTML = others.map(([, v]) => {
+    const up = (v.change_pct ?? 0) >= 0;
+    const s = v.stats || {};
+    return `
+      <div class="mo-card">
+        <div class="mo-c-top">
+          <span class="mo-c-name">${v.short || v.name}</span>
+          <span class="mo-c-change ${up ? 'up' : 'down'}">${fmtSigned(v.change_pct)}</span>
+        </div>
+        <div class="mo-c-price">${fmtIdx(v.price)}</div>
+        <div class="mo-c-chart">${buildSparkline(v.history, up, 300, 40)}</div>
+        <div class="mo-c-note">近20日 ${fmtSigned(s.change_20d_pct)} · ${
+          s.above_ma20 === null || s.above_ma20 === undefined ? '月線資料不足'
+            : (s.above_ma20 ? '站上月線' : '跌破月線')}</div>
+      </div>`;
+  }).join('');
+}
+
+// UI_SPEC 第二項:首頁主角從「損益」換成「系統健康」。
+//
+// 2026-08-16 look-ahead 修正那次先把損益數字拿掉、換成一句道歉文字,
+// 那只解決了「不能秀不可信的數字」,沒解決「首頁主角該是什麼」。
+// 現在 P0-21/22/27/41/42 五項都已經修完(見 scripts/audit.py 判定),
+// 但已平倉紀錄剛歸零重新累積,樣本還不夠,損益數字仍然不該秀——
+// 這件事本身沒有變,只是把它從「主標題」降級成「次要提示」,首頁真正的
+// 主角換成 docs/health.json(跟 docs/health.html 讀同一份)的資料管線健康度。
+//
+// 這裡拿到的是**資料管線**健不健康(抓不抓得到資料),不是**策略**健不健康
+// (策略還有沒有 alpha)。後者要等真的有策略退場/真錢門檻判斷邏輯才有東西
+// 可放(目前只有「workflow失敗/資料未更新→LINE通知」這一條做了),
+// 不在這次範圍內,但這是誠實的現況,不是假裝已經做到。
+let LAST_HEALTH = null;
+let LAST_SIM_FOR_HERO = null;
+// UI_SPEC 第三項:near_miss。訊號0檔時用這份取代空白畫面,見
+// renderOpportunityRiskSummary() 裡的判斷。讀不到就當作沒有資料,
+// 「今日決策」頁該區塊維持原本的空狀態文字,不會壞畫面。
+let LAST_NEAR_MISS = null;
+
+const PNL_HOLD_EXPLANATION_HTML = '損益數字仍未恢復顯示:成交時序(look-ahead)、'
+  + '進出場一致性等 P0 問題已修正,但已平倉紀錄剛歸零重新累積,樣本還不夠。'
+  + '待樣本重新累積到有意義的量,「策略與驗證」分頁的個人資金模擬回放會恢復顯示金額。';
+
+function renderHeroHealth(pnlEl, subEl) {
+  if (LAST_HEALTH === 'error') {
+    pnlEl.textContent = '系統狀態讀取失敗';
+    pnlEl.className = 'hero-pnl neutral';
+    subEl.textContent = '不影響其他區塊資料,稍後重新整理再看一次。';
+    return;
+  }
+  if (!LAST_HEALTH) {
+    pnlEl.textContent = '讀取系統狀態中';
+    pnlEl.className = 'hero-pnl neutral';
+    subEl.textContent = '';
+    return;
+  }
+  const summary = LAST_HEALTH.summary || {};
+  const failed = summary.failed || 0;
+  const qualityFlags = summary.data_quality_flag_count || 0;
+  const ok = failed === 0 && qualityFlags === 0;
+  // 用 --success/--danger,不是 --pnl-up/--pnl-down——這是系統狀態,
+  // 不是損益,兩件事共用色碼會讓「系統健康」跟「賺錢」被視覺上劃上等號
+  // (見 UI_SPEC.md 第一節)。
+  pnlEl.textContent = ok ? '系統正常' : `${failed} 檔異常`;
+  pnlEl.className = `hero-pnl ${ok ? 'health-ok' : 'health-warn'}`;
+  const successRate = summary.success_rate != null
+    ? (summary.success_rate * 100).toFixed(1) + '%' : '--';
+  const updated = LAST_HEALTH.last_updated
+    ? new Date(LAST_HEALTH.last_updated).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
+    : '--';
+  subEl.textContent = `全市場 ${summary.universe_size ?? '--'} 檔 · 成功率 ${successRate} · `
+    + `資料異常 ${qualityFlags} 檔 · 最後更新 ${updated}`;
+}
+
+function renderHero(sim) {
+  const pnlEl = document.getElementById('hero-pnl');
+  const subEl = document.getElementById('hero-pnl-sub');
+  const setupEl = document.getElementById('hero-setup');
+  const quickEl = document.getElementById('hero-quick');
+  if (!pnlEl) return;
+
+  LAST_SIM_FOR_HERO = sim;
+  applyPnlTheme(null);   // 首頁不再依損益幅度變色,維持中性背景光暈
+  renderHeroHealth(pnlEl, subEl);
+
+  // 損益的說明降級成次要提示(hero-setup),不再是主標題,但還是要講清楚
+  // 為什麼「我的資產」分頁現在還不顯示金額——不是留白,是明講原因。
+  setupEl.innerHTML = sim
+    ? PNL_HOLD_EXPLANATION_HTML
+    : '尚未設定本金。到「策略與驗證」的個人資金模擬回放填入金額後,那裡會顯示你的模擬總收益'
+      + '(視樣本量而定,見上方說明)。';
+
+  const mr = LAST_RENDER_DATA && LAST_RENDER_DATA.market_regime;
+  const opportunities = (typeof computeTopOpportunities === 'function') ? computeTopOpportunities() : [];
+  const firedAlerts = (typeof evaluateAlerts === 'function') ? evaluateAlerts() : [];
+  const quick = [
+    { val: mr && mr.label ? mr.label : '--', lbl: '今日市場環境' },
+    { val: opportunities.length, lbl: '今日機會' },
+    { val: firedAlerts.length, lbl: '警報觸發' },
+    { val: sim ? sim.openHoldings.length : '--', lbl: '持有中' },
+  ];
+  quickEl.innerHTML = quick.map(q =>
+    `<div class="hero-quick-item"><span class="q-val">${q.val}</span><span class="q-lbl">${q.lbl}</span></div>`).join('');
+}
+
+async function loadHealth() {
+  try {
+    const res = await fetch('./health.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    LAST_HEALTH = await res.json();
+  } catch (e) {
+    console.warn('系統健康資料讀取失敗(不影響其他區塊):', e);
+    LAST_HEALTH = 'error';
+  }
+  // health.json 不一定比 paper_trading.json 早載完,不管誰先到都要能補渲染
+  // 一次,不能假設載入順序。
+  renderHero(LAST_SIM_FOR_HERO);
+}
+
+async function loadNearMiss() {
+  try {
+    const res = await fetch('./near_miss.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    LAST_NEAR_MISS = await res.json();
+  } catch (e) {
+    console.warn('near_miss資料讀取失敗(不影響其他區塊):', e);
+    LAST_NEAR_MISS = null;
+  }
+  // 「今日決策」頁如果已經渲染過(訊號0檔時在等這份資料補上),晚到也要能補一次。
+  if (typeof renderOpportunityRiskSummary === 'function') renderOpportunityRiskSummary();
+}
+
+async function loadAiDigest() {
+  try {
+    const res = await fetch('./ai_digest.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    renderAiDigestBanner(await res.json());
+  } catch (e) {
+    // 這份檔案本來就可能不存在(舊版本站台、或Stage失敗還沒補跑過),
+    // 讀不到就當作沒有摘要,不影響其他區塊。
+    console.warn('AI每日摘要資料讀取失敗(不影響其他區塊):', e);
+    renderAiDigestBanner(null);
+  }
+}
+
+// ---------------------------------------------------------
+// 分頁檢視切換。用 hash 記住目前在哪一頁,重新整理不會跳回首頁,
+// 也讓「今日決策」這類頁面可以直接被書籤/分享。
+// ---------------------------------------------------------
+function switchView(name) {
+  const views = ['home', 'portfolio', 'decision', 'alerts', 'calendar', 'watchlist', 'strategy'];
+  if (!views.includes(name)) name = 'home';
+
+  views.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.toggle('active', v === name);
+  });
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === name);
+  });
+  if (window.location.hash !== '#' + name) {
+    history.replaceState(null, '', '#' + name);
+  }
+  window.scrollTo(0, 0);
+  // 切到新分頁後,該頁的區塊要重新掛上進場動畫(它們原本在畫面外沒被觀察到)
+  if (typeof setupScrollReveal === 'function') setupScrollReveal();
+}
+
+async function loadPaperTrading() {
+  const main = document.getElementById('paper-trading-main');
+  try {
+    const res = await fetch('./paper_trading.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    LAST_PAPER_TRADING = data.paper_trading;
+    renderPaperTrading(data.paper_trading);
+    renderPortfolio();
+  } catch (e) {
+    // 讀不到就整個區塊隱藏,不佔位置顯示一堆空狀態——功能本身還沒有資料時
+    // (例如剛上線還沒有任何一天的模擬紀錄)不該讓使用者以為網站壞了。
+    console.warn('Paper Trading資料讀取失敗,區塊將隱藏:', e);
+    if (main) main.style.display = 'none';
+  }
+}
+
+// ---------------------------------------------------------
+// 追蹤清單(data.json)
+// ---------------------------------------------------------
+async function loadData() {
+  try {
+    const res = await fetch('./data.json?t=' + Date.now());
+    const data = await res.json();
+    render(data);
+  } catch (e) {
+    document.getElementById('loading').textContent = '資料讀取失敗,請確認 data.json 是否存在。';
+  }
+}
+
+function render(data) {
+  document.getElementById('loading').style.display = 'none';
+
+  // M13後追蹤清單(config.watchlist)改為選配,清單留空是刻意的正常狀態,
+  // 不是「還在讀取」或「查無資料」——整個區塊直接隱藏,不留一個空白的區段
+  // 讓人以為網站壞掉。使用者改用上方全市場搜尋+「我的觀察清單」即可。
+  const trackedMain = document.getElementById('tracked-main');
+  const hasTracked = data.stocks && data.stocks.length > 0;
+  trackedMain.style.display = hasTracked ? '' : 'none';
+
+  const updated = new Date(data.last_updated);
+  // 頂欄右側空間有限,改用精簡格式(月/日 時:分)。
+  // 完整時間戳記留在 title 屬性,滑鼠停留就看得到,資訊沒有消失只是收起來。
+  const tpe = updated.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+  const updEl = document.getElementById('updated-line');
+  updEl.innerHTML = '更新 ' + tpe + buildMetadataBadge(data.metadata, data.watchlist_source);
+  updEl.title = '最後更新:' + updated.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }) + '(台灣時間)';
+
+  buildStrategyDashboard(data);
+  buildMarketRegimeBanner(data);
+  LAST_RENDER_DATA = data;
+  renderOpportunityRiskSummary();
+  renderMarketOverview(data.indices);
+  renderEconomicCalendar(data.economic_calendar);
+
+  const strip = document.getElementById('ticker-strip');
+  strip.innerHTML = '';
+
+  if (data.indices) {
+    Object.values(data.indices).forEach(idx => {
+      const dir = idx.change_pct >= 0 ? 'up' : 'down';
+      const el = document.createElement('div');
+      el.className = 'ticker-item index-item';
+      el.innerHTML = `<span class="name">${idx.name}</span><span class="price">${idx.price}</span><span class="${dir}">${idx.change_pct >= 0 ? '+' : ''}${idx.change_pct}%</span>`;
+      strip.appendChild(el);
+    });
+  }
+
+  data.stocks.forEach(s => {
+    const dir = s.change >= 0 ? 'up' : 'down';
+    const el = document.createElement('div');
+    el.className = 'ticker-item';
+    el.innerHTML = `<span class="name">${s.name}</span><span class="price">${s.close_price}</span><span class="${dir}">${fmtChange(s.change, s.change_pct)}</span>`;
+    strip.appendChild(el);
+  });
+
+  const cardsEl = document.getElementById('cards');
+  cardsEl.innerHTML = '';
+  data.stocks.forEach((s, i) => {
+    cardsEl.appendChild(buildStockCard(s, i, 'chart', data.hold_days ?? 15));
+  });
+}
+
+// ---------------------------------------------------------
+// 今日發現(全市場掃描候選,discovered.json)
+// ---------------------------------------------------------
+async function loadDiscovered() {
+  try {
+    const res = await fetch('./discovered.json?t=' + Date.now());
+    const data = await res.json();
+    renderDiscovered(data);
+    checkForNewSignals(data.stocks); // 開頁通知——見下方「新訊號通知」區塊
+  } catch (e) {
+    document.getElementById('discovered-empty').style.display = 'block';
+  }
+}
+
+function renderDiscovered(data) {
+  const cardsEl = document.getElementById('discovered-cards');
+  const emptyEl = document.getElementById('discovered-empty');
+  cardsEl.innerHTML = '';
+
+  if (!data.stocks || data.stocks.length === 0) {
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  data.stocks.forEach((s, i) => {
+    cardsEl.appendChild(buildStockCard(s, i, 'dchart', data.hold_days ?? 15));
+  });
+}
+
+// ---------------------------------------------------------
+// 新訊號通知(Web Notification API)
+// ---------------------------------------------------------
+// 老闆的原始需求是「交易當下我希望有通知跳出來」——這裡要誠實說清楚做得到什麼、
+// 做不到什麼:整個網站是靜態頁面,沒有背景伺服器可以在你沒開頁面時推播,
+// pipeline 也還是每天收盤後才跑一次(見 scripts/notify_line.py 的說明)。
+// 所以這裡做的是「你打開網站的當下,如果今天有新訊號而且瀏覽器通知有開,
+// 系統通知會跳出來」——比自己一筆一筆對著清單找方便,但不是盤中即時推播。
+// 等中國信託API的即時報價串進來、pipeline 改成盤中跑,才有辦法做到真正的即時。
+const SEEN_SIGNALS_KEY = 'mySeenSignals';
+const NOTIF_DISMISSED_KEY = 'myNotifBannerDismissed';
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function loadSeenSignals() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SEEN_SIGNALS_KEY) || 'null');
+    if (raw && raw.date === todayStr()) return new Set(raw.tickers || []);
+  } catch (e) { /* localStorage 壞掉或格式不對,當作今天還沒看過任何東西 */ }
+  return new Set();
+}
+
+function saveSeenSignals(tickerSet) {
+  try {
+    localStorage.setItem(SEEN_SIGNALS_KEY, JSON.stringify({ date: todayStr(), tickers: [...tickerSet] }));
+  } catch (e) { /* 存不進去就算了,頂多下次重複通知一次,不是關鍵功能 */ }
+}
+
+// 決定要不要顯示「開啟通知」的banner。三個條件都成立才顯示:
+// 瀏覽器支援、還沒問過使用者(default狀態)、使用者沒手動叉掉過。
+function setupNotificationBanner() {
+  const banner = document.getElementById('notif-banner');
+  if (!banner) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'default') return;
+  if (localStorage.getItem(NOTIF_DISMISSED_KEY) === '1') return;
+  banner.style.display = 'flex';
+}
+
+function notifyNewSignals(names) {
+  if (!('Notification' in window) || Notification.permission !== 'granted' || !names.length) return;
+  const title = names.length === 1 ? `今日新訊號:${names[0]}` : `今日新訊號 ${names.length} 檔`;
+  const body = names.slice(0, 5).join('、') + (names.length > 5 ? ' 等' : '');
+  try {
+    new Notification(title, { body, tag: 'stock-signals-' + todayStr() });
+  } catch (e) {
+    // 少數瀏覽器(尤其行動版Chrome)不給網頁直接 new Notification(),要走 service worker
+    // 才能跳——這裡沒有那套後端,靜默失敗即可,不影響其他功能。
+  }
+}
+
+// 拿「今天discovered.json的清單」跟「這個瀏覽器今天已經通知過的清單」比對,
+// 只對真的沒看過的部分跳通知——同一天重複整理頁面不會一直跳同一批。
+function checkForNewSignals(stocks) {
+  if (!stocks) return;
+  const seen = loadSeenSignals();
+  const current = new Set(stocks.map(s => s.ticker));
+  const fresh = stocks.filter(s => !seen.has(s.ticker));
+  if (fresh.length > 0) notifyNewSignals(fresh.map(s => s.name || s.ticker));
+  saveSeenSignals(current);
+}
+
+document.getElementById('search-box').addEventListener('input', (e) => {
+  applyFilters();
+  renderSearchDropdown(e.target.value);
+});
+document.getElementById('search-box').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applyFilters();
+  if (e.key === 'Escape') closeSearchDropdown();
+});
+document.getElementById('search-box').addEventListener('focus', (e) => {
+  if (e.target.value.trim()) renderSearchDropdown(e.target.value);
+});
+document.getElementById('watchlist-filter').addEventListener('change', applyFilters);
+
+// M13:搜尋下拉選單 —— 點結果列直接前往詳情頁,點「+」按鈕只加入觀察清單不跳頁
+document.getElementById('search-dropdown').addEventListener('mousedown', (e) => {
+  const addBtn = e.target.closest('.sr-add-btn');
+  if (addBtn) {
+    e.preventDefault(); // 避免搶走 input 的 focus,導致 blur 事件把下拉選單關掉
+    const ticker = addBtn.dataset.ticker;
+    const nowIn = toggleWatchlist(ticker);
+    addBtn.classList.toggle('active', nowIn);
+    addBtn.textContent = nowIn ? '✓' : '+';
+    return;
+  }
+  const item = e.target.closest('.search-result-item');
+  if (item) window.location.href = `./stock.html?code=${item.dataset.code}`;
+});
+
+// 點外面時關閉下拉選單;用 setTimeout 延遲,確保上面的 mousedown 先觸發
+document.getElementById('search-box').addEventListener('blur', () => {
+  setTimeout(closeSearchDropdown, 150);
+});
+
+document.getElementById('watchlist-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.wl-remove');
+  if (!btn) return;
+  e.preventDefault(); // 移除按鈕包在 <a> 裡面,不能連帶跳轉到詳情頁
+  toggleWatchlist(btn.dataset.ticker);
+});
+
+document.getElementById('cards').addEventListener('click', (e) => {
+  const btn = e.target.closest('.star-btn');
+  if (!btn) return;
+  const ticker = btn.dataset.ticker;
+  const nowIn = toggleWatchlist(ticker);
+  btn.classList.toggle('active', nowIn);
+  btn.textContent = nowIn ? '★ 已加入' : '☆ 加入觀察清單';
+  if (document.getElementById('watchlist-filter').checked) applyFilters();
+});
+
+document.getElementById('discovered-cards').addEventListener('click', (e) => {
+  const btn = e.target.closest('.star-btn');
+  if (!btn) return;
+  const ticker = btn.dataset.ticker;
+  const nowIn = toggleWatchlist(ticker);
+  btn.classList.toggle('active', nowIn);
+  btn.textContent = nowIn ? '★ 已加入' : '☆ 加入觀察清單';
+});
+
+// M22:警報中心的事件綁定
+document.getElementById('alert-add-btn').addEventListener('click', handleAddAlert);
+
+document.getElementById('alert-code').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleAddAlert();
+});
+document.getElementById('alert-value').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleAddAlert();
+});
+
+// 「出現進場訊號」「基本面轉弱」不需要數值——把輸入框停用並清空,
+// 比讓使用者填了才發現沒作用要好。
+document.getElementById('alert-type').addEventListener('change', (e) => {
+  const typeDef = ALERT_TYPES[e.target.value];
+  const valueEl = document.getElementById('alert-value');
+  const needsValue = !!(typeDef && typeDef.needsValue);
+  valueEl.disabled = !needsValue;
+  valueEl.placeholder = needsValue ? '數值' : '不需填';
+  if (!needsValue) valueEl.value = '';
+  showAlertError('');
+});
+
+document.getElementById('alert-rule-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.ar-remove');
+  if (!btn) return;
+  removeAlert(btn.dataset.alertId);
+  renderAlertCenter();
+});
+
+// M25/M26:分頁切換 + 我的資產設定
+document.getElementById('cat-nav').addEventListener('click', (e) => {
+  const btn = e.target.closest('.cat-btn');
+  if (btn) switchView(btn.dataset.view);
+});
+
+window.addEventListener('hashchange', () => {
+  switchView((window.location.hash || '#home').slice(1));
+});
+
+document.getElementById('pf-save-btn').addEventListener('click', () => {
+  const num = (id, fallback) => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isFinite(v) && v >= 0 ? v : fallback;
+  };
+  const current = getPortfolioSettings();
+  const capital = num('pf-capital', current.capital);
+
+  // 上下限都要鉗制。只在 HTML 標 max 擋不住:使用者可以直接貼值,
+  // 舊的 localStorage 也可能存著超出範圍的數字(實際發生過,存進了 5000)。
+  const maxPositions = Math.min(
+    MAX_POSITIONS_LIMIT,
+    Math.max(1, Math.round(num('pf-max', current.maxPositions)))
+  );
+  const maxEl = document.getElementById('pf-max');
+  if (maxEl) maxEl.value = maxPositions;   // 被鉗制過就把修正後的值寫回去,不讓畫面說謊
+
+  savePortfolioSettings({
+    capital,
+    riskPct: num('pf-risk', current.riskPct) || current.riskPct,
+    maxPositions,
+    feeBuyPct: num('pf-fee-buy', current.feeBuyPct),
+    feeSellPct: num('pf-fee-sell', current.feeSellPct),
+    taxSellPct: num('pf-tax', current.taxSellPct),
+    feeMin: num('pf-fee-min', current.feeMin),
+    // 只有真的填了大於0的本金才算「設定過」——填0或留空不該讓首頁開始
+    // 顯示一個以預設值算出來的數字,那不是他的錢。
+    enabled: capital > 0,
+  });
+  renderPortfolio();
+});
+
+// 搜尋框右側箭頭:有輸入就去第一個搜尋結果的個股頁,沒有就聚焦輸入框
+// 提示按鈕:捲到大盤總覽。用 scrollIntoView 而不是硬算座標——
+// 版面之後改了它還是會捲到對的地方。
+document.getElementById('hero-scroll-hint').addEventListener('click', () => {
+  const target = document.getElementById('market-overview');
+  if (target && target.scrollIntoView) {
+    target.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  }
+});
+
+document.getElementById('hero-search-go').addEventListener('click', () => {
+  const box = document.getElementById('search-box');
+  const q = (box.value || '').trim();
+  if (!q) { box.focus(); return; }
+  const hits = searchMarketIndex(q);
+  if (hits.length) {
+    window.location.href = `./stock.html?code=${hits[0].code}`;
+  } else {
+    box.focus();
+  }
+});
+
+document.getElementById('mode-picker').addEventListener('click', (e) => {
+  const card = e.target.closest('.mode-card');
+  if (card) setActiveMode(card.dataset.mode);
+});
+
+// 通知權限一定要在使用者按鈕的當下要,不能開站時自動要——大部分瀏覽器會擋,
+// Safari更是強制要求要有使用者手勢,自動要只會被無視或被使用者反感直接關掉整個網站的通知權限。
+document.getElementById('notif-enable-btn').addEventListener('click', () => {
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then(() => {
+    document.getElementById('notif-banner').style.display = 'none';
+  });
+});
+document.getElementById('notif-dismiss-btn').addEventListener('click', () => {
+  try { localStorage.setItem(NOTIF_DISMISSED_KEY, '1'); } catch (e) {}
+  document.getElementById('notif-banner').style.display = 'none';
+});
+
+switchView((window.location.hash || '#home').slice(1));
+renderModePicker();
+renderPortfolio();
+setupScrollReveal();        // 先用localStorage的設定渲染一次,paper_trading載入後會再刷新
+renderWatchlistSection(); // 先用localStorage資料同步渲染一次,索引載入完成後會再刷新一次補上完整資料
+renderAlertCenter();      // 同上:先渲染已設定的警報清單,索引載入完成後才比對得出「今日觸發」
+loadData();
+loadDiscovered();
+loadMarketIndex();
+loadPaperTrading();
+loadHealth();    // UI_SPEC 第二項:首頁主視覺(hero)改讀這份,見 renderHeroHealth()
+loadNearMiss();  // UI_SPEC 第三項:今日決策頁訊號0檔時的替代清單,見 renderOpportunityRiskSummary()
+loadAiDigest();  // Phase 8續(M73):AI每日摘要網站版,見 renderAiDigestBanner()
+refreshMyAccount(); // T7:我的模擬帳戶(逐筆核准),讀取現況+判定排隊成交/出場
+setupNotificationBanner(); // 新訊號通知——是否顯示「開啟通知」banner,見上方說明
+
+// Phase 1:開站時嘗試把雲端資料拉回本機(沒設定 Supabase 就直接跳過,見上方 sb 定義)
+cloudSyncWatchlist();
+cloudSyncAlerts();
+cloudSyncPortfolio();
+
+// T6:交易帳本(直接讀 Supabase 的 trades/fills,不走 docs/*.json)
+loadLedger();
+</script>
+
+</body>
+</html>
