@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出場規則實驗室</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%AA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000; --bg-card: #0D0D0D;
+    --text-primary: #F2F0EA; --text-secondary: #9C9A93; --text-muted: #63615A;
+    --accent: #CBBFA8; --gold: var(--accent);
+    --success: #3FA66B; --danger: #E0473F; --warn: #C9A227;
+    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.18);
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-page); color: var(--text-primary); font-family: var(--font-text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); text-decoration: none; font-size: 13px; }
+  .back-link:hover { color: var(--gold); }
+
+  header.hero { border-bottom: 1px solid var(--border); padding: 2.4rem 0 2rem; }
+  h1 { font-size: 26px; margin: 0 0 0.7rem; font-weight: 700; }
+  .sub { color: var(--text-secondary); font-size: 14px; margin: 0; max-width: 68ch; }
+  .sub code { font-family: var(--font-mono); color: var(--gold); font-size: 12.5px; }
+  .disclaimer { margin: 1rem 0 0; padding: 0.8rem 1rem; font-size: 12px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+  .disclaimer ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+  .disclaimer li { margin: 0.25rem 0; }
+
+  section.block { padding: 2rem 0; border-bottom: 1px solid var(--border); }
+  h2 { font-size: 17px; margin: 0 0 0.4rem; }
+  h2 .sv { color: var(--text-muted); font-size: 12px; font-weight: 400; font-family: var(--font-mono); }
+  .block-note { color: var(--text-secondary); font-size: 12.5px; margin: 0 0 1.1rem; }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 12.5px; }
+  th { text-align: right; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; padding: 0 10px 8px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  td { padding: 10px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  tr.baseline td { background: rgba(203,191,168,0.05); }
+  .vid { font-family: var(--font-mono); color: var(--gold); font-weight: 600; }
+  .vlabel { color: var(--text-secondary); font-size: 11.5px; }
+  .light-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .light-dot.green { background: var(--success); } .light-dot.yellow { background: var(--warn); }
+  .light-dot.red { background: var(--danger); } .light-dot.grey { background: var(--text-muted); }
+  .pos { color: var(--success); } .neg { color: var(--danger); }
+  .delta { font-size: 10.5px; color: var(--text-muted); }
+  .delta.up { color: var(--success); } .delta.down { color: var(--danger); }
+
+  .mix { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--border); margin-top: 6px; min-width: 120px; }
+  .mix i { display: block; height: 100%; }
+  .mix-lg { font-size: 10px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .mix-lg span i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 3px; vertical-align: 0; }
+
+  footer { padding: 2rem 0 3rem; color: var(--text-muted); font-size: 11px; line-height: 1.8; }
+  #loading { padding: 2rem 0; color: var(--text-muted); }
+  #loading code { font-family: var(--font-mono); color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><a class="back-link" href="./review.html">← 覆盤與除錯中心</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <h1>出場規則實驗室</h1>
+  <p class="sub">問題:<b>條件式停利</b>(結構破壞 / 量能出貨 / K 線反轉)有沒有比純機械式移動停損(M156)好?資料由 <code>python scripts/run_exit_lab.py --source fetch</code> 產生,不進版控、不隨每日 pipeline、不動 paper_trading 引擎。</p>
+  <div class="disclaimer" id="how"></div>
+  <div class="disclaimer" id="disclaimers"></div>
+</div></header>
+
+<div id="loading" class="wrap">正在讀取 exit_lab.json…</div>
+<div id="content" style="display:none;"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct = (v, d=2) => v == null ? '—' : (v >= 0 ? '+' : '') + Number(v).toFixed(d) + '%';
+const num = (v, d=2) => v == null ? '—' : Number(v).toFixed(d);
+const cls = v => v == null ? '' : (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+
+const REASON_LABEL = {
+  risk_stop: '初始停損', trailing_stop: '移動停損', structure_breakdown: '結構破壞',
+  volume_distribution: '量能出貨', candle_reversal: 'K線反轉', time_exit: '到期',
+};
+const REASON_COLOR = {
+  risk_stop: '#E0473F', trailing_stop: '#3FA66B', structure_breakdown: '#7BA7D9',
+  volume_distribution: '#C9A227', candle_reversal: '#B57BD9', time_exit: '#63615A',
+};
+
+fetch('./exit_lab.json?t=' + Date.now())
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch(err => {
+    $('#loading').innerHTML = `讀不到 <code>docs/exit_lab.json</code> —— 先在 repo 根目錄跑 <code>python scripts/run_exit_lab.py --source fetch</code>(抓 5 年;<code>--source snapshot</code> 只有 ~9 個月,是純多頭幻覺,對照 M132)。<br><span style="color:var(--text-muted)">(${esc(err.message)})</span>`;
+  });
+
+function render(d) {
+  $('#loading').style.display = 'none';
+  const c = $('#content');
+  c.style.display = '';
+
+  $('#how').innerHTML =
+    '如何讀這張表（推論鏈,一步一步）' +
+    '<ul>' +
+    '<li><b>1. 受控比較</b> —— ' + (d.method || []).map(esc).join(' ') + '</li>' +
+    '<li><b>2. 看 OOS,不看全期</b>:多頭區間裡全期的 PF / Sharpe 都會漂亮(對照假設實驗室 M132)。能區分好壞的是「OOS 期望值」——後 30% 資料。V0 的 OOS 為負、某個 Vn 的 OOS 明顯轉正,才算「這條出場規則有東西」。</li>' +
+    '<li><b>3. 看回吐</b>:條件式停利的賣點就是「少把浮盈吐回去」。回吐(= 平均 MFE − 最終報酬)下降、而 OOS 期望值沒變差,是這條規則有效的直接證據。</li>' +
+    '<li><b>4. 燈號不區分 variant</b>:每個淨期望值為正的版本都是 🟡(綠燈要 regime 穩健檢查,還沒做)。要比哪個版本好,看<b>欄位</b>,不是看燈。</li>' +
+    '<li><b>5. 這是歷史回測,不是判決</b>:見下方硬性邊界。結論只能是「值不值得拿去改引擎」(改了要重置一次 Phase 2),不是「這樣做一定賺」。</li>' +
+    '</ul>';
+
+  $('#disclaimers').innerHTML = '硬性邊界<ul>' + (d.disclaimers || []).map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
+
+  let html = '';
+  for (const [sname, r] of Object.entries(d.strategies || {})) {
+    html += strategyBlock(sname, r);
+  }
+  const co = d.conditions || {};
+  html += `<footer><div class="wrap">
+    資料源 ${esc(d.data_source || '—')} · ${d.n_stocks || 0} 檔 · OOS 切點 ${Math.round((d.oos_split_ratio || 0) * 100)}% ·
+    停損 ${(d.sizing && d.sizing.min_stop_pct * 100) || '?'}–${(d.sizing && d.sizing.max_stop_pct * 100) || '?'}%(ATR×${d.sizing && d.sizing.atr_mult})<br>
+    結構破壞 = 收盤連 ${(co.structure_break && co.structure_break.consec_days_below_ma20) || 2} 天跌破 MA20 ·
+    量能出貨 = 量 > ${(co.volume_distribution && co.volume_distribution.vol_mult) || 2}× 20日均量 且收黑且收在當日下 ${Math.round(((co.volume_distribution && co.volume_distribution.close_pos_max) || 0.34) * 100)}% ·
+    K線反轉 = 已漲 ≥ ${(co.candle_reversal && co.candle_reversal.min_run_pct) || 5}% 後外側下彎 或 上影 ≥ ${(co.candle_reversal && co.candle_reversal.upper_shadow_mult) || 2}× 實體<br>
+    燈號沿用 hypothesis_lab(🔴 淨期望值 ≤ 0 或 PF < 1.1 或 Sharpe < 0.2;🟢 另需 OOS 為正 + regime 穩健,未做 → 不會有綠燈)·
+    產生時間 ${esc((d.metadata && d.metadata.generated_at) || d.last_updated || '—')}
+  </div></footer>`;
+  c.innerHTML = html;
+}
+
+function strategyBlock(sname, r) {
+  const vs = r.variants || [];
+  const base = vs.find(v => v.id === 'V0') || vs[0] || {};
+  const delta = (v, key, goodUp = true) => {
+    if (v.id === base.id || v[key] == null || base[key] == null) return '';
+    const diff = v[key] - base[key];
+    if (Math.abs(diff) < 0.005) return '';
+    const good = goodUp ? diff > 0 : diff < 0;
+    return `<div class="delta ${good ? 'up' : 'down'}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}</div>`;
+  };
+  const rows = vs.map(v => {
+    const total = Object.values(v.exit_reason_mix || {}).reduce((a, b) => a + b, 0) || 1;
+    const segs = Object.entries(v.exit_reason_mix || {}).sort((a, b) => b[1] - a[1]);
+    const mixBar = segs.map(([k, n]) => `<i style="width:${(n / total * 100).toFixed(1)}%;background:${REASON_COLOR[k] || '#888'}"></i>`).join('');
+    const mixLg = segs.map(([k, n]) => `<span><i style="background:${REASON_COLOR[k] || '#888'}"></i>${esc(REASON_LABEL[k] || k)} ${n}</span>`).join('');
+    return `<tr class="${v.id === base.id ? 'baseline' : ''}">
+      <td><span class="light-dot ${v.light}"></span><span class="vid">${esc(v.id)}</span> <span class="vlabel">${esc(v.label)}</span>
+        <div class="mix">${mixBar}</div><div class="mix-lg">${mixLg}</div></td>
+      <td class="num">${v.n_trades ?? '—'}</td>
+      <td class="num">${v.win_rate_pct == null ? '—' : v.win_rate_pct + '%'}</td>
+      <td class="num ${cls(v.net_expectancy_pct)}">${pct(v.net_expectancy_pct)}${delta(v, 'net_expectancy_pct')}</td>
+      <td class="num">${num(v.profit_factor)}${delta(v, 'profit_factor')}</td>
+      <td class="num">${num(v.sharpe_ratio)}${delta(v, 'sharpe_ratio')}</td>
+      <td class="num ${cls(v.oos_net_expectancy_pct)}">${pct(v.oos_net_expectancy_pct)}${delta(v, 'oos_net_expectancy_pct')}</td>
+      <td class="num">${num(v.avg_giveback_pct, 1)}%${delta(v, 'avg_giveback_pct', false)}</td>
+      <td class="num">${num(v.avg_hold_days, 1)}d</td>
+    </tr>`;
+  }).join('');
+  return `<section class="block"><div class="wrap">
+    <h2>${esc(sname)} <span class="sv">${esc(r.strategy_version || '')}</span></h2>
+    <p class="block-note">V0 = 基準(現行 M156 純移動停損)。小字是「該<b>單一指標</b>減 V0」——綠 = 該指標往好的方向、紅 = 往壞的方向,<b>不代表整體更好</b>,要 OOS + 樣本數一起看。回吐 = 平均 (MFE − 最終報酬),越小越好。</p>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>出場版本 / 出場理由分佈</th><th>樣本</th><th>勝率</th><th>淨期望值</th><th>PF</th><th>Sharpe</th><th>OOS 期望值</th><th>回吐</th><th>持有</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div></section>`;
+}
+</script>
+</body>
+</html>

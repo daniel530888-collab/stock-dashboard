@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>交易日誌 · 模擬投資</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%93%93%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<style>
+  :root {
+    --bg: #000000;
+    --bg-block: #0e0e11;
+    --bg-block-2: #131317;
+    --line: rgba(255,255,255,0.07);
+    --line-2: rgba(255,255,255,0.15);
+    --edge: rgba(255,255,255,0.04);
+    --text: #ecebe6;
+    --text-2: #a8a69d;
+    --text-3: #827f77;
+    --blue: #6ea0dd;
+    --up: #3bbd7e;
+    --down: #e5645c;
+    --win-bg: rgba(59,189,126,0.15); --win-fg: #7fe0ab;
+    --loss-bg: rgba(229,100,92,0.15); --loss-fg: #f4a9a2;
+    --s1-bg: rgba(110,160,221,0.14); --s1-fg: #a9cef4;
+    --s2-bg: rgba(214,178,120,0.14); --s2-fg: #e6d4a4;
+    /* M146:字體系統改成「一套無襯線 + 數字才等寬」。中文走思源黑體,
+       不再是全站 Courier Prime 打字機體(那個把工具做成 AI 感的來源)。 */
+    --font: 'IBM Plex Sans', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, SFMono-Regular, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  ::selection { background: rgba(255,255,255,0.16); color: var(--text); }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font);
+    font-size: 14px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    caret-color: var(--blue);
+  }
+  /* 數字、代號、日期一律等寬,其餘走無襯線 */
+  .mono, .num, .tab-nums { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  a { color: inherit; text-decoration: none; }
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border: 3px solid var(--bg); border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .anim { animation: rise 0.62s cubic-bezier(0.22,1,0.36,1) both; }
+  @media (prefers-reduced-motion: reduce) { .anim { animation: none !important; } html { scroll-behavior: auto; } }
+
+  /* topbar */
+  .topbar { border-bottom: 1px solid var(--line); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 5; background: rgba(0,0,0,0.7); }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 50px; }
+  .topbar a { color: var(--text-3); font-size: 13px; transition: color 0.15s; }
+  .topbar a:hover { color: var(--text); }
+  .topbar .bc { color: var(--text-3); font-size: 12px; letter-spacing: 0.04em; }
+  .topbar .bc b { color: var(--text-2); font-weight: 400; }
+
+  /* page header */
+  header.pg { padding: 62px 0 18px; }
+  header.pg h1 { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
+  header.pg .sub { color: var(--text-3); font-size: 12.5px; margin-top: 10px; }
+  header.pg .sub .mono { color: var(--text-2); }
+
+  /* block header */
+  .bh { display: flex; align-items: center; justify-content: space-between; margin: 52px 0 16px; gap: 12px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .ic { display: inline-flex; }
+  .ic.spin { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn {
+    background: var(--text); color: var(--bg); border: none;
+    font: inherit; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.82; }
+  .btn:active { opacity: 0.7; }
+
+  /* summary — 拿掉兩個進度圈(big number + label 是 AI 感的樣板),
+     改成一條實打實的勝/負筆數比例條 + 直接把數字排好 */
+  .summary { display: flex; flex-wrap: wrap; gap: 40px 56px; align-items: flex-start; }
+  .wlbar { min-width: 260px; flex: 1; max-width: 420px; }
+  .wlbar .track { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg-block); }
+  .wlbar .track i { display: block; }
+  .wlbar .track .w { background: var(--up); }
+  .wlbar .track .l { background: var(--down); }
+  .wlbar .lg { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-3); }
+  .wlbar .lg b { font-weight: 500; color: var(--text-2); font-family: var(--font-mono); }
+  .kv { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+  .kv > div { display: flex; flex-direction: column; }
+  .kv .k { color: var(--text-3); font-size: 11px; }
+  .kv .v { font-size: 22px; font-weight: 600; margin-top: 4px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kv .v.sm { font-size: 13px; font-weight: 400; color: var(--text-2); }
+  .footnote { color: var(--text-3); font-size: 11.5px; margin-top: 20px; line-height: 1.75; max-width: 620px; }
+
+  /* tabs — 純文字,不用 unicode 當圖示,不用資料夾分頁造型 */
+  .tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line); margin-top: 38px; flex-wrap: wrap; }
+  .tabs button {
+    background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-3);
+    font: inherit; font-size: 13px; font-weight: 500; padding: 9px 1px; cursor: pointer;
+    margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+  }
+  .tabs button:hover { color: var(--text-2); }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); }
+
+  .view { padding: 30px 0 130px; }
+  .view.fade { animation: rise 0.4s ease both; }
+  .empty { color: var(--text-3); font-size: 13px; padding: 48px 0; }
+
+  /* tags */
+  .tag { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 3px; line-height: 1.5; white-space: nowrap; letter-spacing: 0.02em; }
+  .tag.win { background: var(--win-bg); color: var(--win-fg); }
+  .tag.loss { background: var(--loss-bg); color: var(--loss-fg); }
+  .tag.s-pullback { background: var(--s1-bg); color: var(--s1-fg); }
+  .tag.s-breakout { background: var(--s2-bg); color: var(--s2-fg); }
+  .num.up { color: var(--up); }
+  .num.down { color: var(--down); }
+  .muted { color: var(--text-3); }
+
+  /* table / list */
+  .tbl .r {
+    display: grid; grid-template-columns: 1.7fr 0.7fr 0.8fr 0.95fr 1.3fr 0.7fr;
+    align-items: baseline; gap: 16px; padding: 13px 4px; border-bottom: 1px solid var(--line);
+  }
+  .tbl .r.h { color: var(--text-3); font-size: 11px; font-weight: 500; padding: 6px 4px; border-bottom: 1px solid var(--line-2); }
+  .tbl .r:not(.h):hover { background: rgba(255,255,255,0.02); }
+  .tbl .sym b { font-weight: 600; font-family: var(--font-mono); }
+  .tbl .sym .nm { color: var(--text-3); font-size: 12px; margin-left: 9px; }
+
+  /* gallery — 不做卡片:圖表本身是主角,底下一行緊湊說明,靠留白分隔 */
+  .gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 40px 30px; }
+  .g-card .chart { height: 128px; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
+  .g-card:hover .chart { border-bottom-color: var(--line-2); }
+  .g-card .sym { margin-top: 10px; font-size: 13px; }
+  .g-card .sym b { font-weight: 600; font-family: var(--font-mono); }
+  .g-card .row2 { display: flex; align-items: center; gap: 9px; margin-top: 7px; flex-wrap: wrap; }
+  .g-card .row3 { display: flex; justify-content: space-between; margin-top: 8px; color: var(--text-3); font-size: 11px; }
+
+  /* skeleton — 載入中佔位,用輕微明滅而非跑光帶 */
+  .skel { height: 190px; background: var(--bg-block); border-radius: 3px; animation: skpulse 1.6s ease-in-out infinite; }
+  @keyframes skpulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; opacity: 0.7; } }
+
+  /* calendar */
+  .seg { display: inline-flex; gap: 14px; }
+  .seg button { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-3); font: inherit; font-size: 12px; padding: 3px 1px; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .seg button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); }
+  .cal-top { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .cal-top .m { font-size: 15px; font-weight: 600; font-family: var(--font-mono); }
+  /* M144:1fr = minmax(auto,1fr),格子內容(股號+報酬)的 min-content 一寬,
+     軌道就被撐開、七欄總寬超出手機畫面,週三~週六整個被 overflow:hidden 切掉
+     且無法捲。改 minmax(0,1fr) 讓軌道可縮到比內容窄,七欄永遠塞得下。 */
+  .cg { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .cg .dow { color: var(--text-3); font-size: 10px; letter-spacing: 0.06em; padding: 7px 9px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .cg .cell { min-height: 100px; padding: 7px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .cg .cell.out { background: rgba(255,255,255,0.012); }
+  .cg .cell .d { color: var(--text-3); font-size: 11px; padding: 0 2px; font-family: var(--font-mono); }
+  /* 事件不再是「格子裡的小卡」:只留代號 + 報酬,用顏色分勝負 */
+  .ev { margin-top: 6px; padding: 0; font-size: 10px; line-height: 1.4; }
+  .ev b { font-weight: 600; font-family: var(--font-mono); color: var(--text-2); }
+  .ev.up b { color: var(--up); } .ev.down b { color: var(--down); }
+  .ev .r2 { display: flex; align-items: center; gap: 5px; }
+
+  /* K 線副圖的軸文字走等寬 */
+  .kc text { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* chart view */
+  .cwrap { border: 1px solid var(--line); border-radius: 4px; padding: 22px; }
+  .legend { display: flex; gap: 18px; margin-bottom: 14px; font-size: 11px; color: var(--text-2); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; vertical-align: middle; }
+  .cnote { color: var(--text-3); font-size: 11.5px; margin-top: 16px; line-height: 1.75; }
+
+  footer { border-top: 1px solid var(--line); padding: 26px 0 60px; color: var(--text-3); font-size: 11.5px; line-height: 1.8; }
+  footer a { color: var(--text-2); border-bottom: 1px solid var(--line-2); }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 0 16px; }
+    header.pg { padding: 38px 0 14px; }
+    header.pg h1 { font-size: 24px; }
+    .summary { gap: 28px 40px; }
+    .wlbar { max-width: none; }
+    .kv { flex-basis: 100%; gap: 16px 32px; }
+    .bh { margin: 38px 0 14px; }
+    .tbl .r { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 15px 4px; }
+    .tbl .r.h { display: none; }
+    .tbl .sym { flex: 1 1 100%; }
+    .tbl .c-wide { flex: 1 1 100%; color: var(--text-3); font-size: 11px; }
+    /* M144:七欄擠進 ~360px,每欄剩 ~50px。縮 padding/字級、讓事件片能換行,
+       格子內容才不會再溢出被切。 */
+    .cg .cell { min-height: 58px; padding: 4px; }
+    .cg .dow { padding: 5px 3px; font-size: 9px; text-align: center; letter-spacing: 0; }
+    .cg .cell .d { font-size: 10px; padding: 0 1px; }
+    .ev { padding: 3px 4px; font-size: 9px; margin-top: 4px; }
+    .ev b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ev .r2 { flex-wrap: wrap; gap: 2px 4px; margin-top: 2px; }
+    .cwrap { padding: 13px; }
+    .g-card .chart { height: 120px; }
+
+    /* M140:手機效能。sticky topbar 的 backdrop-filter 每一幀重算背後模糊,
+       手機捲動最大的卡頓來源(同 index.html M138)。桌機不受影響。 */
+    .topbar { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(0,0,0,0.96); }
+  }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a href="./index.html">← 返回看板</a>
+  <span class="bc">模擬投資 <b>/</b> 交易日誌</span>
+</div></div>
+<div id="root"><div class="wrap"><header class="pg"><h1>載入中…</h1></header></div></div>
+
+<script>
+const h = React.createElement;
+const { useState, useEffect, useMemo, useRef } = React;
+
+const fmtPct = (n) => (n == null || isNaN(n)) ? "—" : (n >= 0 ? "+" : "") + Number(n).toFixed(2) + "%";
+const isWin = (t) => (t.return_pct != null ? t.return_pct > 0 : ["take_profit_1x", "trailing_stop"].includes(t.exit_reason));
+// M156:混合式移動停損 —— 出場理由多了 trailing_stop
+// M186:詞彙的 single source of truth 是 config/settings.yaml exit_vocab
+// (engine_emits raw→reasons + reasons.*.label)。review.html / failure_cases.html /
+// diagnostics.html / index.html 的對映表用同一組字串,改一處要一起改。
+const EXIT_LABEL = { stop_loss: "風險停損", risk_stop: "風險停損",
+  trailing_stop: "移動停損", take_profit_1x: "移動停損（舊樣本）",
+  time_exit: "持有到期", structure_breakdown: "結構破壞" };
+const exitLabel = (t) => EXIT_LABEL[t.exit_reason] || (isWin(t) ? "獲利出場" : "虧損出場");
+const sD = (s) => s ? s.slice(5) : "—";
+const parseD = (s) => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const stratCls = (s) => "s-" + s;
+// M181:進場理由白話短名。source of truth 是策略類別的 short_label
+// (src/strategies/*.py)/ 假設 registry 的 short_label(data/hypotheses/registry.jsonl)。
+// 這裡是顯示層的鏡像,加新策略時同步一行。
+const STRAT_LABEL = { breakout: "創新高爆量", pullback: "貼均線量縮",
+  tv004_smc_choch: "空頭轉多·結構突破" };   // challenger,對齊 registry.jsonl short_label
+const stratLabel = (s) => STRAT_LABEL[s] || s;
+const prefersReduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function useCountUp(target, ms = 700) {
+  const [v, setV] = useState(prefersReduced ? target : 0);
+  useEffect(() => {
+    if (prefersReduced) { setV(target); return; }
+    let raf, t0;
+    const step = (t) => { t0 = t0 || t; const k = Math.min(1, (t - t0) / ms);
+      setV(Math.round((0.5 - Math.cos(Math.PI * k) / 2) * target)); if (k < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return v;
+}
+
+function Tag({ win }) { return h("span", { className: "tag " + (win ? "win" : "loss") }, win ? "WIN" : "LOSS"); }
+function Strat({ s }) { return h("span", { className: "tag " + stratCls(s), title: s }, stratLabel(s)); }
+
+// 勝負筆數比例條 —— 取代原本兩個「大數字 + 標籤」的進度圈
+function WinLossBar({ wins, losses }) {
+  const total = wins + losses || 1;
+  const wp = Math.round((wins / total) * 100);
+  return h("div", { className: "wlbar" },
+    h("div", { className: "track" },
+      h("i", { className: "w", style: { width: wp + "%" } }),
+      h("i", { className: "l", style: { width: (100 - wp) + "%" } })),
+    h("div", { className: "lg" },
+      h("span", null, "獲利 ", h("b", null, wins), " 筆 · ", wp, "%"),
+      h("span", null, (100 - wp), "% · ", h("b", null, losses), " 筆虧損")));
+}
+
+function RefreshIco() {
+  return h("svg", { width: 13, height: 13, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" },
+    h("path", { d: "M21 12a9 9 0 1 1-2.64-6.36" }), h("path", { d: "M21 3v6h-6" }));
+}
+
+// fallback mini diagram
+function Mini({ t, w = 236, ht = 132 }) {
+  const ex = t.exit_price ?? t.entry_price;
+  const lo = Math.min(t.stop_loss, t.entry_price, ex, t.take_profit_1x);
+  const hi = Math.max(t.stop_loss, t.entry_price, ex, t.take_profit_1x);
+  const pad = (hi - lo) * 0.16 || 1;
+  const y = (v) => ht - 8 - ((v - (lo - pad)) / ((hi + pad) - (lo - pad))) * (ht - 16);
+  const win = isWin(t);
+  return h("svg", { viewBox: `0 0 ${w} ${ht}`, width: "100%", height: "100%", preserveAspectRatio: "none" },
+    h("line", { x1: 0, x2: w, y1: y(t.take_profit_1x), y2: y(t.take_profit_1x), stroke: "var(--up)", strokeOpacity: 0.28, strokeDasharray: "2 4" }),
+    h("line", { x1: 0, x2: w, y1: y(t.stop_loss), y2: y(t.stop_loss), stroke: "var(--down)", strokeOpacity: 0.28, strokeDasharray: "2 4" }),
+    h("polyline", { points: `20,${y(t.entry_price)} ${w-20},${y(ex)}`, fill: "none", stroke: win ? "var(--up)" : "var(--down)", strokeWidth: 1.6 }),
+    h("circle", { cx: 20, cy: y(t.entry_price), r: 2.4, fill: "var(--text-2)" }),
+    h("circle", { cx: w-20, cy: y(ex), r: 2.8, fill: win ? "var(--up)" : "var(--down)" }));
+}
+
+// K 線副圖:日 K 棒 + 5 日均線 + 量能 + 持有區間 + 進出場價 + 日期軸
+function Candle({ t, history, w = 236, ht = 132 }) {
+  if (!history || history.length < 3) return h(Mini, { t, w, ht });
+  const idxOn = (date, dir) => {
+    let best = -1;
+    for (let i = 0; i < history.length; i++)
+      if (dir < 0 ? history[i].date <= date : history[i].date >= date) { best = i; if (dir >= 0) break; }
+    return best < 0 ? (dir < 0 ? 0 : history.length - 1) : best;
+  };
+  const eIdx = idxOn(t.entry_date, +1);
+  const xIdx = Math.max(eIdx, idxOn(t.exit_date, -1));
+  const from = Math.max(0, eIdx - 8), to = Math.min(history.length - 1, xIdx + 4);
+  const bars = history.slice(from, to + 1);
+  if (bars.length < 2) return h(Mini, { t, w, ht });
+
+  const win = isWin(t);
+  const uc = "var(--up)", dc = "var(--down)";
+  const ep = t.entry_price, xp = t.exit_price ?? t.entry_price;
+  const fmtP = (v) => v.toFixed(v < 50 ? 2 : v < 200 ? 1 : 0);
+
+  // 有沒有成交量欄位 —— 有才畫下方量能副圖
+  const vols = bars.map((b) => +b.volume || +b.vol || 0);
+  const hasVol = vols.some((v) => v > 0);
+  const maxVol = Math.max(1, ...vols);
+
+  // M156 混合式移動停損:trail_path = [{date, level}]，level 為 null 代表當天還沒啟動。
+  const tp = (t.trail_path || []).filter((p) => p && p.level != null && p.date);
+  const tLvls = tp.map((p) => p.level);
+
+  const AX = 36, PL = 2, PT = 7, PB = 13;
+  const VH = hasVol ? 18 : 0, VG = hasVol ? 6 : 0;
+  const priceTop = PT, priceBot = ht - PB - VH - VG;
+  let lo = Math.min(...bars.map((b) => b.low), t.stop_loss, ...tLvls);
+  let hi = Math.max(...bars.map((b) => b.high), t.take_profit_1x, ...tLvls);
+  const pad = (hi - lo) * 0.1 || 1; lo -= pad; hi += pad;
+  const n = bars.length, slot = (w - AX - PL) / n;
+  const bw = Math.max(1.6, Math.min(7, slot * 0.62));
+  const cx = (i) => PL + slot * (i + 0.5);
+  const y = (v) => priceTop + (1 - (v - lo) / (hi - lo)) * (priceBot - priceTop);
+  const vy = (v) => (ht - PB) - (v / maxVol) * VH;
+  const eX = cx(eIdx - from), xX = cx(xIdx - from);
+  const plotR = w - AX;
+  const bxOf = (date) => cx(Math.max(0, Math.min(n - 1, idxOn(date, -1) - from)));
+
+  // 移動停損棘輪路徑：step-after（停在一個價位直到跳上去），最後拉平到出場
+  let trailD = "";
+  tp.forEach((p, i) => {
+    const px = bxOf(p.date), py = y(p.level);
+    trailD += i === 0 ? `M ${px} ${py}` : ` H ${px} V ${py}`;
+  });
+  if (tp.length) trailD += ` H ${xX}`;
+
+  // 5 日均線(資料夠才畫)
+  const ma = bars.map((b, i) => {
+    if (i < 4) return null;
+    let s = 0; for (let k = i - 4; k <= i; k++) s += bars[k].close;
+    return s / 5;
+  });
+  const maPts = ma.map((v, i) => (v == null ? null : `${cx(i)},${y(v)}`)).filter(Boolean).join(" ");
+
+  const ticks = [hi - pad, (hi + lo) / 2, lo + pad];
+
+  return h("svg", { className: "kc", viewBox: `0 0 ${w} ${ht}`, width: "100%", height: "100%" },
+    // 水平網格 + 右側刻度
+    ticks.map((v, i) => h("g", { key: "g" + i },
+      h("line", { x1: PL, x2: plotR, y1: y(v), y2: y(v), stroke: "var(--line)", strokeWidth: 1 }),
+      h("text", { x: plotR + 4, y: y(v) + 3, fill: "var(--text-3)", fontSize: 8.5 }, fmtP(v)))),
+    // 持有區間
+    h("rect", { x: eX, y: priceTop, width: Math.max(1.5, xX - eX), height: priceBot - priceTop,
+      fill: win ? uc : dc, fillOpacity: 0.07 }),
+    // 初始停損（紅虛線）/ 1×R 啟動移動停損的門檻（綠虛線，M156：達標不出場、改追蹤）
+    h("line", { x1: PL, x2: plotR, y1: y(t.take_profit_1x), y2: y(t.take_profit_1x), stroke: uc, strokeOpacity: 0.28, strokeDasharray: "2 4" }),
+    h("line", { x1: PL, x2: plotR, y1: y(t.stop_loss), y2: y(t.stop_loss), stroke: dc, strokeOpacity: 0.28, strokeDasharray: "2 4" }),
+    // 移動停損棘輪路徑（琥珀實線，只往上跳）
+    trailD && h("path", { d: trailD, fill: "none", stroke: "#d9a44a", strokeWidth: 1.4, strokeOpacity: 0.95 }),
+    // 量能副圖
+    hasVol && bars.map((b, i) => h("rect", { key: "v" + i, x: cx(i) - bw / 2, y: vy(vols[i]),
+      width: bw, height: (ht - PB) - vy(vols[i]),
+      fill: b.close >= b.open ? uc : dc, fillOpacity: 0.32 })),
+    // K 棒
+    bars.map((b, i) => {
+      const up = b.close >= b.open, col = up ? uc : dc, bx = cx(i);
+      const yo = y(b.open), yc = y(b.close);
+      return h("g", { key: i },
+        h("line", { x1: bx, x2: bx, y1: y(b.high), y2: y(b.low), stroke: col, strokeWidth: 1 }),
+        h("rect", { x: bx - bw / 2, y: Math.min(yo, yc), width: bw, height: Math.max(0.8, Math.abs(yo - yc)),
+          fill: col, fillOpacity: up ? 0.92 : 0.5, stroke: col, strokeWidth: up ? 0 : 0.9 }));
+    }),
+    // MA5
+    maPts && h("polyline", { points: maPts, fill: "none", stroke: "var(--text-2)", strokeOpacity: 0.6, strokeWidth: 1 }),
+    // 進場 ▲ / 出場 ▼ 箭頭 + 價格
+    h("line", { x1: eX, x2: eX, y1: priceTop, y2: priceBot, stroke: "var(--text-2)", strokeOpacity: 0.28, strokeWidth: 1 }),
+    h("path", { d: `M ${eX} ${y(ep)} l -4 7 l 8 0 z`, fill: "var(--text)" }),
+    h("text", { x: Math.min(eX + 5, plotR - 26), y: y(ep) - 5, fill: "var(--text-2)", fontSize: 8.5 }, "進 " + fmtP(ep)),
+    h("path", { d: `M ${xX} ${y(xp)} l -4 -7 l 8 0 z`, fill: win ? uc : dc }),
+    h("text", { x: Math.min(xX + 5, plotR - 26), y: y(xp) + 11, fill: win ? uc : dc, fontSize: 8.5 }, "出 " + fmtP(xp)),
+    // 日期
+    h("text", { x: PL, y: ht - 3, fill: "var(--text-3)", fontSize: 8 }, sD(bars[0].date)),
+    h("text", { x: plotR, y: ht - 3, fill: "var(--text-3)", fontSize: 8, textAnchor: "end" }, sD(bars[n - 1].date))
+  );
+}
+
+// ---- fetch per-stock OHLC once ----
+const _histCache = {};
+function useHistories(trades) {
+  const [hist, setHist] = useState({ ..._histCache });
+  useEffect(() => {
+    let alive = true;
+    const need = [...new Set(trades.map((t) => t.code))].filter((c) => !(c in _histCache));
+    if (!need.length) { setHist({ ..._histCache }); return; }
+    Promise.all(need.map((code) =>
+      fetch(`./stocks/${code}.json?t=${Date.now()}`).then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          // 正式站是 { stock: { history: [...] } }；舊/合成格式是 { history: [...] }
+          const hist = d && ((d.stock && d.stock.history) || d.history);
+          _histCache[code] = (Array.isArray(hist) && hist.length) ? hist : null;
+        })
+        .catch(() => { _histCache[code] = null; })
+    )).then(() => { if (alive) setHist({ ..._histCache }); });
+    return () => { alive = false; };
+  }, [trades]);
+  return hist;
+}
+
+// ---- views ----
+function ListView({ trades }) {
+  if (!trades.length) return h("div", { className: "empty" }, "沒有已平倉的交易");
+  const H = (tx) => h("div", null, tx);
+  return h("div", { className: "tbl" },
+    h("div", { className: "r h" }, H("標的"), H("結果"), H("報酬"), H("策略"), H("進場 → 出場"), H("出場")),
+    trades.map((t, i) => h("div", { className: "r", key: i },
+      h("div", { className: "sym" }, h("b", null, t.code), h("span", { className: "nm" }, t.name)),
+      h("div", null, h(Tag, { win: isWin(t) })),
+      h("div", { className: "num " + (isWin(t) ? "up" : "down") }, fmtPct(t.return_pct)),
+      h("div", null, h(Strat, { s: t.strategy })),
+      h("div", { className: "muted c-wide mono" }, sD(t.entry_date), " → ", sD(t.exit_date), " · ", t.days_held, "d"),
+      h("div", { className: "muted c-wide" }, exitLabel(t))))
+  );
+}
+
+function GalleryView({ trades }) {
+  if (!trades.length) return h("div", { className: "empty" }, "沒有已平倉的交易");
+  const hist = useHistories(trades);
+  const anyLoaded = trades.some((t) => t.code in hist);
+  return h("div", { className: "gal" },
+    trades.map((t, i) => {
+      if (!(t.code in hist) && !anyLoaded) return h("div", { className: "skel", key: i });
+      return h("div", { className: "g-card anim", key: i, style: { animationDelay: (i % 8) * 22 + "ms" } },
+        h("div", { className: "chart" }, (t.code in hist) ? h(Candle, { t, history: hist[t.code] }) : h(Mini, { t })),
+        h("div", { className: "sym" }, h("b", null, t.code), " ", h("span", { className: "muted" }, t.name)),
+        h("div", { className: "row2" }, h(Tag, { win: isWin(t) }),
+          h("span", { className: "num " + (isWin(t) ? "up" : "down") }, fmtPct(t.return_pct)), h(Strat, { s: t.strategy })),
+        h("div", { className: "row3" },
+          h("span", null, sD(t.entry_date), " → ", sD(t.exit_date), " · ", t.days_held, "d"),
+          h("span", null, exitLabel(t))));
+    })
+  );
+}
+
+function CalendarView({ trades }) {
+  if (!trades.length) return h("div", { className: "empty" }, "沒有已平倉的交易");
+  const byDay = {};
+  trades.forEach((t) => { (byDay[t.entry_date] = byDay[t.entry_date] || []).push(t); });
+  const first = parseD(Object.keys(byDay).sort()[0]);
+  const y = first.getFullYear(), m = first.getMonth();
+  const gs = new Date(y, m, 1); gs.setDate(1 - gs.getDay());
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gs); d.setDate(gs.getDate() + i);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    cells.push({ d, out: d.getMonth() !== m, list: byDay[key] || [] });
+  }
+  return h("div", null,
+    h("div", { className: "cal-top" },
+      h("div", { className: "seg" }, h("button", null, "週"), h("button", { "aria-selected": true }, "月")),
+      h("span", { className: "m" }, `${y} 年 ${m + 1} 月`),
+      h("span", { className: "muted" }, `${trades.length} 筆 · 依進場日`)),
+    h("div", { className: "cg" },
+      ["日","一","二","三","四","五","六"].map((w) => h("div", { className: "dow", key: w }, w)),
+      cells.map((c, i) => h("div", { className: "cell" + (c.out ? " out" : ""), key: i },
+        h("div", { className: "d" }, c.d.getDate()),
+        c.list.map((t, j) => h("div", { className: "ev " + (isWin(t) ? "up" : "down"), key: j },
+          h("b", null, t.code),
+          h("div", { className: "r2" },
+            h("span", { className: "num " + (isWin(t) ? "up" : "down") }, fmtPct(t.return_pct)))))))
+    )
+  );
+}
+
+function ChartView({ trades }) {
+  const [mode, setMode] = useState("equity");
+  if (!trades.length) return h("div", { className: "empty" }, "沒有已平倉的交易");
+  const ordered = [...trades].sort((a, b) => (a.exit_date < b.exit_date ? -1 : 1));
+  const W = 860, H = 300, PL = 46, PR = 14, PT = 16, PB = 24;
+  let series;
+  if (mode === "equity") {
+    let eq = 1; series = [{ x: 0, v: 0 }];
+    ordered.forEach((t, i) => { eq *= 1 + (t.return_pct || 0) / 100; series.push({ x: i + 1, v: (eq - 1) * 100 }); });
+  } else series = ordered.map((t, i) => ({ x: i + 1, v: t.return_pct || 0, win: isWin(t) }));
+  const vs = series.map((s) => s.v), xmax = Math.max(...series.map((s) => s.x), 1);
+  const vmin = Math.min(0, ...vs), vmax = Math.max(0, ...vs);
+  const sx = (x) => PL + (x / xmax) * (W - PL - PR);
+  const sy = (v) => PT + (1 - (v - vmin) / (vmax - vmin || 1)) * (H - PT - PB);
+  const zero = sy(0);
+  const line = series.map((s) => `${sx(s.x)},${sy(s.v)}`).join(" ");
+  const area = `${sx(series[0].x)},${zero} ${line} ${sx(series[series.length-1].x)},${zero}`;
+  return h("div", null,
+    h("div", { className: "seg", style: { marginBottom: "16px" } },
+      h("button", { "aria-selected": mode === "equity", onClick: () => setMode("equity") }, "累積曲線"),
+      h("button", { "aria-selected": mode === "per", onClick: () => setMode("per") }, "逐筆報酬")),
+    h("div", { className: "cwrap" },
+      h("div", { className: "legend" },
+        h("span", null, h("i", { style: { background: "var(--up)" } }), "獲利"),
+        h("span", null, h("i", { style: { background: "var(--down)" } }), "虧損")),
+      h("svg", { className: "kc", viewBox: `0 0 ${W} ${H}`, width: "100%" },
+        h("defs", null, h("linearGradient", { id: "eqg", x1: "0", y1: "0", x2: "0", y2: "1" },
+          h("stop", { offset: "0", stopColor: "var(--text-2)", stopOpacity: 0.16 }),
+          h("stop", { offset: "1", stopColor: "var(--text-2)", stopOpacity: 0 }))),
+        [vmin, (vmin + vmax) / 2, vmax].map((g, i) => h("g", { key: i },
+          h("line", { x1: PL, x2: W - PR, y1: sy(g), y2: sy(g), stroke: "var(--line)" }),
+          h("text", { x: 6, y: sy(g) + 3, fill: "var(--text-3)", fontSize: 10 }, g.toFixed(0) + "%"))),
+        h("line", { x1: PL, x2: W - PR, y1: zero, y2: zero, stroke: "var(--line-2)" }),
+        mode === "equity" && h("polygon", { points: area, fill: "url(#eqg)" }),
+        mode === "equity"
+          ? h("polyline", { points: line, fill: "none", stroke: "var(--text)", strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" })
+          : series.map((s, i) => h("rect", { key: i, x: sx(s.x) - 5, y: Math.min(sy(s.v), zero), width: 10,
+              height: Math.abs(sy(s.v) - zero), rx: 1.5, fill: s.win ? "var(--up)" : "var(--down)", fillOpacity: 0.82 }))),
+      h("div", { className: "cnote" },
+        "※ 累積曲線用「每筆報酬依序複利、資金全押下一筆」算，跨多檔股票的真實帳戶不是這樣操作，這條線會把波動放大，只看形狀、不要當成帳戶實際損益（同 GATE_ACCEPTANCE_LOG 的 Phase 2 說明）。"))
+  );
+}
+
+function OpenView({ open }) {
+  if (!open.length) return h("div", { className: "empty" }, "目前沒有未平倉部位");
+  const rows = [...open].sort((a, b) => (a.entry_date < b.entry_date ? 1 : -1));
+  const H = (tx) => h("div", null, tx);
+  return h("div", { className: "tbl" },
+    h("div", { className: "r h" }, H("標的"), H("策略"), H("進場價"), H("停損／移停啟動"), H("進場 · 天數"), H("進場分")),
+    rows.map((t, i) => h("div", { className: "r", key: i },
+      h("div", { className: "sym" }, h("b", null, t.code), h("span", { className: "nm" }, t.name)),
+      h("div", null, h(Strat, { s: t.strategy })),
+      h("div", { className: "mono" }, t.entry_price),
+      h("div", { className: "muted mono" }, t.stop_loss, " / ", t.take_profit_1x),
+      h("div", { className: "muted c-wide mono" }, sD(t.entry_date), " · ", t.days_held, "d"),
+      h("div", { className: "muted c-wide mono" }, t.score_at_entry)))
+  );
+}
+
+const VIEWS = [["list","清單"],["gallery","卡片"],["calendar","月曆"],["chart","走勢"],["open","持有中"]];
+
+function App() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  const [updated, setUpdated] = useState("—");
+  const [view, setView] = useState("list");
+  const [nonce, setNonce] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("./paper_trading.json?t=" + Date.now())
+      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then((d) => {
+        if (d.last_updated) setUpdated(String(d.last_updated).slice(0, 16).replace("T", " "));
+        setData(d.paper_trading || d); setErr(null);
+      })
+      .catch((e) => setErr(String(e)))
+      .finally(() => setLoading(false));
+  }, [nonce]);
+
+  const closed = useMemo(() => {
+    if (!data) return [];
+    const l = data.recent_closed_positions || data.closed_positions || [];
+    return [...l].sort((a, b) => (a.exit_date < b.exit_date ? 1 : -1));
+  }, [data]);
+  const open = (data && data.open_positions) || [];
+
+  const stats = useMemo(() => {
+    if (!closed.length) return null;
+    const wins = closed.filter(isWin).length;
+    const bs = (data && data.by_strategy) || {};
+    return {
+      n: (data && data.n_closed_total) || closed.length, shown: closed.length,
+      wins, losses: closed.length - wins,
+      byStrat: Object.entries(bs).map(([k, v]) => `${k} ${v.n_closed}`).join(" · "),
+    };
+  }, [closed, data]);
+
+  if (err) return h("div", { className: "wrap" }, h("header", { className: "pg" },
+    h("h1", null, "讀不到資料"),
+    h("p", { className: "sub" }, "paper_trading.json 載入失敗（", err, "）。GitHub Pages 上這份由每日 pipeline 產生；本機要先起一個 http server（見 .claude/launch.json）。")));
+  if (!data) return h("div", { className: "wrap" }, h("header", { className: "pg" }, h("h1", null, "載入中…")));
+
+  const body = { list: h(ListView, { trades: closed }), gallery: h(GalleryView, { trades: closed }),
+    calendar: h(CalendarView, { trades: closed }), chart: h(ChartView, { trades: closed }), open: h(OpenView, { open }) }[view];
+
+  return h("div", { className: "wrap" },
+    h("header", { className: "pg anim" },
+      h("h1", null, "交易日誌"),
+      h("p", { className: "sub" }, "系統模擬交易 · pullback／breakout 全樣本 · 更新於 ", h("span", { className: "mono" }, updated))),
+
+    stats && h("div", { className: "anim", style: { animationDelay: "60ms" } },
+      h("div", { className: "bh" },
+        h("span", { className: "chip" }, "績效總覽"),
+        h("button", { className: "btn", onClick: () => setNonce((n) => n + 1) },
+          h("span", { className: "ic" + (loading ? " spin" : ""), style: { marginRight: "7px", verticalAlign: "-1px" } }, h(RefreshIco)),
+          loading ? "更新中…" : "重新整理")),
+      h("div", { className: "summary" },
+        h(WinLossBar, { wins: stats.wins, losses: stats.losses }),
+        h("div", { className: "kv" },
+          h("div", null, h("div", { className: "k" }, "已平倉"), h("div", { className: "v" }, stats.n)),
+          h("div", null, h("div", { className: "k" }, "依策略"), h("div", { className: "v sm" }, stats.byStrat)),
+          h("div", null, h("div", { className: "k" }, "持有中"), h("div", { className: "v sm" }, open.length + " 筆")))),
+      h("p", { className: "footnote" },
+        "勝／負筆數算的是「顯示中的最近 " + stats.shown + " 筆」；全樣本依策略的勝率看下方紀錄或 GATE_ACCEPTANCE_LOG。")),
+
+    h("div", { className: "bh anim", style: { animationDelay: "120ms", marginBottom: "10px" } },
+      h("span", { className: "chip" }, "交易紀錄")),
+    h("div", { className: "tabs anim", style: { animationDelay: "120ms" } },
+      VIEWS.map(([id, label]) => h("button", { key: id, "aria-selected": view === id, onClick: () => setView(id) }, label))),
+    h("div", { className: "view fade", key: view }, body),
+
+    h("footer", null,
+      "資料源：paper_trading.json（每日 pipeline）＋ stocks/*.json（個股日 K）。",
+      h("br"), "這是系統的紙上交易紀錄，不是真實帳戶；關卡判定基準見 repo 的 GATE_ACCEPTANCE_LOG.md。")
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
+</body>
+</html>
