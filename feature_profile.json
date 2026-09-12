@@ -1,0 +1,129 @@
+{
+  "last_updated": "2026-08-25T16:53:34.944261+00:00",
+  "metadata": {
+    "data_version": "1.5",
+    "update_time": "2026-08-25T16:53:34.944261+00:00",
+    "source": "paper_trading_state",
+    "total_tracked": 20,
+    "total_succeeded": 20,
+    "missing_data": 0,
+    "status": "ok"
+  },
+  "summary": {
+    "n_evaluated": 20,
+    "low_confidence": false,
+    "win_rate_pct": 35.0,
+    "notable_patterns": [
+      {
+        "feature": "exit_reason",
+        "best_category": "take_profit_1x",
+        "best_win_rate_pct": 100.0,
+        "best_n": 7,
+        "worst_category": "stop_loss",
+        "worst_win_rate_pct": 0.0,
+        "worst_n": 13,
+        "spread_pct": 100.0
+      },
+      {
+        "feature": "liquidity_tier_at_entry",
+        "best_category": "mid_liquidity",
+        "best_win_rate_pct": 42.9,
+        "best_n": 14,
+        "worst_category": "high_liquidity",
+        "worst_win_rate_pct": 16.7,
+        "worst_n": 6,
+        "spread_pct": 26.2
+      }
+    ],
+    "verdict": "樣本數 20 筆,以下是贏/輸兩組在既有欄位上的分布比較(仍是描述性統計,不是因果推論)"
+  },
+  "profile": {
+    "n_total": 20,
+    "n_evaluated": 20,
+    "n_winners": 7,
+    "n_losers": 13,
+    "win_rate_pct": 35.0,
+    "categorical_breakdown": {
+      "strategy": {
+        "pullback": {
+          "n": 16,
+          "n_win": 5,
+          "win_rate_pct": 31.2
+        },
+        "breakout": {
+          "n": 4,
+          "n_win": 2,
+          "win_rate_pct": 50.0
+        }
+      },
+      "liquidity_tier_at_entry": {
+        "mid_liquidity": {
+          "n": 14,
+          "n_win": 6,
+          "win_rate_pct": 42.9
+        },
+        "high_liquidity": {
+          "n": 6,
+          "n_win": 1,
+          "win_rate_pct": 16.7
+        }
+      },
+      "health_status_at_entry": {
+        "(缺值)": {
+          "n": 9,
+          "n_win": 3,
+          "win_rate_pct": 33.3
+        },
+        "healthy": {
+          "n": 11,
+          "n_win": 4,
+          "win_rate_pct": 36.4
+        }
+      },
+      "exit_reason": {
+        "stop_loss": {
+          "n": 13,
+          "n_win": 0,
+          "win_rate_pct": 0.0
+        },
+        "take_profit_1x": {
+          "n": 7,
+          "n_win": 7,
+          "win_rate_pct": 100.0
+        }
+      }
+    },
+    "numeric_comparison": {
+      "score_at_entry": {
+        "winners_avg": 74.53,
+        "losers_avg": 63.96,
+        "winners_n": 7,
+        "losers_n": 13
+      },
+      "backtest_win_rate_at_entry": {
+        "winners_avg": 68.63,
+        "losers_avg": 44.92,
+        "winners_n": 7,
+        "losers_n": 13
+      },
+      "backtest_avg_return_at_entry": {
+        "winners_avg": 19.76,
+        "losers_avg": 5.22,
+        "winners_n": 7,
+        "losers_n": 13
+      },
+      "days_held": {
+        "winners_avg": 1.86,
+        "losers_avg": 3.0,
+        "winners_n": 7,
+        "losers_n": 13
+      },
+      "slippage_pct_at_entry": {
+        "winners_avg": 0.14,
+        "losers_avg": 0.11,
+        "winners_n": 7,
+        "losers_n": 13
+      }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>假設實驗室</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* M151(2026-09-01):字體系統跟全站一致(IBM Plex Sans + Mono + 思源黑體) */
+  :root {
+    --bg-page: #000; --bg-card: #0D0D0D; --bg-card-hover: #141414;
+    --text-primary: #F2F0EA; --text-secondary: #9C9A93; --text-muted: #63615A;
+    --accent: #CBBFA8; --gold: var(--accent);
+    --success: #3FA66B; --danger: #E0473F; --warn: #C9A227;
+    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.18);
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  .mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  body { margin: 0; background: var(--bg-page); color: var(--text-primary); font-family: var(--font-text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); text-decoration: none; font-size: 13px; }
+  .back-link:hover { color: var(--gold); }
+
+  header.hero { border-bottom: 1px solid var(--border); padding: 2.4rem 0 2rem; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 0.6rem; }
+  h1 { font-size: 26px; margin: 0 0 0.7rem; font-weight: 700; }
+  .sub { color: var(--text-secondary); font-size: 14px; margin: 0; max-width: 64ch; }
+  .disclaimer { margin: 1rem 0 0; padding: 0.8rem 1rem; font-size: 12px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+  .disclaimer ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+  .disclaimer li { margin: 0.25rem 0; }
+
+  section.block { padding: 2rem 0; border-bottom: 1px solid var(--border); }
+  h2 { font-size: 16px; margin: 0 0 1.2rem; }
+
+  .hyp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+  .hyp.green { border-left: 3px solid var(--success); }
+  .hyp.yellow { border-left: 3px solid var(--warn); }
+  .hyp.red { border-left: 3px solid var(--danger); }
+  .hyp.grey { border-left: 3px solid var(--text-muted); }
+  .hyp-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .hyp-head .emoji { font-size: 18px; }
+  .hyp-head h3 { font-size: 15px; margin: 0; }
+  .hyp-head .id { color: var(--text-muted); font-size: 12px; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; border: 1px solid var(--border-strong); color: var(--text-secondary); }
+  .badge.proxy { color: var(--warn); border-color: var(--warn); }
+  .light-reason { font-size: 12.5px; color: var(--text-secondary); margin: 8px 0; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px 14px; margin: 10px 0 0; }
+  .m { font-size: 12px; }
+  .m .k { color: var(--text-muted); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; display: block; }
+  .m .v { font-size: 14px; font-weight: 700; }
+  .v.pos { color: var(--success); } .v.neg { color: var(--danger); }
+  .note { font-size: 11px; color: var(--text-muted); font-style: italic; margin: 8px 0 0; }
+  .oos { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+
+  .nt { font-size: 12.5px; color: var(--text-muted); padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .nt .id { color: var(--text-secondary); }
+  footer { padding: 2rem 0 3rem; color: var(--text-muted); font-size: 11px; }
+  .empty-note { color: var(--text-muted); font-size: 13px; padding: 1.2rem; border: 1px dashed var(--border-strong); border-radius: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><a class="back-link" href="./review.html">← 覆盤與除錯中心</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <h1>假設實驗室</h1>
+  <p class="sub">把「炒股鐵律 / 網路說法 / 量價理論」全部當成待驗證的市場假設,用同一套客觀流程(歷史回測 → 扣成本 → out-of-sample → 燈號)檢驗。資料由 <span>python scripts/run_hypothesis_lab.py</span> 產生,不進版控、不隨每日 pipeline 更新。</p>
+  <div class="disclaimer" id="disclaimers"></div>
+</div></header>
+
+<div id="loading" class="wrap" style="padding:2rem 0;color:var(--text-muted);">正在讀取 hypothesis_lab.json…</div>
+<div id="content" style="display:none;">
+  <section class="block"><div class="wrap">
+    <h2>可回測的假設</h2>
+    <div id="hyps"></div>
+  </div></section>
+  <section class="block"><div class="wrap">
+    <h2>還不能回測的假設</h2>
+    <div id="not-testable"></div>
+  </div></section>
+  <footer><div class="wrap" id="foot"></div></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct = (v, d=2) => v == null ? '—' : (v >= 0 ? '+' : '') + Number(v).toFixed(d) + '%';
+const num = (v, d=2) => v == null ? '—' : Number(v).toFixed(d);
+const cls = v => v == null ? '' : (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+
+fetch('./hypothesis_lab.json?t=' + Date.now())
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch(err => {
+    $('#loading').innerHTML = `讀不到 <span>docs/hypothesis_lab.json</span> —— 先在 repo 根目錄跑 <span>python scripts/run_hypothesis_lab.py</span>(或 <span>--source fetch</span> 抓 5 年)。<br><span style="color:var(--text-muted)">(${esc(err.message)})</span>`;
+  });
+
+function render(d) {
+  $('#loading').style.display = 'none';
+  $('#content').style.display = '';
+
+  $('#disclaimers').innerHTML = '硬性邊界<ul>' + (d.disclaimers || []).map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
+
+  const hyps = d.hypotheses || [];
+  const box = $('#hyps');
+  if (!hyps.length) { box.innerHTML = `<div class="empty-note">目前沒有任何可回測的假設。</div>`; }
+  else { box.innerHTML = ''; hyps.forEach(h => box.appendChild(hypCard(h))); }
+
+  const nt = d.not_testable || [];
+  $('#not-testable').innerHTML = nt.length
+    ? nt.map(h => `<div class="nt"><span class="id">${esc(h.id)}</span> ${esc(h.name)} — ${esc(h.reason)}</div>`).join('')
+    : `<div class="empty-note">全部假設都可回測。</div>`;
+
+  const t = d.light_thresholds || {};
+  $('#foot').innerHTML =
+    `資料源 ${esc(d.data_source || '—')} · ${d.n_stocks || 0} 檔股票 · 來回成本 ${d.round_trip_cost_pct}% · OOS 切點 ${Math.round((d.oos_split_ratio||0)*100)}%<br>` +
+    `🔴 紅燈:淨期望值 ≤ 0 或 PF < ${t.red_max_pf ?? 1.1} 或 Sharpe < ${t.red_min_sharpe ?? 0.2}(雜訊範圍)<br>` +
+    `🟢 綠燈:PF ≥ ${t.green_min_pf} · Sharpe ≥ ${t.green_min_sharpe} · 樣本 ≥ ${t.green_min_trades} · OOS 期望值 > 0 · regime 穩健 · 過多重檢定校正(bootstrap p < 0.05/${t.n_tests ?? 'k'} = ${t.significance_alpha_bonferroni ?? '—'})<br>` +
+    `產生時間 ${esc((d.metadata && d.metadata.generated_at) || d.last_updated || '—')}`;
+}
+
+function regimeLine(h) {
+  const r = h.by_regime;
+  if (!r) return '';
+  const seg = (name) => {
+    const b = r[name];
+    if (!b || b.n_trades == null) return `${name} —`;
+    return `${name} ${b.net_expectancy_pct == null ? '—' : pct(b.net_expectancy_pct)}(n=${b.n_trades})`;
+  };
+  const rr = h.regime_robust;
+  const tag = rr === true ? '✓ 穩健' : rr === false ? '✗ 不穩(某盤勢虧)' : '空頭樣本不足 → 無法判定';
+  return `<div class="oos">分盤勢:${['多頭','空頭','盤整'].map(seg).join(' · ')} — regime 穩健:${tag}</div>`;
+}
+
+function sigLine(h) {
+  const b = h.bootstrap;
+  if (!b) return '';
+  const s = h.significant_after_correction;
+  const tag = s === true ? '✓ 顯著' : s === false ? '✗ 不顯著(可能是運氣)' : 'n 不足';
+  const ci = b.expectancy_ci ? `期望值 95% 區間 [${b.expectancy_ci[0]}, ${b.expectancy_ci[1]}]%` : '';
+  return `<div class="oos">多重檢定校正:bootstrap 單邊 p=${b.p_value} vs 門檻 ${h.significance_alpha} → ${tag}${ci ? ' · ' + ci : ''}</div>`;
+}
+
+function hypCard(h) {
+  const div = document.createElement('div');
+  div.className = 'hyp ' + h.light;
+  const badges = [];
+  if (h.status) badges.push(`<span class="badge">${esc(h.status)}</span>`);
+  if (h.proxy) badges.push(`<span class="badge proxy">PROXY</span>`);
+
+  const m = (k, v, c) => `<div class="m"><span class="k">${k}</span><span class="v ${c||''}">${v}</span></div>`;
+  const metrics = [
+    m('淨期望值', pct(h.net_expectancy_pct), cls(h.net_expectancy_pct)),
+    m('樣本數', h.n_trades ?? '—'),
+    m('勝率', h.win_rate_pct == null ? '—' : h.win_rate_pct + '%'),
+    m('Profit Factor', num(h.profit_factor)),
+    m('Sharpe', num(h.sharpe_ratio)),
+    m('平均賺', pct(h.avg_win_pct), 'pos'),
+    m('平均賠', pct(h.avg_loss_pct), 'neg'),
+    m('最大回撤', h.max_drawdown_pct == null ? '—' : h.max_drawdown_pct + '%'),
+  ].join('');
+
+  const notes = [];
+  if (h.proxy_note) notes.push(`<p class="note">代理限制:${esc(h.proxy_note)}</p>`);
+  if (h.direction_note) notes.push(`<p class="note">方向:${esc(h.direction_note)}</p>`);
+
+  div.innerHTML = `
+    <div class="hyp-head">
+      <span class="emoji">${h.emoji || ''}</span>
+      <h3>${esc(h.name)}</h3><span class="id">${esc(h.id)}</span>
+      ${badges.join(' ')}
+    </div>
+    <p class="light-reason">${esc(h.light_reason)}</p>
+    <div class="metrics">${metrics}</div>
+    ${notes.join('')}
+    <div class="oos">Out-of-sample(後 ${h.oos ? '30' : '?'}%):樣本 ${h.oos ? h.oos.n_trades : '—'} 筆、淨期望值 ${h.oos ? pct(h.oos.net_expectancy_pct) : '—'}
+      ${h.oos && h.oos.net_expectancy_pct != null && h.oos.net_expectancy_pct <= 0 ? ' ⚠ OOS 期望值不為正 —— 全期看起來的優勢可能是特定時段的產物' : ''}
+    </div>
+    ${regimeLine(h)}
+    ${sigLine(h)}`;
+  return div;
+}
+</script>
+</body>
+</html>

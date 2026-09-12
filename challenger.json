@@ -1,0 +1,86 @@
+{
+  "last_updated": "2026-09-12T04:02:32.146251+00:00",
+  "metadata": {
+    "data_version": "1.5",
+    "update_time": "2026-09-12T04:02:32.146251+00:00",
+    "source": "challenger forward test",
+    "total_tracked": 2,
+    "total_succeeded": 2,
+    "missing_data": 0,
+    "status": "ok"
+  },
+  "pre_registration": "PRE-REGISTRATION.md 第3節",
+  "exit_rule": "結構破壞(連 2 日收盤跌破 MA20)+ 初始硬停損 + 30 日 backstop —— 不是 M156 移動停損",
+  "isolation": "獨立 state,run_phase2_verdict 不讀 → 不污染 Phase 2",
+  "last_run_date": "2026-09-12",
+  "per_strategy": {
+    "tv004_smc_choch": {
+      "label": "空頭轉多·結構突破",
+      "open": 0,
+      "pending": 0,
+      "promotion": {
+        "n_closed": 0,
+        "net_expectancy_pct": null,
+        "profit_factor": null,
+        "sharpe_ratio": null,
+        "win_rate_pct": null,
+        "checks_auto": {
+          "樣本 ≥ 60 筆平倉": false,
+          "淨期望值 > 0": false,
+          "PF ≥ 1.3": false,
+          "Sharpe ≥ 0.5": false
+        },
+        "checks_manual": [
+          "≥ 2 種 regime 都正(等樣本涵蓋空頭再算)",
+          "forward 累積報酬 > 同期 0050 DCA benchmark(人工比對)",
+          "老闆手動核准(規則4 passed_evaluate_py)"
+        ],
+        "all_auto_passed": false
+      }
+    },
+    "mg1_margin_shift": {
+      "label": "融資異動·幅度",
+      "open": 0,
+      "pending": 40,
+      "promotion": {
+        "n_closed": 0,
+        "net_expectancy_pct": null,
+        "profit_factor": null,
+        "sharpe_ratio": null,
+        "win_rate_pct": null,
+        "checks_auto": {
+          "樣本 ≥ 60 筆平倉": false,
+          "淨期望值 > 0": false,
+          "PF ≥ 1.3": false,
+          "Sharpe ≥ 0.5": false
+        },
+        "checks_manual": [
+          "≥ 2 種 regime 都正(等樣本涵蓋空頭再算)",
+          "forward 累積報酬 > 同期 0050 DCA benchmark(人工比對)",
+          "老闆手動核准(規則4 passed_evaluate_py)"
+        ],
+        "all_auto_passed": false
+      }
+    }
+  },
+  "signal_wiring": {
+    "tv004_smc_choch": {
+      "field": "tv004_signal",
+      "state": "all_false",
+      "n_results": 637,
+      "n_with_field": 637,
+      "n_fired": 0
+    },
+    "mg1_margin_shift": {
+      "field": "mg1_signal",
+      "state": "ok",
+      "n_results": 637,
+      "n_with_field": 637,
+      "n_fired": 40
+    }
+  },
+  "data_gaps": {
+    "total": 0,
+    "recent": []
+  }
+}
