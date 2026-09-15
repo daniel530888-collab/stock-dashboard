@@ -1,0 +1,239 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>結論總表</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000; --bg-card: #0D0D0D; --bg-hover: #141414;
+    --text-primary: #F2F0EA; --text-secondary: #9C9A93; --text-muted: #63615A;
+    --gold: #CBBFA8; --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-page); color: var(--text-primary);
+    font-family: var(--font-text); line-height: 1.6;
+    font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 13px;
+    color: var(--text-secondary); text-decoration: none;
+  }
+  .back-link:hover { color: var(--gold); }
+
+  header.hero { padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border); position: relative; }
+  header.hero::after {
+    content: ''; position: absolute; bottom: -1px; left: 0;
+    width: 48px; height: 2px; background: var(--gold);
+  }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.5rem;
+  }
+  h1 { font-size: 30px; font-weight: 700; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); font-size: 13.5px; margin: 0 0 1rem; max-width: 760px; }
+
+  /* 搜尋是這一頁的主角 —— 它要回答的是「我這個想法驗過沒」 */
+  .search-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 1.4rem 0 0.8rem; }
+  #q {
+    flex: 1 1 320px; background: var(--bg-card); color: var(--text-primary);
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    padding: 0.85rem 1rem; font-size: 15px; font-family: var(--font-text);
+  }
+  #q:focus { outline: none; border-color: var(--gold); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .chip {
+    font-size: 12px; padding: 5px 11px; border-radius: 20px; cursor: pointer;
+    border: 1px solid var(--border-strong); color: var(--text-secondary);
+    background: none; font-family: inherit;
+  }
+  .chip:hover { color: var(--text-primary); }
+  .chip[aria-pressed="true"] { color: #000; background: var(--gold); border-color: var(--gold); }
+
+  .count { font-size: 12.5px; color: var(--text-muted); margin: 0 0 0.8rem; }
+  .row {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card);
+    padding: 0.85rem 1rem; margin-bottom: 8px;
+  }
+  .row:hover { background: var(--bg-hover); }
+  .row-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .light { font-size: 15px; }
+  .name { font-weight: 600; font-size: 15px; }
+  .rid { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .tag {
+    font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 6px; margin-left: auto; white-space: nowrap;
+  }
+  .row-detail { color: var(--text-secondary); font-size: 12.5px; margin: 5px 0 0; }
+  .row-verdict { font-size: 13px; margin: 6px 0 0; }
+  .row-meta {
+    display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px;
+    color: var(--text-muted); margin-top: 6px; font-family: var(--font-mono);
+  }
+  mark { background: rgba(203,191,168,0.28); color: inherit; border-radius: 2px; }
+
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 0.6rem 0 0; }
+  .legend div {
+    font-size: 12px; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px;
+  }
+  .note { font-size: 12.5px; color: var(--text-muted); max-width: 760px; }
+  .note b { color: var(--text-secondary); }
+  footer { border-top: 1px solid var(--border); margin-top: 2rem; padding: 1.4rem 0 3rem; }
+  .empty { color: var(--text-muted); font-size: 13.5px; padding: 2rem 0; }
+</style>
+
+<div class="topbar"><div class="wrap"><a class="back-link" href="./index.html">← 返回看板</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Conclusions</p>
+  <h1>結論總表</h1>
+  <p class="sub">所有驗過的假設、別人的策略、已排除的型態家族,一條一結論。
+    <b>登記新假設之前先查這裡</b> —— 落在已排除家族裡的,沒有本質差異就別再測一次。</p>
+  <div class="search-row">
+    <input id="q" type="search" placeholder="輸入名稱、指標、代號或關鍵字 —— 例如 RSI、布林、突破、SuperTrend" autocomplete="off">
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="legend" id="legend"></div>
+</div></header>
+
+<main class="wrap">
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+</main>
+
+<footer><div class="wrap">
+  <p class="note" id="src"></p>
+  <p class="note" id="skipped"></p>
+</div></footer>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const CAT = {
+  hypothesis: '假設',
+  strategy: '策略',
+  rejected: 'Gate 0 退件',
+  family: '已排除型態',
+};
+
+let DATA = null;
+let cat = '';      // '' = 全部
+let light = '';
+
+function hl(text, q) {
+  const t = esc(text);
+  if (!q) return t;
+  // 逐字比對,大小寫不敏感。q 先 escape 掉正則元字元 —— 使用者打 "(" 不該壞掉。
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return t.replace(new RegExp(safe, 'gi'), m => `<mark>${m}</mark>`);
+}
+
+function matches(r, q) {
+  if (cat && r.category !== cat) return false;
+  if (light && (r.light || '') !== light) return false;
+  if (!q) return true;
+  const blob = [r.id, r.name, r.detail, r.verdict, r.takeaway, r.source, r.section]
+    .filter(Boolean).join(' ').toLowerCase();
+  return blob.includes(q.toLowerCase());
+}
+
+function render() {
+  const q = document.getElementById('q').value.trim();
+  const hits = DATA.rows.filter(r => matches(r, q));
+  document.getElementById('count').textContent =
+    `${hits.length} 筆` + (q ? `(搜尋「${q}」)` : '') + ` / 全部 ${DATA.rows.length} 筆`;
+
+  const list = document.getElementById('list');
+  if (!hits.length) {
+    list.innerHTML = `<p class="empty">沒有符合的紀錄。
+      <b>查不到不等於沒驗過</b> —— 換個講法再試一次,或直接看原始文件
+      <span style="font-family:var(--font-mono)">${esc(DATA.source)}</span>。</p>`;
+    return;
+  }
+  list.innerHTML = hits.map(r => {
+    const meta = [];
+    if (r.n) meta.push(`n = ${esc(r.n)}`);
+    if (r.uplift) meta.push(`加值 ${esc(r.uplift)}`);
+    if (r.ci) meta.push(`CI ${esc(r.ci)}`);
+    if (r.p) meta.push(`p ${esc(r.p)}`);
+    if (r.source) meta.push(esc(r.source));
+    return `<div class="row">
+      <div class="row-top">
+        ${r.light ? `<span class="light">${esc(r.light)}</span>` : ''}
+        <span class="name">${hl(r.name, q)}</span>
+        ${r.id ? `<span class="rid">${hl(r.id, q)}</span>` : ''}
+        <span class="tag">${esc(CAT[r.category] || r.category)}</span>
+      </div>
+      ${r.detail ? `<p class="row-detail">${hl(r.detail, q)}</p>` : ''}
+      ${r.verdict ? `<p class="row-verdict">${hl(r.verdict, q)}</p>` : ''}
+      ${r.takeaway ? `<p class="row-detail">帶走的知識:${hl(r.takeaway, q)}</p>` : ''}
+      ${meta.length ? `<div class="row-meta">${meta.join(' · ')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function buildChips() {
+  const box = document.getElementById('chips');
+  const cats = [...new Set(DATA.rows.map(r => r.category))];
+  const lights = [...new Set(DATA.rows.map(r => r.light).filter(Boolean))];
+  const mk = (label, on, fn) =>
+    `<button class="chip" aria-pressed="${on}" data-k="${esc(label)}">${esc(label)}</button>`;
+  box.innerHTML =
+    mk('全部', !cat && !light)
+    + cats.map(c => mk(CAT[c] || c, cat === c)).join('')
+    + lights.map(l => mk(l, light === l)).join('');
+  box.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if (k === '全部') { cat = ''; light = ''; }
+    else if (lights.includes(k)) { light = light === k ? '' : k; }
+    else {
+      const c = Object.keys(CAT).find(x => CAT[x] === k) || k;
+      cat = cat === c ? '' : c;
+    }
+    buildChips(); render();
+  }));
+}
+
+(async function () {
+  try {
+    DATA = await (await fetch('./conclusions.json?t=' + Date.now())).json();
+  } catch (e) {
+    document.getElementById('list').innerHTML =
+      `<p class="empty">讀不到 conclusions.json —— 先跑
+       <span style="font-family:var(--font-mono)">py scripts/build_conclusions_index.py</span>。</p>`;
+    return;
+  }
+  document.getElementById('legend').innerHTML =
+    (DATA.legend || []).map(l =>
+      `<div><b>${esc(l.light)}</b> ${esc(l.rule)}</div>`).join('');
+
+  // 覆蓋率要寫在頁面上,不是只在 CLI 印一次。
+  // 「這份索引蓋到多少」跟「索引裡有什麼」一樣重要 —— 少掉的那些不會自己出聲。
+  const sk = DATA.skipped_tables || [];
+  document.getElementById('src').innerHTML =
+    `來源:<b>${esc(DATA.source)}</b>(${esc(DATA.generated)} 產生)。
+     Markdown 是唯一真相來源,這一頁隨時可由
+     <span style="font-family:var(--font-mono)">scripts/build_conclusions_index.py</span> 重建。`;
+  document.getElementById('skipped').innerHTML = sk.length
+    ? `<b>${sk.length} 張表沒有收進索引</b> —— 它們是補充表(燈號說明、成本校準、
+       帶寬分析這類),不是「一個被測的東西」。逐一列在
+       <span style="font-family:var(--font-mono)">conclusions.json</span> 的
+       <span style="font-family:var(--font-mono)">skipped_tables</span> 裡,
+       <b>覆蓋率是明示的,不是猜的</b>。`
+    : '';
+
+  buildChips();
+  render();
+  document.getElementById('q').addEventListener('input', render);
+  document.getElementById('q').focus();
+})();
+</script>

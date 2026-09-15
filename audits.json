@@ -1,0 +1,380 @@
+{
+  "last_updated": "2026-09-15 20:44",
+  "audits": {
+    "fill_rule": {
+      "asof": "20260915",
+      "states": [
+        {
+          "state": "champion",
+          "strategy": "breakout",
+          "above_market": 0,
+          "total": 9,
+          "pct": 0.0,
+          "worst_code": null,
+          "worst_premium_pct": null
+        },
+        {
+          "state": "champion",
+          "strategy": "pullback",
+          "above_market": 7,
+          "total": 17,
+          "pct": 41.2,
+          "worst_code": "2029",
+          "worst_premium_pct": 3.1
+        },
+        {
+          "state": "challenger",
+          "strategy": "mg1_margin_shift",
+          "above_market": 13,
+          "total": 47,
+          "pct": 27.7,
+          "worst_code": "3003",
+          "worst_premium_pct": 13.5
+        }
+      ]
+    },
+    "signal_agreement": {
+      "since": "20260801",
+      "n_days": 13,
+      "days": [
+        {
+          "day": "20260826",
+          "universe": 584,
+          "backfilled": 386,
+          "outside_universe": 189,
+          "both": 127,
+          "backfill_only": 70,
+          "live_only": 121,
+          "agreement_pct": 39.9,
+          "clean": false
+        },
+        {
+          "day": "20260827",
+          "universe": 614,
+          "backfilled": 335,
+          "outside_universe": 163,
+          "both": 167,
+          "backfill_only": 5,
+          "live_only": 3,
+          "agreement_pct": 95.4,
+          "clean": true
+        },
+        {
+          "day": "20260828",
+          "universe": 626,
+          "backfilled": 344,
+          "outside_universe": 195,
+          "both": 61,
+          "backfill_only": 88,
+          "live_only": 117,
+          "agreement_pct": 22.9,
+          "clean": false
+        },
+        {
+          "day": "20260831",
+          "universe": 626,
+          "backfilled": 386,
+          "outside_universe": 188,
+          "both": 58,
+          "backfill_only": 140,
+          "live_only": 93,
+          "agreement_pct": 19.9,
+          "clean": false
+        },
+        {
+          "day": "20260901",
+          "universe": 612,
+          "backfilled": 402,
+          "outside_universe": 191,
+          "both": 206,
+          "backfill_only": 5,
+          "live_only": 8,
+          "agreement_pct": 94.1,
+          "clean": true
+        },
+        {
+          "day": "20260902",
+          "universe": 592,
+          "backfilled": 499,
+          "outside_universe": 258,
+          "both": 238,
+          "backfill_only": 3,
+          "live_only": 1,
+          "agreement_pct": 98.3,
+          "clean": true
+        },
+        {
+          "day": "20260903",
+          "universe": 592,
+          "backfilled": 327,
+          "outside_universe": 179,
+          "both": 145,
+          "backfill_only": 3,
+          "live_only": 0,
+          "agreement_pct": 98.0,
+          "clean": true
+        },
+        {
+          "day": "20260904",
+          "universe": 623,
+          "backfilled": 454,
+          "outside_universe": 186,
+          "both": 260,
+          "backfill_only": 8,
+          "live_only": 1,
+          "agreement_pct": 96.7,
+          "clean": true
+        },
+        {
+          "day": "20260907",
+          "universe": 605,
+          "backfilled": 354,
+          "outside_universe": 136,
+          "both": 213,
+          "backfill_only": 5,
+          "live_only": 3,
+          "agreement_pct": 96.4,
+          "clean": true
+        },
+        {
+          "day": "20260908",
+          "universe": 624,
+          "backfilled": 391,
+          "outside_universe": 182,
+          "both": 202,
+          "backfill_only": 7,
+          "live_only": 3,
+          "agreement_pct": 95.3,
+          "clean": true
+        },
+        {
+          "day": "20260909",
+          "universe": 603,
+          "backfilled": 451,
+          "outside_universe": 215,
+          "both": 229,
+          "backfill_only": 7,
+          "live_only": 5,
+          "agreement_pct": 95.0,
+          "clean": true
+        },
+        {
+          "day": "20260910",
+          "universe": 603,
+          "backfilled": 413,
+          "outside_universe": 209,
+          "both": 197,
+          "backfill_only": 7,
+          "live_only": 3,
+          "agreement_pct": 95.2,
+          "clean": true
+        },
+        {
+          "day": "20260911",
+          "universe": 601,
+          "backfilled": 307,
+          "outside_universe": 147,
+          "both": 95,
+          "backfill_only": 65,
+          "live_only": 100,
+          "agreement_pct": 36.5,
+          "clean": false
+        }
+      ],
+      "clean_threshold_pct": 80.0,
+      "n_clean": 9,
+      "clean_range_pct": [
+        94.1,
+        98.3
+      ],
+      "suspect_days": [
+        "20260826",
+        "20260828",
+        "20260831",
+        "20260911"
+      ],
+      "outside_universe_pct": 48.3,
+      "note": "一致率低 = 回填與 live 的訊號對不上,**疑似那天用了過期資料**。跟 audit_snapshot_freshness(比價格)是完全不同的資料路徑,兩支指到同一批日期就不是判準太鬆。"
+    },
+    "trading_day_coverage": {
+      "calendar_source": "data/twse_daily/(證交所自己的檔,刻意不用 ^TWII)",
+      "exchange_calendar_source": "證交所 FMTQIK(第三權威,不經過每日抓取)",
+      "exchange_calendar_latest": "2026-09-15",
+      "exchange_calendar_undecidable": null,
+      "never_arrived": [
+        "2026-09-14"
+      ],
+      "window": [
+        "2026-09-11",
+        "2026-09-15"
+      ],
+      "n_trading_days_in_window": 3,
+      "ate_trading_days": [
+        "2026-09-14"
+      ],
+      "calendar_latest": "2026-09-15",
+      "beyond_calendar": [],
+      "unknown_runs": [
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-07",
+        "2026-09-08",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11"
+      ],
+      "repeat_runs": [
+        {
+          "run_day": "2026-09-14",
+          "data_asof": "2026-09-11"
+        }
+      ],
+      "n_runs": 16,
+      "note": "ate = 那個交易日的收盤從來沒進過任何 streak / 出場判定。unknown ≠ ok —— 那是 M254 之前沒有 data_asof 欄,判不了。repeat 是 M275 擋下的重複跑,記錄用,不是錯誤。"
+    },
+    "decay_flags": {
+      "min_exit_days": 5,
+      "states": {
+        "champion": {
+          "flags": [
+            {
+              "strategy": "breakout",
+              "n_considered": 1,
+              "n_exit_days": 1,
+              "window": 30,
+              "expectancy_pct": null,
+              "decay": false,
+              "insufficient_reason": "已平倉樣本數 1 筆,低於滾動窗口 30 筆,尚無法判斷是否衰退"
+            },
+            {
+              "strategy": "pullback",
+              "n_considered": 12,
+              "n_exit_days": 4,
+              "window": 30,
+              "expectancy_pct": null,
+              "decay": false,
+              "insufficient_reason": "已平倉樣本數 12 筆,低於滾動窗口 30 筆,尚無法判斷是否衰退"
+            }
+          ]
+        },
+        "challenger": {
+          "flags": []
+        }
+      },
+      "note": "衰退偵測原本只從 LINE 出去(M83)—— 憑證沒設或沒人看就等於沒偵測,而且沒有歷史。這裡是第二個出口,不重算、不改判定。`n_exit_days` 是 M285 加的:30 筆全擠在同一天出場時,那個期望值量到的是一天的行情被數了 30 次。",
+      "decayed": [],
+      "undecidable_clustered": []
+    },
+    "position_stalls": {
+      "thresholds": {
+        "no_data_days": 10,
+        "deferred_days": 3
+      },
+      "states": {
+        "champion": {
+          "n_open": 62,
+          "last_asof_values": [
+            "2026-09-15"
+          ],
+          "n_distinct_last_asof": 1,
+          "oldest_last_asof": "2026-09-15",
+          "no_data_stalled": [],
+          "exit_deferred": [],
+          "most_behind": [
+            {
+              "ticker": "8046.TW",
+              "last_asof": "2026-09-15"
+            },
+            {
+              "ticker": "2317.TW",
+              "last_asof": "2026-09-15"
+            },
+            {
+              "ticker": "2379.TW",
+              "last_asof": "2026-09-15"
+            },
+            {
+              "ticker": "2412.TW",
+              "last_asof": "2026-09-15"
+            },
+            {
+              "ticker": "2618.TW",
+              "last_asof": "2026-09-15"
+            }
+          ]
+        },
+        "challenger": {
+          "n_open": 0,
+          "last_asof_values": [],
+          "n_distinct_last_asof": 0,
+          "oldest_last_asof": null,
+          "no_data_stalled": [],
+          "exit_deferred": [],
+          "most_behind": []
+        }
+      },
+      "stalled": [],
+      "note": "三種卡法都會讓部位停在 open 裡,而已平倉樣本看不到它們 —— 下市通常接近全損,最壞的結局剛好是唯一不會出現在樣本裡的。這幾個計數器原本只有 log.warning(M275/M278/M279),而 GHA 的 log 只有跑壞時才有人看。"
+    },
+    "pipeline_uptime": {
+      "span": [
+        "2026-08-24",
+        "2026-09-15"
+      ],
+      "span_days": 23,
+      "n_runs": 84,
+      "n_completed": 83,
+      "n_aborted": 0,
+      "n_stage_failures": 0,
+      "n_trading_days_in_span": 17,
+      "missed_trading_days": [],
+      "trading_day_coverage_pct": 100.0,
+      "ran_on_non_trading_days": [
+        "2026-09-12"
+      ],
+      "slowest_stages": [
+        {
+          "stage": "全市場分析",
+          "median_sec": 164.0,
+          "n": 84
+        },
+        {
+          "stage": "今日發現掃描",
+          "median_sec": 65.7,
+          "n": 84
+        },
+        {
+          "stage": "追蹤清單深度分析",
+          "median_sec": 24.5,
+          "n": 84
+        },
+        {
+          "stage": "MG1 融資狀態滾動",
+          "median_sec": 4.9,
+          "n": 10
+        },
+        {
+          "stage": "Supabase備份",
+          "median_sec": 3.4,
+          "n": 84
+        }
+      ],
+      "full_month_reached": false,
+      "days_to_full_month": 7,
+      "note": "交易日曆取自 data/twse_daily/(交易所自己的檔)—— 拿「pipeline 跑過的日子」當日曆去證明「pipeline 每天都跑」是循環論證。最後一天可能還不在日曆上(交易所盤後才發布),那不算漏跑。"
+    }
+  },
+  "note": "每日自動稽核。**非致命** —— 這裡的工作是讓問題看得見,不是擋部署。該擋的有各自的守門(M254 資料新鮮度、M265 公司行為)。",
+  "flags": [
+    "**4 天訊號對不上**(疑似過期資料):['20260826', '20260828', '20260831', '20260911']",
+    "**1 個交易日的資料從來沒進來過**:['2026-09-14'](今天的判斷用的是更早的收盤價)",
+    "**1 個交易日沒有任何一跑看到過**:['2026-09-14']",
+    "限價掛在市價之上:pullback 41%、mg1_margin_shift 28%"
+  ]
+}
