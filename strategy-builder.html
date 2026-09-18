@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>策略建構器（Beta）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- M151(2026-09-01):字體系統跟全站一致(IBM Plex Sans + Mono + 思源黑體),取代 M123 的 Courier Prime。 -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<style>
+  body { font-variant-numeric: tabular-nums; }
+
+  :root {
+    --bg-page: #000000;
+    --bg-card: #0D0D0D;
+    --bg-card-hover: #141414;
+    --text-primary: #F2F0EA;
+    --text-secondary: #9C9A93;
+    --text-muted: #63615A;
+    --accent: #CBBFA8;
+    --gold: var(--accent);
+    --success: #3FA66B;
+    --danger: #E0473F;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    --font-display: 'IBM Plex Sans', 'Noto Sans TC', sans-serif;
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-page); color: var(--text-primary);
+    font-family: var(--font-text); line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .voice { font-family: var(--font-display); }
+  .mono { font-family: var(--font-mono); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); text-decoration: none; font-size: 13px; transition: color 0.15s; }
+  .back-link:hover { color: var(--gold); }
+  header.hero { padding: 2rem 0 1.75rem; border-bottom: 1px solid var(--border); position: relative; }
+  header.hero::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 48px; height: 2px; background: var(--gold); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 0 0 0.5rem; }
+  header.hero h1 { font-family: var(--font-display); font-weight: 700; font-size: 30px; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+  header.hero .sub { color: var(--text-secondary); font-size: 13.5px; margin: 0; }
+  .scope-note {
+    margin: 1rem 0 0; padding: 0.85rem 1.1rem; background: rgba(203,191,168,0.07);
+    border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--text-secondary);
+  }
+  .scope-note b { color: var(--gold); font-weight: 500; }
+  section { padding: 2rem 0; border-bottom: 1px solid var(--border); }
+  .section-title { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 1.1rem; }
+
+  #app { padding: 0; }
+  .builder-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 800px) { .builder-grid { grid-template-columns: 1fr; } }
+
+  .palette { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+  .palette h3 { font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 10px; }
+  .palette-hint { font-size: 11.5px; color: var(--text-muted); margin: 0 0 10px; }
+  .chip {
+    display: block; padding: 8px 10px; margin-bottom: 6px; border-radius: 6px;
+    background: var(--bg-page); border: 1px solid var(--border-strong); color: var(--text-primary);
+    font-size: 12.5px; cursor: grab; user-select: none; transition: border-color 0.15s, background 0.15s;
+  }
+  .chip:hover { border-color: var(--gold); background: rgba(203,191,168,0.08); }
+  .chip.dragging { opacity: 0.4; }
+
+  .canvas {
+    background: var(--bg-card); border: 1px dashed var(--border-strong); border-radius: 8px;
+    padding: 1rem; min-height: 180px; transition: border-color 0.15s, background 0.15s;
+  }
+  .canvas.drag-over { border-color: var(--gold); background: rgba(203,191,168,0.05); }
+  .canvas-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 2.4rem 1rem; }
+
+  .logic-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12.5px; color: var(--text-secondary); }
+  .logic-toggle button {
+    background: var(--bg-page); border: 1px solid var(--border-strong); color: var(--text-secondary);
+    padding: 4px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .logic-toggle button.active { border-color: var(--gold); color: var(--gold); background: rgba(203,191,168,0.1); }
+  .group-canvas-wrap { margin-bottom: 4px; }
+  .group-canvas-wrap + .group-canvas-wrap { margin-top: 4px; }
+  .group-remove-btn { margin-left: auto; padding: 4px 10px; font-size: 11.5px; }
+  .group-joiner {
+    text-align: center; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.1em;
+    margin: 6px 0; text-transform: uppercase;
+  }
+  .outer-logic-toggle { padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px dashed var(--border); }
+
+  .cond-card {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; margin-bottom: 8px; cursor: grab;
+  }
+  .cond-card.dragging { opacity: 0.4; }
+  .cond-card .field-label { font-size: 12.5px; color: var(--gold); min-width: 100px; }
+  .cond-card select, .cond-card input {
+    background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 5px;
+    color: var(--text-primary); padding: 4px 6px; font-size: 12.5px; font-family: inherit;
+  }
+  .cond-card .remove-btn {
+    margin-left: auto; background: transparent; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 6px;
+  }
+  .cond-card .remove-btn:hover { color: var(--danger); }
+
+  .builder-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+  button.primary-btn {
+    background: var(--gold); border: none; color: #0D0D0D; font-weight: 600;
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost-btn {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text-secondary);
+    padding: 8px 14px; border-radius: 6px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost-btn:hover { color: var(--gold); border-color: var(--gold); }
+  input.preset-name-input {
+    background: var(--bg-page); border: 1px solid var(--border-strong); border-radius: 6px;
+    color: var(--text-primary); padding: 7px 10px; font-size: 12.5px; font-family: inherit; min-width: 160px;
+  }
+  .exit-rules-fields { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .exit-rules-label { font-size: 11.5px; color: var(--text-muted); }
+  input.exit-rules-input {
+    background: var(--bg-page); border: 1px solid var(--border-strong); border-radius: 6px;
+    color: var(--text-primary); padding: 6px 9px; font-size: 12.5px; font-family: inherit; width: 110px;
+  }
+
+  .preset-list { margin-top: 14px; }
+  .preset-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 7px 10px; border-bottom: 1px solid var(--border); font-size: 12.5px;
+  }
+  .preset-row .name { color: var(--text-primary); }
+  .preset-row .actions button { margin-left: 8px; }
+
+  .results-summary { font-size: 12.5px; color: var(--text-secondary); margin: 14px 0 10px; }
+  .results-summary .n { color: var(--gold); font-family: var(--font-mono); font-weight: 500; }
+  table.results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.results-table th, table.results-table td { padding: 7px 9px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.results-table th:first-child, table.results-table td:first-child,
+  table.results-table th:nth-child(2), table.results-table td:nth-child(2) { text-align: left; }
+  table.results-table th { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+  table.results-table td a { color: var(--text-primary); text-decoration: none; }
+  table.results-table td a:hover { color: var(--gold); }
+  .table-scroll { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+
+  #loading { text-align: center; padding: 5rem 2rem; color: var(--text-secondary); }
+  #error-box { display: none; text-align: center; padding: 5rem 2rem; color: var(--text-secondary); }
+
+  footer { text-align: center; color: var(--text-muted); font-size: 11.5px; padding: 2.5rem 2rem; }
+
+  .section-desc { color: var(--text-secondary); font-size: 12.5px; margin: -0.6rem 0 1.1rem; }
+  .sandbox-empty { color: var(--text-muted); font-size: 13px; padding: 1.5rem 0; text-align: center; }
+  .sandbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .sandbox-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; }
+  .sandbox-card h3 { font-size: 14px; margin: 0 0 8px; font-family: var(--font-display); }
+  .sandbox-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; color: var(--text-secondary); }
+  .sandbox-row .v { font-family: var(--font-mono); color: var(--text-primary); }
+  .sandbox-row .v.ok { color: var(--success); }
+  .sandbox-row .v.bad { color: var(--danger); }
+  .sandbox-note { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+  .sandbox-summary { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
+  .sandbox-summary .n { color: var(--gold); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap"><a class="back-link" href="./index.html">← 返回看板</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <h1 class="voice">策略建構器</h1>
+  <p class="sub" id="updated-line">正在讀取全市場索引...</p>
+  <p class="scope-note">
+    <b>範圍邊界(誠實記錄)</b>:把「欄位條件」拖進畫布組合成篩選規則、
+    存成預設(存在瀏覽器 localStorage,換裝置/清瀏覽器資料會遺失)、套用
+    在全市場資料上看有幾檔符合。<b>「匯出成策略檔」</b>可以把目前的條件組
+    下載成 JSON,commit 進 repo 的 <code>config/custom_strategies/</code>
+    後,pipeline 每天會自動評估、追蹤這個策略(獨立的 Sandbox 帳本,
+    詳見下方「Sandbox 追蹤表現」區塊)——但<b>這仍然不是主要模擬交易
+    (Paper Trading)、不會出現在 LINE 日報或首頁「我的模擬資產」、也不能
+    回測</b>,是刻意分開的低風險做法,細節見
+    <code>config/custom_strategies/README.md</code>。支援最多2層巢狀
+    群組(每個群組內部是「條件+AND/OR」,群組之間再用一層AND/OR組合),
+    可以表達「(A且B)或(C且D)」這類邏輯,但不支援更深的無限層巢狀。
+  </p>
+</div></header>
+
+<div id="loading" class="wrap">正在讀取...</div>
+<div id="error-box" class="wrap">找不到全市場索引資料(docs/index/stocks.json),可能是今日流程尚未執行過。</div>
+
+<section id="app-section" style="display:none;"><div class="wrap">
+  <p class="section-title">拖曳左側欄位到畫布,組合條件</p>
+  <div id="app"></div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="section-title">Sandbox 追蹤表現</p>
+  <p class="section-desc">
+    這裡顯示已經匯出、commit進 <code>config/custom_strategies/</code> 的
+    策略,系統每天自動追蹤的表現——跟上面的畫布是分開的兩件事:上面是
+    「現在正在編輯的條件」,這裡是「已經匯出、正式開始追蹤的策略」。
+  </p>
+  <div id="sandbox-body">正在讀取 Sandbox 追蹤資料...</div>
+</div></section>
+
+<footer>此頁面資料來自 docs/index/stocks.json(全市場輕量索引)與 docs/custom_strategies.json(Sandbox追蹤報告)。畫面渲染使用 React 18(CDN載入,無建置步驟),是本站第一個使用React的頁面——僅限畫布部分,其餘既有頁面(含本頁下方的Sandbox追蹤表現區塊)維持vanilla JS不受影響。</footer>
+
+<script>
+// ============================================================
+// 純邏輯區(不依賴React/DOM,方便獨立測試)
+// ============================================================
+
+const FIELD_DEFS = [
+  { key: 'industry_name', label: '產業別', type: 'category' },
+  { key: 'health_status', label: '基本面健康度', type: 'category',
+    options: [
+      { value: 'healthy', label: '健康' }, { value: 'watch', label: '觀察' },
+      { value: 'weak', label: '轉弱' }, { value: 'unknown', label: '資料不足' },
+    ] },
+  { key: 'total_score', label: '綜合分數', type: 'number' },
+  { key: 'rsi', label: 'RSI', type: 'number' },
+  { key: 'vol_ratio', label: '量能倍數', type: 'number' },
+  { key: 'relative_strength_twii', label: '相對強弱(大盤)', type: 'number' },
+  { key: 'change_pct', label: '漲跌%', type: 'number' },
+  { key: 'breakout_signal', label: '今日突破訊號', type: 'boolean' },
+  { key: 'pullback_signal', label: '今日拉回訊號', type: 'boolean' },
+];
+
+const NUMBER_OPERATORS = [
+  { value: '>=', label: '≥' }, { value: '<=', label: '≤' },
+  { value: '==', label: '=' }, { value: '>', label: '>' }, { value: '<', label: '<' },
+];
+const CATEGORY_OPERATORS = [{ value: '==', label: '是' }, { value: '!=', label: '不是' }];
+const BOOLEAN_OPERATORS = [{ value: 'is_true', label: '成立' }, { value: 'is_false', label: '不成立' }];
+
+function fieldDef(key) { return FIELD_DEFS.find(f => f.key === key); }
+
+function operatorsFor(fieldKey) {
+  const def = fieldDef(fieldKey);
+  if (!def) return [];
+  if (def.type === 'number') return NUMBER_OPERATORS;
+  if (def.type === 'category') return CATEGORY_OPERATORS;
+  return BOOLEAN_OPERATORS;
+}
+
+function defaultCondition(fieldKey) {
+  const def = fieldDef(fieldKey);
+  const ops = operatorsFor(fieldKey);
+  let value = '';
+  if (def && def.type === 'boolean') value = '';
+  if (def && def.type === 'category' && def.options && def.options.length) value = def.options[0].value;
+  return {
+    id: 'c_' + Math.random().toString(36).slice(2, 10),
+    field: fieldKey,
+    operator: ops.length ? ops[0].value : '==',
+    value: value,
+  };
+}
+
+// evaluateCondition: 單一條件對單一股票是否成立。缺值(null/undefined)一律
+// 判定不成立——跟screener.html篩選同一個原則:不知道就不能算通過,不能
+// 因為索引缺欄位而誤判成符合條件。
+function evaluateCondition(cond, stock) {
+  const def = fieldDef(cond.field);
+  if (!def) return false;
+  const raw = stock[cond.field];
+
+  if (def.type === 'boolean') {
+    const actual = !!raw;
+    if (cond.operator === 'is_true') return actual === true;
+    if (cond.operator === 'is_false') return actual === false;
+    return false;
+  }
+
+  if (raw === null || raw === undefined) return false;
+
+  if (def.type === 'category') {
+    if (cond.operator === '==') return raw === cond.value;
+    if (cond.operator === '!=') return raw !== cond.value;
+    return false;
+  }
+
+  // number
+  const a = Number(raw);
+  const b = Number(cond.value);
+  if (Number.isNaN(a) || Number.isNaN(b)) return false;
+  switch (cond.operator) {
+    case '>=': return a >= b;
+    case '<=': return a <= b;
+    case '==': return a === b;
+    case '>': return a > b;
+    case '<': return a < b;
+    default: return false;
+  }
+}
+
+// evaluateGroup: v1刻意只支援單層條件清單+一個共用的AND/OR邏輯(不支援巢狀
+// 群組)。條件清單為空時視為「沒有設任何篩選」,一律回傳true(不擋掉任何
+// 股票),跟screener.html「全部條件為空回傳全部」同一個原則。
+function evaluateGroup(group, stock) {
+  const conditions = (group && group.conditions) || [];
+  if (!conditions.length) return true;
+  const results = conditions.map(c => evaluateCondition(c, stock));
+  return (group.logic === 'OR') ? results.some(Boolean) : results.every(Boolean);
+}
+
+function applyGroup(group, stocks) {
+  return (stocks || []).filter(s => evaluateGroup(group, s));
+}
+
+// ============================================================
+// M59:巢狀群組(2層)—— 跟src/research/condition_engine.py的同名函式
+// 保持同一套語意({outer_logic, groups:[{logic,conditions},...]}),兩邊
+// 各自獨立維護、各自的測試把關,見condition_engine.py檔頭的技術債說明。
+// 刻意只做2層(不做無限遞迴巢狀),已能表達「(A且B)或(C且D)」這類常見
+// 需求,詳見condition_engine.py同一段註解。
+// ============================================================
+
+function newGroupId() { return 'g_' + Math.random().toString(36).slice(2, 10); }
+
+function defaultGroup() {
+  return { id: newGroupId(), logic: 'AND', conditions: [] };
+}
+
+// normalizeStrategyDef: 把M56-M58舊格式(單層{logic,conditions})升級成新
+// 格式({outer_logic, groups:[...]})，已是新格式(有groups欄位)就回傳複製
+// 品——向下相容既有存在瀏覽器localStorage的舊預設，不會因為升級而失效。
+function normalizeStrategyDef(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (data.groups) return Object.assign({}, data);
+  const out = Object.assign({}, data);
+  out.outer_logic = 'AND';
+  out.groups = [{ logic: data.logic, conditions: data.conditions }];
+  delete out.logic;
+  delete out.conditions;
+  return out;
+}
+
+// evaluateGroupSet: 多個群組之間用outer_logic組合，群組清單為空時視為
+// 沒有設任何篩選(回傳true)——跟evaluateGroup()同一個原則，只是多一層。
+function evaluateGroupSet(data, stock) {
+  const groups = (data && data.groups) || [];
+  if (!groups.length) return true;
+  const results = groups.map(g => evaluateGroup(g, stock));
+  return (data.outer_logic === 'OR') ? results.some(Boolean) : results.every(Boolean);
+}
+
+function applyGroupSet(data, stocks) {
+  return (stocks || []).filter(s => evaluateGroupSet(data, s));
+}
+
+// ---- Preset(localStorage)----
+const PRESET_STORAGE_KEY = 'strategy_builder_presets_v1';
+
+function loadPresets() {
+  try {
+    const raw = localStorage.getItem(PRESET_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function savePreset(name, group) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) throw new Error('預設名稱不能是空的');
+  const presets = loadPresets().filter(p => p.name !== trimmed);
+  presets.push({ name: trimmed, group: group, saved_at: new Date().toISOString() });
+  localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+  return presets;
+}
+
+function deletePreset(name) {
+  const presets = loadPresets().filter(p => p.name !== name);
+  localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+  return presets;
+}
+
+// ---- M61:自訂出場規則(選填)—— exit_rules: {stop_loss_pct,
+// take_profit_pct, hold_days},三個欄位都選填。跟
+// src/research/condition_engine.py的EXIT_RULES_BOUNDS保持同一組上下限
+// (兩邊各自獨立驗證,同一個技術債範圍邊界,見condition_engine.py檔頭)。
+// 沒有任何一個欄位有填時回傳null——維持「沒設定就沿用系統既有計算」
+// 的既有行為,匯出的JSON不會多一個空物件造成混淆。
+//
+// M67收緊:原本的50%/100%/120天上限只顧到擋打錯字,沒對齊「波段操作」
+// 這個定位,收緊到貼近波段的範圍——理由跟改動細節見
+// condition_engine.py同一常數旁的完整註解。
+const EXIT_RULES_BOUNDS = {
+  stop_loss_pct: { lo: 0, hi: 15, label: '自訂停損%' },
+  take_profit_pct: { lo: 0, hi: 30, label: '自訂停利%' },
+  hold_days: { lo: 1, hi: 40, label: '自訂持有天數', integer: true },
+};
+
+function buildExitRules(raw) {
+  raw = raw || {};
+  const out = {};
+  for (const key of Object.keys(EXIT_RULES_BOUNDS)) {
+    const rawVal = raw[key];
+    if (rawVal === undefined || rawVal === null || rawVal === '') continue;
+    const { lo, hi, label, integer } = EXIT_RULES_BOUNDS[key];
+    const v = Number(rawVal);
+    if (!Number.isFinite(v) || v <= lo || v > hi) {
+      throw new Error(`${label}必須是${lo}~${hi}之間的數字(不含${lo})`);
+    }
+    if (integer && !Number.isInteger(v)) {
+      throw new Error(`${label}必須是整數`);
+    }
+    out[key] = v;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+// ---- 匯出成策略檔(M57:給 config/custom_strategies/*.json 用;M59更新
+// 為2層巢狀格式;M61新增選填的exit_rules)----
+// 跟savePreset()共用同一個name輸入框,但輸出格式不同:這裡刻意只留
+// outer_logic/groups(每個群組只留logic/conditions,conditions只留
+// field/operator/value,去掉id這種瀏覽器端才需要的東西),對應
+// src/research/condition_engine.py的normalize_strategy_def()內部表示法。
+function buildStrategyExport(name, groupSet, exitRules) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) throw new Error('策略名稱不能是空的');
+  const normalized = normalizeStrategyDef(groupSet);
+  const groups = normalized.groups || [];
+  const totalConditions = groups.reduce((sum, g) => sum + ((g.conditions && g.conditions.length) || 0), 0);
+  if (!totalConditions) {
+    throw new Error('目前沒有任何條件,匯出後這份策略會符合全市場所有股票——請先加至少一個條件');
+  }
+  const payload = {
+    name: trimmed,
+    outer_logic: normalized.outer_logic,
+    groups: groups.map(g => ({
+      logic: g.logic,
+      conditions: (g.conditions || []).map(c => ({ field: c.field, operator: c.operator, value: c.value })),
+    })),
+  };
+  if (exitRules) payload.exit_rules = exitRules;
+  return payload;
+}
+
+// ============================================================
+// React UI 區(不寫JSX,直接用React.createElement——CDN載入、零建置步驟)
+// ============================================================
+const h = React.createElement;
+const { useState, useEffect, useMemo } = React;
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function fmtNum(v, digits) {
+  return (v === null || v === undefined) ? '--' : Number(v).toFixed(digits ?? 1);
+}
+
+const HEALTH_LABEL = { healthy: '健康', watch: '觀察', weak: '轉弱', unknown: '資料不足' };
+
+function fieldOptions(key, industryNames) {
+  if (key === 'industry_name') return industryNames.map(n => ({ value: n, label: n }));
+  const def = fieldDef(key);
+  return (def && def.options) || [];
+}
+
+function Palette({ onDragStartField }) {
+  return h('div', { className: 'palette' },
+    h('h3', null, '可用欄位'),
+    h('p', { className: 'palette-hint' }, '把下面的欄位拖進右邊畫布,組成篩選條件'),
+    FIELD_DEFS.map(f => h('div', {
+      key: f.key,
+      className: 'chip',
+      draggable: true,
+      onDragStart: (e) => { e.dataTransfer.setData('text/plain', f.key); onDragStartField && onDragStartField(f.key); },
+    }, f.label))
+  );
+}
+
+function ConditionCard({ cond, industryNames, onChange, onRemove, onDragStartReorder, onDragOverReorder, onDropReorder }) {
+  const def = fieldDef(cond.field);
+  const ops = operatorsFor(cond.field);
+  const opts = fieldOptions(cond.field, industryNames);
+
+  let valueInput;
+  if (def.type === 'boolean') {
+    valueInput = null;
+  } else if (def.type === 'category') {
+    valueInput = h('select', {
+      value: cond.value, onChange: (e) => onChange(Object.assign({}, cond, { value: e.target.value })),
+    }, opts.map(o => h('option', { key: o.value, value: o.value }, o.label)));
+  } else {
+    valueInput = h('input', {
+      type: 'number', value: cond.value,
+      onChange: (e) => onChange(Object.assign({}, cond, { value: e.target.value })),
+      placeholder: '數值',
+    });
+  }
+
+  return h('div', {
+    className: 'cond-card', draggable: true,
+    onDragStart: (e) => { e.dataTransfer.setData('text/plain', 'reorder:' + cond.id); onDragStartReorder && onDragStartReorder(cond.id); },
+    onDragOver: (e) => { e.preventDefault(); onDragOverReorder && onDragOverReorder(cond.id); },
+    onDrop: (e) => { e.preventDefault(); onDropReorder && onDropReorder(cond.id); },
+  },
+    h('span', { className: 'field-label' }, def.label),
+    h('select', {
+      value: cond.operator, onChange: (e) => onChange(Object.assign({}, cond, { operator: e.target.value })),
+    }, ops.map(o => h('option', { key: o.value, value: o.value }, o.label))),
+    valueInput,
+    h('button', { className: 'remove-btn', onClick: () => onRemove(cond.id), 'aria-label': '移除條件' }, '×')
+  );
+}
+
+// GroupCanvas: 單一群組的畫布(M59把原本的Canvas改名——App裡現在會渲染
+// 多個GroupCanvas,每個群組各自的AND/OR toggle跟拖放區互不影響)。
+function GroupCanvas({ group, industryNames, onChangeCondition, onRemoveCondition, onDropField, onReorder, onSetLogic, onRemoveGroup, canRemove }) {
+  const [dragOver, setDragOver] = useState(false);
+  const dragIdRef = { current: null };
+
+  return h('div', { className: 'group-canvas-wrap' },
+    h('div', { className: 'logic-toggle' },
+      h('span', null, '條件關係:'),
+      h('button', { className: group.logic === 'AND' ? 'active' : '', onClick: () => onSetLogic('AND') }, '全部符合(AND)'),
+      h('button', { className: group.logic === 'OR' ? 'active' : '', onClick: () => onSetLogic('OR') }, '符合其一(OR)'),
+      canRemove ? h('button', { className: 'ghost-btn group-remove-btn', onClick: onRemoveGroup }, '刪除此群組') : null
+    ),
+    h('div', {
+      className: 'canvas' + (dragOver ? ' drag-over' : ''),
+      onDragOver: (e) => { e.preventDefault(); setDragOver(true); },
+      onDragLeave: () => setDragOver(false),
+      onDrop: (e) => {
+        e.preventDefault(); setDragOver(false);
+        const data = e.dataTransfer.getData('text/plain');
+        if (data && !data.startsWith('reorder:')) onDropField(data);
+      },
+    },
+      group.conditions.length === 0
+        ? h('div', { className: 'canvas-empty' }, '把左側欄位拖到這裡開始建立條件')
+        : group.conditions.map(cond => h(ConditionCard, {
+            key: cond.id, cond, industryNames,
+            onChange: onChangeCondition, onRemove: onRemoveCondition,
+            onDragStartReorder: (id) => { dragIdRef.current = id; },
+            onDragOverReorder: () => {},
+            onDropReorder: (targetId) => { if (dragIdRef.current) onReorder(dragIdRef.current, targetId); },
+          }))
+    )
+  );
+}
+
+// GroupsBuilder(M59):多個GroupCanvas + 外層AND/OR toggle(只有超過1個
+// 群組時才顯示,單一群組時維持M56-M58的既有畫面,不多一層視覺干擾)+
+// 「新增條件群組」按鈕。
+function GroupsBuilder({ groupSet, industryNames, onChangeCondition, onRemoveCondition, onDropField, onReorder, onSetGroupLogic, onAddGroup, onRemoveGroup, onSetOuterLogic }) {
+  const groups = groupSet.groups;
+  return h('div', null,
+    groups.length > 1 ? h('div', { className: 'logic-toggle outer-logic-toggle' },
+      h('span', null, '群組關係:'),
+      h('button', { className: groupSet.outer_logic === 'AND' ? 'active' : '', onClick: () => onSetOuterLogic('AND') }, '全部群組都符合(AND)'),
+      h('button', { className: groupSet.outer_logic === 'OR' ? 'active' : '', onClick: () => onSetOuterLogic('OR') }, '符合任一群組(OR)')
+    ) : null,
+    groups.map((g, idx) => h('div', { key: g.id },
+      idx > 0 ? h('div', { className: 'group-joiner' }, groupSet.outer_logic === 'OR' ? '或' : '且') : null,
+      h(GroupCanvas, {
+        group: g, industryNames,
+        onChangeCondition: (updated) => onChangeCondition(g.id, updated),
+        onRemoveCondition: (id) => onRemoveCondition(g.id, id),
+        onDropField: (fieldKey) => onDropField(g.id, fieldKey),
+        onReorder: (dragId, targetId) => onReorder(g.id, dragId, targetId),
+        onSetLogic: (logic) => onSetGroupLogic(g.id, logic),
+        onRemoveGroup: () => onRemoveGroup(g.id),
+        canRemove: groups.length > 1,
+      })
+    )),
+    h('div', { className: 'builder-actions' },
+      h('button', { className: 'ghost-btn', onClick: onAddGroup }, '+ 新增條件群組')
+    )
+  );
+}
+
+function downloadJSON(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ExitRulesFields(M61):自訂停損%/停利%/持有天數,三個都選填,只在
+// 「匯出成策略檔」時使用(存成預設/套用篩選不需要出場規則,那兩個動作
+// 跟「這個策略觸發後怎麼出場」是無關的兩件事)。留空的欄位=沿用系統
+// 既有計算,不是「填0」。
+function ExitRulesFields({ raw, onChange }) {
+  return h('div', { className: 'exit-rules-fields' },
+    h('span', { className: 'exit-rules-label' }, '出場規則(選填,留空=沿用系統預設):'),
+    h('input', {
+      className: 'exit-rules-input', type: 'number', placeholder: '停損%(如3)',
+      value: raw.stop_loss_pct, onChange: (e) => onChange(Object.assign({}, raw, { stop_loss_pct: e.target.value })),
+    }),
+    h('input', {
+      className: 'exit-rules-input', type: 'number', placeholder: '停利%(如8)',
+      value: raw.take_profit_pct, onChange: (e) => onChange(Object.assign({}, raw, { take_profit_pct: e.target.value })),
+    }),
+    h('input', {
+      className: 'exit-rules-input', type: 'number', placeholder: '持有天數(如10)',
+      value: raw.hold_days, onChange: (e) => onChange(Object.assign({}, raw, { hold_days: e.target.value })),
+    })
+  );
+}
+
+function PresetPanel({ presets, groupSet, onSaved, onLoad, onDeleted }) {
+  const [name, setName] = useState('');
+  const [msg, setMsg] = useState('');
+  const [exitRulesRaw, setExitRulesRaw] = useState({ stop_loss_pct: '', take_profit_pct: '', hold_days: '' });
+
+  return h('div', null,
+    h('div', { className: 'builder-actions' },
+      h('input', { className: 'preset-name-input', placeholder: '策略/預設名稱', value: name, onChange: (e) => setName(e.target.value) }),
+      h('button', { className: 'ghost-btn', onClick: () => {
+        try {
+          const updated = savePreset(name, groupSet);
+          onSaved(updated);
+          setMsg('已儲存「' + name + '」(存在瀏覽器 localStorage)');
+          setName('');
+        } catch (e) { setMsg(e.message); }
+      } }, '存成預設'),
+      h('button', { className: 'ghost-btn', onClick: () => {
+        try {
+          const exitRules = buildExitRules(exitRulesRaw);
+          const payload = buildStrategyExport(name, groupSet, exitRules);
+          downloadJSON(payload.name.replace(/[^\w一-鿿-]/g, '_') + '.json', payload);
+          setMsg('已下載「' + payload.name + '.json」——commit 進 config/custom_strategies/ 後，'
+            + 'pipeline 下次執行就會開始追蹤');
+        } catch (e) { setMsg(e.message); }
+      } }, '匯出成策略檔'),
+      msg ? h('span', { style: { fontSize: '12px', color: 'var(--text-muted)' } }, msg) : null
+    ),
+    h(ExitRulesFields, { raw: exitRulesRaw, onChange: setExitRulesRaw }),
+    presets.length ? h('div', { className: 'preset-list' },
+      presets.map(p => h('div', { key: p.name, className: 'preset-row' },
+        h('span', { className: 'name' }, p.name),
+        h('span', { className: 'actions' },
+          h('button', { className: 'ghost-btn', onClick: () => onLoad(p) }, '載入'),
+          h('button', { className: 'ghost-btn', onClick: () => onDeleted(deletePreset(p.name)) }, '刪除')
+        )
+      ))
+    ) : null
+  );
+}
+
+function ResultsPanel({ groupSet, stocks }) {
+  // 「套用篩選」是明確動作,不是輸入時即時算——避免使用者還在調整條件時
+  // 表格一直跳動,也讓「符合條件」的數字明確對應到使用者按下的那一次條件組合。
+  const [appliedGroupSet, setAppliedGroupSet] = useState(null);
+  const matches = useMemo(
+    () => appliedGroupSet ? applyGroupSet(appliedGroupSet, stocks) : [],
+    [appliedGroupSet, stocks]
+  );
+
+  return h('div', null,
+    h('div', { className: 'builder-actions' },
+      h('button', {
+        className: 'primary-btn',
+        onClick: () => setAppliedGroupSet(JSON.parse(JSON.stringify(groupSet))),
+      }, '套用篩選')
+    ),
+    !appliedGroupSet
+      ? h('div', { className: 'results-summary' }, '按下「套用篩選」查看符合條件的股票')
+      : h('div', null,
+          h('div', { className: 'results-summary' },
+            '符合條件:', h('span', { className: 'n' }, matches.length), ' / ', stocks.length, ' 檔'
+          ),
+          h('div', { className: 'table-scroll' },
+            h('table', { className: 'results-table' },
+              h('thead', null, h('tr', null,
+                ['代號', '名稱', '現價', '漲跌%', '綜合分數', 'RSI', '量能倍數', '健康度', '產業'].map(t => h('th', { key: t }, t))
+              )),
+              h('tbody', null, matches.map(s => h('tr', { key: s.code },
+                h('td', { className: 'mono' }, h('a', { href: './stock.html?code=' + s.code }, s.code)),
+                h('td', null, h('a', { href: './stock.html?code=' + s.code }, s.name)),
+                h('td', { className: 'mono' }, fmtNum(s.close_price, 2)),
+                h('td', { className: 'mono' }, s.change_pct == null ? '--' : (s.change_pct > 0 ? '+' : '') + s.change_pct + '%'),
+                h('td', { className: 'mono' }, s.total_score ?? '--'),
+                h('td', { className: 'mono' }, fmtNum(s.rsi, 1)),
+                h('td', { className: 'mono' }, fmtNum(s.vol_ratio, 2)),
+                h('td', null, HEALTH_LABEL[s.health_status] || '--'),
+                h('td', null, s.industry_name || '--')
+              )))
+            )
+          )
+        )
+  );
+}
+
+function App({ stocks }) {
+  const industryNames = useMemo(
+    () => Array.from(new Set(stocks.map(s => s.industry_name).filter(Boolean))).sort(),
+    [stocks]
+  );
+  const [groupSet, setGroupSet] = useState({ outer_logic: 'AND', groups: [defaultGroup()] });
+  const [presets, setPresets] = useState(loadPresets());
+
+  function addCondition(groupId, fieldKey) {
+    setGroupSet(gs => Object.assign({}, gs, {
+      groups: gs.groups.map(g => g.id === groupId
+        ? Object.assign({}, g, { conditions: g.conditions.concat([defaultCondition(fieldKey)]) })
+        : g),
+    }));
+  }
+  function changeCondition(groupId, updated) {
+    setGroupSet(gs => Object.assign({}, gs, {
+      groups: gs.groups.map(g => g.id === groupId
+        ? Object.assign({}, g, { conditions: g.conditions.map(c => c.id === updated.id ? updated : c) })
+        : g),
+    }));
+  }
+  function removeCondition(groupId, id) {
+    setGroupSet(gs => Object.assign({}, gs, {
+      groups: gs.groups.map(g => g.id === groupId
+        ? Object.assign({}, g, { conditions: g.conditions.filter(c => c.id !== id) })
+        : g),
+    }));
+  }
+  function reorder(groupId, dragId, targetId) {
+    if (dragId === targetId) return;
+    setGroupSet(gs => Object.assign({}, gs, {
+      groups: gs.groups.map(g => {
+        if (g.id !== groupId) return g;
+        const conds = g.conditions.slice();
+        const from = conds.findIndex(c => c.id === dragId);
+        const to = conds.findIndex(c => c.id === targetId);
+        if (from === -1 || to === -1) return g;
+        const [moved] = conds.splice(from, 1);
+        conds.splice(to, 0, moved);
+        return Object.assign({}, g, { conditions: conds });
+      }),
+    }));
+  }
+  function setGroupLogic(groupId, logic) {
+    setGroupSet(gs => Object.assign({}, gs, {
+      groups: gs.groups.map(g => g.id === groupId ? Object.assign({}, g, { logic }) : g),
+    }));
+  }
+  function setOuterLogic(logic) {
+    setGroupSet(gs => Object.assign({}, gs, { outer_logic: logic }));
+  }
+  function addGroup() {
+    setGroupSet(gs => Object.assign({}, gs, { groups: gs.groups.concat([defaultGroup()]) }));
+  }
+  function removeGroup(groupId) {
+    setGroupSet(gs => {
+      if (gs.groups.length <= 1) return gs; // 至少保留1組,不能刪到剩0組
+      return Object.assign({}, gs, { groups: gs.groups.filter(g => g.id !== groupId) });
+    });
+  }
+  function loadPreset(p) {
+    // 舊預設(M56-M58)存的是單層{logic,conditions},先正規化成新格式，
+    // 群組物件補上id讓React key穩定(存檔/匯出格式本身不需要id)。
+    const normalized = normalizeStrategyDef(JSON.parse(JSON.stringify(p.group)));
+    normalized.groups = (normalized.groups || []).map(g => Object.assign({ id: newGroupId() }, g));
+    setGroupSet(normalized);
+  }
+
+  return h('div', { className: 'builder-grid' },
+    h(Palette, null),
+    h('div', null,
+      h(GroupsBuilder, {
+        groupSet, industryNames,
+        onChangeCondition: changeCondition, onRemoveCondition: removeCondition,
+        onDropField: addCondition, onReorder: reorder,
+        onSetGroupLogic: setGroupLogic, onAddGroup: addGroup, onRemoveGroup: removeGroup,
+        onSetOuterLogic: setOuterLogic,
+      }),
+      h(PresetPanel, {
+        presets, groupSet,
+        onSaved: setPresets, onLoad: loadPreset, onDeleted: setPresets,
+      }),
+      h(ResultsPanel, { groupSet, stocks })
+    )
+  );
+}
+
+// ============================================================
+// Sandbox 追蹤表現區(M57)—— 沿用既有頁面(screener.html等)的vanilla JS
+// 手法,不用React。這裡只是讀資料、組template literal塞innerHTML,
+// 沒有互動狀態,用React反而是過度工程。
+// ============================================================
+
+function fmtSignedPct(v) {
+  return (v === null || v === undefined) ? '--' : (v > 0 ? '+' : '') + v + '%';
+}
+
+// fmtExitRules(M61):把exit_rules組成一句白話文字,誠實揭露這個策略
+// 實際套用的出場規則是自訂的還是系統預設——不能讓使用者看著stop_loss
+// 觸發的部位卻不知道那個數字是哪裡來的。
+function fmtExitRules(exitRules) {
+  if (!exitRules) return '系統預設(5%~8% ATR動態停損停利)';
+  const parts = [];
+  if (exitRules.stop_loss_pct != null) parts.push(`停損${exitRules.stop_loss_pct}%`);
+  if (exitRules.take_profit_pct != null) parts.push(`停利${exitRules.take_profit_pct}%`);
+  if (exitRules.hold_days != null) parts.push(`持有${exitRules.hold_days}天`);
+  return parts.length ? parts.join(' / ') : '系統預設(5%~8% ATR動態停損停利)';
+}
+
+function buildSandboxCard(name, s) {
+  const winCls = s.win_rate_pct == null ? '' : (s.win_rate_pct >= 50 ? 'ok' : 'bad');
+  const avgCls = s.avg_return_pct == null ? '' : (s.avg_return_pct >= 0 ? 'ok' : 'bad');
+  return `
+    <div class="sandbox-card">
+      <h3>${esc(name)}</h3>
+      <div class="sandbox-row"><span>今日符合條件</span><span class="v">${s.n_matched_today ?? 0} 檔</span></div>
+      <div class="sandbox-row"><span>已平倉筆數</span><span class="v">${s.n_closed ?? 0}</span></div>
+      <div class="sandbox-row"><span>勝率</span><span class="v ${winCls}">${s.win_rate_pct != null ? s.win_rate_pct + '%' : '--'}</span></div>
+      <div class="sandbox-row"><span>平均報酬</span><span class="v ${avgCls}">${fmtSignedPct(s.avg_return_pct)}</span></div>
+      <div class="sandbox-row"><span>出場規則</span><span class="v">${esc(fmtExitRules(s.exit_rules))}</span></div>
+      ${s.reason ? `<p class="sandbox-note">${esc(s.reason)}</p>` : ''}
+    </div>`;
+}
+
+function renderSandbox(data) {
+  const el = document.getElementById('sandbox-body');
+  const metadata = data.metadata || {};
+  const byStrategy = data.by_strategy || {};
+  const names = Object.keys(byStrategy);
+
+  if (metadata.status === 'empty' || !names.length) {
+    el.innerHTML = `<p class="sandbox-empty">還沒有任何自訂策略被追蹤——把上面畫布組好的條件按「匯出成策略檔」下載,
+      commit 進 <code>config/custom_strategies/</code> 後,pipeline 下次執行就會開始追蹤(見該目錄下的 README.md)。</p>`;
+    return;
+  }
+
+  const summaryHtml = `<p class="sandbox-summary">共追蹤 <span class="n">${names.length}</span> 個自訂策略,
+    目前開倉 <span class="n">${data.n_open ?? 0}</span> 筆、排隊中 <span class="n">${data.n_pending ?? 0}</span> 筆</p>`;
+  const cardsHtml = `<div class="sandbox-grid">${names.map(n => buildSandboxCard(n, byStrategy[n])).join('')}</div>`;
+  el.innerHTML = summaryHtml + cardsHtml;
+}
+
+async function loadSandbox() {
+  try {
+    const res = await fetch('./custom_strategies.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    renderSandbox(await res.json());
+  } catch (e) {
+    document.getElementById('sandbox-body').innerHTML =
+      `<p class="sandbox-empty">找不到 Sandbox 追蹤報告(docs/custom_strategies.json),可能是今日流程尚未執行過,或還沒有任何自訂策略。</p>`;
+  }
+}
+
+async function load() {
+  try {
+    const res = await fetch('./index/stocks.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const stocks = data.stocks || [];
+    document.getElementById('updated-line').textContent =
+      '最後更新: ' + new Date(data.last_updated).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }) + '(台灣時間)　共 ' + stocks.length + ' 檔';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app-section').style.display = 'block';
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(h(App, { stocks }));
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-box').style.display = 'block';
+  }
+}
+
+load();
+loadSandbox();
+</script>
+
+</body>
+</html>

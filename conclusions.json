@@ -1,0 +1,2094 @@
+{
+  "generated": "2026-09-18",
+  "legend": [
+    {
+      "light": "🔴 紅",
+      "rule": "淨期望值 ≤ 0 或 PF < 1.14 或 Sharpe < 0.193（M200 對齊 5 年負對照組 null p95 —— 低於此跟「隨機進場」無法區分。M198 跑 318 檔 5 年 500 次隨機盲抱 10 天:PF p95=1.14 / Sharpe p95=0.193 / 每筆 p50=+0.155%）"
+    },
+    {
+      "light": "⚪ 灰",
+      "rule": "n < 40（樣本不足，不下結論）"
+    },
+    {
+      "light": "🟡 黃",
+      "rule": "過紅燈門檻，但沒到綠燈全部條件"
+    },
+    {
+      "light": "🟢 綠",
+      "rule": "PF ≥ 1.3 且 Sharpe ≥ 0.5 且 n ≥ 150 且 OOS 淨期望值為正 且 regime 穩健"
+    }
+  ],
+  "source": "claude/已驗證假設與策略_結論總表.md",
+  "n_rows": 180,
+  "by_category": {
+    "hypothesis": 42,
+    "strategy": 13,
+    "family": 14,
+    "rejected": 111
+  },
+  "rows": [
+    {
+      "category": "hypothesis",
+      "section": "一之二、外圍/總經維度（M283 起）",
+      "id": "BASKET1",
+      "name": "實驗室測試籃有沒有選擇偏誤",
+      "light": "🟢",
+      "n": "1,095 檔",
+      "verdict": "籃子不誇大結論,反而偏保守。 實驗室的測試籃是 474 檔「既有策略訊號響過的股票」,全市場 PIT panel 有 1,102 檔 —— 五成以上不在籃內。不控制流動性直接比會得到相反的答案:籃內 10 日前瞻報酬中位 +0.727% vs 籃外 +0.462%(+0.265pp,看起來像籃子偏好表現好的)。但只比兩邊都過 50M 流動性門檻的:籃內 +0.861%(276 檔) vs 籃外 +1.041%(140 檔)→ −0.180pp,符號翻轉。→ 籃子偏的是有量(良性,tiered 成本本來就剔除買不動的),在同樣買得動的股票裡它偏保守。所以 M282 那批紅燈不是籃子造成的,TV004 降級也不是。 附帶結構事實:籃外·過門檻那 140 檔成交額中位 364.7M 比籃內還高 —— 那是「量很大但很少創 20 日新高/貼 MA20」的穩定權值股,breakout/pullback 結構上抓不到它們。",
+      "source": "M284 → 2026-09-14"
+    },
+    {
+      "category": "hypothesis",
+      "section": "一之二、外圍/總經維度（M283 起）",
+      "id": "EXT1",
+      "name": "外圍指標對台股 T+1 的預測力",
+      "light": "🔴",
+      "n": "2,428 天",
+      "verdict": "有預測力,但六成落在避不掉的跳空裡。 主要檢定 SOX → 台股開盤→收盤(閘門真正能避開的那段):risk-off −0.333% vs risk-on +0.222%,差距 −0.554%、bootstrap p ≈ 0、OOS −0.895%(比 in-sample 更強)、三種 regime 全部同向 —— 五條判準過四條,卡在「差距 < 來回成本 0.771%」。拆解 Y2 = 跳空 + 開盤後:美股的預測力約六成在開盤跳空就實現完了(費半 58% / 標普 59% / 那指 59%)。日韓對跳空幾乎沒有預測力(−0.041% / −0.024%,p = 0.19 / 0.30)—— 不是領先指標,是同時反應同一批外生訊息。→ 「盤前風險閘門」提案連帶否決;五個外圍指數維持對照組定位。⚠️ ②的門檻是用「交易它」的框架訂的,閘門是「不進場」不花來回成本,所以判準偏保守 —— 但 PRE-REG 15.7 鎖定不換框架,要重測是新假設新預註冊。而且換框架救不了主結論:六成落在跳空跟門檻怎麼訂無關。",
+      "source": "PRE-REG §15 / M283 → 2026-09-14"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H003",
+      "name": "拉高後回踩",
+      "light": "🔴",
+      "n": "17,654",
+      "verdict": "從 🟡 掉到 🔴：M134（156 檔）算 Sharpe 0.28、OOS +1.46%，擴到 484 檔後 Sharpe 掉到 0.17，M174 又看到空頭 −0.19%（regime 不穩）。邊緣訊號對測試籃 + 盤勢都很敏感 → 不追。",
+      "source": "M134 → M174"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H008",
+      "name": "量縮價漲",
+      "light": "🔴",
+      "n": "93,302",
+      "verdict": "幾萬筆、確定沒 risk-adjusted edge",
+      "source": "M132 / M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H009",
+      "name": "量縮價跌",
+      "light": "🔴",
+      "n": "110,035",
+      "verdict": "同上",
+      "source": "M132 / M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H010",
+      "name": "量大價滯",
+      "light": "🔴",
+      "n": "17,745",
+      "verdict": "同上",
+      "source": "M132 / M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H011",
+      "name": "量縮價穩",
+      "light": "🔴",
+      "n": "13,989",
+      "verdict": "淨期望值負，最差的一條",
+      "source": "M132 / M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H012",
+      "name": "巨量急拉（proxy）",
+      "light": "🔴",
+      "n": "2,465",
+      "verdict": "proxy（分鐘級才能真測），日線版沒 edge",
+      "source": "M132 / M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H013",
+      "name": "低位橫盤＋放量突破",
+      "light": "🔴",
+      "n": "8,908",
+      "verdict": "跟現有 breakout 高度重疊，OOS 轉負，不值得獨立追",
+      "source": "M134"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H001",
+      "name": "早盤低開尾盤走強",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "需 open 欄位；且是盤中路徑 proxy，幾乎確定紅，不補",
+      "source": "M134 §四"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H002",
+      "name": "早盤高開尾盤走弱",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "同 H001",
+      "source": "M134 §四"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H004",
+      "name": "低位放量",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "「低位」無量化定義（needs_definition）",
+      "source": "M129"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H005",
+      "name": "高位放量",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "「高位」無量化定義",
+      "source": "M129"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H006",
+      "name": "低位整理後放量上漲",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "「低位」無量化定義；且跟 H013 幾乎同義",
+      "source": "M129"
+    },
+    {
+      "category": "hypothesis",
+      "section": "民間量價鐵律（第四份文件 13 條）",
+      "id": "H007",
+      "name": "高位震盪後放量下跌",
+      "light": "⚫",
+      "n": "—",
+      "verdict": "「高位」無量化定義",
+      "source": "M129"
+    },
+    {
+      "category": "hypothesis",
+      "section": "TradingView 指標 / 別人的策略",
+      "id": "TV004",
+      "name": "SMC Swing CHoCH 做多（慢結構 len 50）",
+      "light": "🟡",
+      "n": "944",
+      "verdict": "⚠️ M282(2026-09-14)訂正:現行 tiered 成本下是 🟡 不是 🟢 —— PF 1.47→1.16(門檻1.3)、Sharpe 0.614→0.242(門檻0.5)、n 944→416(流動性門檻剔掉一半,那些本來就買不動)、多重檢定校正由通過轉不通過、regime 穩健判不了。M174~M179 四關沒有一關在現行成本下站得住,challenger 時鐘因此暫停(PRE-REG 第14節)。左列數字是 flat 0.6% 版,保留供對照。原結論:實驗室唯一綠燈,撐過每一道關：PF/Sharpe/n/OOS + regime 穩健（空頭 +1.81%，比多頭還好）+ bootstrap p ≈ 0（過 Bonferroni 0.00294）。仍 research-only（不 activate）。~~剩：配真實出場測、vs 真 TradingView 保真度。~~ 兩項都已完成：配真實出場 M178（V5 純結構 +2.56%/筆）；vs 真 TradingView 保真度 M343（2026-09-18）補完 —— 老闆在 LuxAlgo SMC（Swing 50、Internal 關、日線 3 年）逐檔確認 2317/2454/2308×2/3008 五個日期一根都沒差，2412 0 個多方 CHoCH 且圖上有 BOS/HH/HL/EQH/EQL（指標確實在跑，是正向的 0）。而且是雙向：沒多報，也掃過三年全段確認沒漏報（n=1 → n=5）。⚠️ 這不是 TV004 復活 —— 保真度是「尺準不準」，M282 的四關全倒與 PRE-REG §17 的「進場沒有候選」都沒有改變。",
+      "source": "M167/M174/M176 → 2026-09-03 5y"
+    },
+    {
+      "category": "hypothesis",
+      "section": "TradingView 指標 / 別人的策略",
+      "id": "TV003",
+      "name": "SMC Internal CHoCH 做多（快結構 len 5）",
+      "light": "🔴",
+      "n": "7,912",
+      "verdict": "⚠️ M282 訂正:tiered 下是 🔴(PF 1.19→1.03、淨期望值 +0.48%→+0.09%)。原結論:regime 穩健、p ≈ 0 顯著，但 PF/Sharpe 沒到綠燈門檻。M184 配真實出場測完 → 頻率補不回來：最好的出場（V5 純結構）也只 +0.88%/筆 / PF 1.27 / Sharpe 0.26，還是 🟡（對照 TV004 V5 +2.56% / PF 1.65 / Sharpe 0.51）。快結構留太多雜訊。🟡 收工，不追。 SMC 頻率乘數要靠盤中（富邦分K），不是快結構日線版。",
+      "source": "M167/M174/M176/M184 → 2026-09-03"
+    },
+    {
+      "category": "hypothesis",
+      "section": "TradingView 指標 / 別人的策略",
+      "id": "TV005",
+      "name": "SMC Internal BOS 做多（續勢 len 5）",
+      "light": "🟡",
+      "n": "6,976",
+      "verdict": "全期看起來比 TV003 好，但空頭虧 → regime 不穩。續勢突破在空頭就是追高。",
+      "source": "M167/M174 → 2026-09-03 5y"
+    },
+    {
+      "category": "hypothesis",
+      "section": "TradingView 指標 / 別人的策略",
+      "id": "TV005-LSR ⚠️",
+      "name": "流動性掃蕩反轉（假跌破 swing low 後收回）",
+      "light": "🔴",
+      "n": "483",
+      "verdict": "比隨機還差：M198 五年 null 的隨機進場淨報酬 p5=−0.023% / PF p5=0.99，TV005-LSR 兩項都在 p5 之下。剔掉 TV004 重疊的殘差子集更差（PF 0.71）→ 那點正報酬全來自重疊訊號，掃蕩本身沒價值。48.7% 隔天就繼續跌破（「賣壓耗盡」不成立）。max_holding_days {10,20,40} 曲面平坦（PF 0.86/0.87/0.88）。停損池假說在台股證偽。",
+      "source": "M193/M201 → 2026-09-10 5y"
+    },
+    {
+      "category": "hypothesis",
+      "section": "學術因子",
+      "id": "MOM1",
+      "name": "12-1 時序動能（mom_12_1 > 0）",
+      "light": "🟡",
+      "n": "257,143",
+      "verdict": "hypothesis_lab 強（PF 1.42 / 打敗 breakout / 空頭最強 / p≈0），但 M185 exit_lab 配任何出場 edge 蒸發（V1 結構破壞直接 +0.0% / PF 1.0）。動能是「持有型」——抱過噪音把整段吃完，任何停損都在動能股的正常震盪上洗你出去。是因子不是可交易策略，不 activate。",
+      "source": "M185 → 2026-09-03 5y"
+    },
+    {
+      "category": "hypothesis",
+      "section": "學術因子",
+      "id": "MOM2",
+      "name": "12-1 強動能（>= 0.30）",
+      "light": "🟡",
+      "n": "110,732",
+      "verdict": "同 MOM1，exit_lab 全 🔴。",
+      "source": "M185 → 2026-09-03 5y"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之二、籌碼面（2026-09-11 / M226–M227 開始測）",
+      "name": "IF001 投信連續買超",
+      "detail": "投信連 3 日淨買超 ∧ 今日買超 > 當日成交量 2%",
+      "n": "18,256",
+      "uplift": "−0.122",
+      "ci": "[−0.292,+0.046]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M226"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之二、籌碼面（2026-09-11 / M226–M227 開始測）",
+      "name": "IF002 外資單日大買超",
+      "detail": "外資淨買超 > 當日成交量 20%",
+      "n": "34,927",
+      "uplift": "−0.100",
+      "ci": "[−0.240,+0.048]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M226"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之二、籌碼面（2026-09-11 / M226–M227 開始測）",
+      "name": "IF003 法人逆勢吸籌",
+      "detail": "三大法人合計 > 成交量 10% ∧ 當日收黑",
+      "n": "12,531",
+      "uplift": "+0.032",
+      "ci": "[−0.157,+0.226]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M226"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三、市況指標／估值面（2026-09-11 / M227）",
+      "name": "V1 低本益比（自身 250 日後 10 分位）",
+      "n": "50,216",
+      "uplift": "−0.205",
+      "ci": "[−0.338,−0.068]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三、市況指標／估值面（2026-09-11 / M227）",
+      "name": "V2 高殖利率（前 10 分位）",
+      "n": "49,067",
+      "uplift": "−0.270",
+      "ci": "[−0.420,−0.119]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三、市況指標／估值面（2026-09-11 / M227）",
+      "name": "V3 低股價淨值比（後 10 分位）",
+      "n": "44,433",
+      "uplift": "−0.433",
+      "ci": "[−0.596,−0.275]",
+      "verdict": "🔴",
+      "light": "🔴",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三、市況指標／估值面（2026-09-11 / M227）",
+      "name": "C 價格對照（純價格，無基本面）",
+      "n": "30,207",
+      "uplift": "−0.503",
+      "ci": "[−0.692,−0.318]",
+      "verdict": "對照組",
+      "light": "",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "R1 YoY 前 10 分位",
+      "n": "34,648",
+      "uplift": "+0.506",
+      "ci": "[+0.367,+0.643]",
+      "p": "<0.0005",
+      "verdict": "見下方分解",
+      "light": "",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "R2 YoY 後 10 分位",
+      "n": "18,218",
+      "uplift": "−0.253",
+      "ci": "[−0.385,−0.126]",
+      "p": "—",
+      "verdict": "🔴 顯著為負",
+      "light": "🔴",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "R3 MoM 前 10 分位",
+      "n": "22,681",
+      "uplift": "+0.248",
+      "ci": "[+0.104,+0.400]",
+      "p": "<0.0005",
+      "verdict": "季節性未去除",
+      "light": "",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "R4 YoY 加速（本月 YoY − 上月 YoY）",
+      "n": "23,831",
+      "uplift": "+0.135",
+      "ci": "[−0.013,+0.278]",
+      "p": "0.0415",
+      "verdict": "🔴 含 0",
+      "light": "🔴",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "R5 累計 YoY 前 10 分位",
+      "n": "37,769",
+      "uplift": "+0.404",
+      "ci": "[+0.273,+0.532]",
+      "p": "<0.0005",
+      "verdict": "見下方分解",
+      "light": "",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "name": "C 價格對照（純價格動能，前 10 分位）",
+      "n": "104,159",
+      "uplift": "+0.949",
+      "ci": "[+0.808,+1.101]",
+      "p": "<0.0005",
+      "verdict": "對照組",
+      "light": "",
+      "source": "M234"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之三、跨市場:MG1 在加密貨幣不成立（2026-09-12 / M248）",
+      "name": "C2 funding 5日變動 前 10 分位",
+      "n": "31,537",
+      "uplift": "−0.264",
+      "ci": "[−0.581,+0.064]",
+      "p": "0.9490",
+      "light": "",
+      "source": "M248"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之三之三、跨市場:MG1 在加密貨幣不成立（2026-09-12 / M248）",
+      "name": "P 價格對照（純價格動能）",
+      "n": "26,211",
+      "uplift": "+0.354",
+      "ci": "[−0.254,+0.937]",
+      "p": "0.1215",
+      "light": "",
+      "source": "M248"
+    },
+    {
+      "category": "hypothesis",
+      "section": "二之四、結構性檢定（不量 edge，量「這個訊號需不需要真實的市場結構」）",
+      "name": "HARM1 諧波 Three Drives",
+      "detail": "0.970",
+      "ci": "[0.812, 1.158]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "breakout（創 20 日新高 + 爆量）",
+      "verdict": "有條件 edge：5 年 160 檔分 regime，PF 1.24 / Sharpe 0.36 / 期望值 +0.77%/筆 / n=5,746，OOS +0.92% 撐住。多頭·盤整正、空頭 −0.74% 虧。",
+      "source": "M141",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "breakout 的出場才是瓶頸(M210)",
+      "verdict": "同一批進場訊號、只換出場(5 年 n≈17,100):V5 純結構破壞 淨 0.86% / PF 1.21 / Sharpe 0.230 / OOS 1.62% vs V0 現行 M156 移動停損 淨 0.29% / PF 1.07 / Sharpe 0.100。對照 M200 隨機 null(p95 = 0.345% / 1.14 / 0.193):V5 三項全過、V0 三項全不過且坐在隨機中位數上。V5 勝率反而更低(33.1% vs 44.1%)但平均賺大 52%、平均賠小 16% —— 移動停損在贏家還沒跑完時就砍掉。這是同一結論的第四次獨立確認(M178 TV004 反轉、M186 ST1 追勢、M186 MSB1 結構突破、M210 breakout 追勢；M212 訂正——原本寫「第二次」是漏數了 M186 那兩條)。 本輪不動 champion,已記進 GATE_ACCEPTANCE_LOG.md Phase 2 當已知偏誤",
+      "source": "M210",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "pullback（貼 MA20 2% 帶內 + 量縮）",
+      "verdict": "無 edge：PF 1.06 / Sharpe 0.095 / n=51,430，低於成本誤差帶。只有多頭正。M118 的「Sharpe 1.4」被 5 萬筆歷史證實是雜訊。",
+      "source": "M141",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "breakout vs pullback —— 用「隨機+同濾網」當虛無重測（M216）",
+      "verdict": "M141 當初是拿「PF 1.06 低於成本誤差帶」跟零比。M216 改用更硬的虛無:同一道濾網之下的隨機進場（濾網本身就會挑出高報酬樣本,拿「策略不加濾網」當對照會把選樣效果算成策略的功勞）。探索集 279 檔、盲抱 10 天、扣成本 0.6%:breakout 在六種濾網下的加值全部為正 +0.558 / +0.612 / +0.581 / +0.803 / +0.944 / +0.706（無濾網 / SMA200 / ADX≥20 / EMA20>50 / Minervini 模板 / SMA200+ADX）,而且濾網越嚴加值越大;pullback 三種設定的加值全部為負 −0.213 / −0.007 / −0.490。其中「我們的 pullback + 全濾網」淨報酬從 −0.112% 升到 +0.024% 看似被救活,但同狀態隨機是 +0.514% —— 它比隨機差 0.49pp。結論:M202 隔離 pullback 是對的,而且證據升級成「主動比隨機差」而非「沒有 edge」;趨勢濾網救不了它。 同一套量法下 breakout 的 edge 則穩健存活。⚠️ 本輪測試期間受暖機排除影響(見作業手冊三之二),但加值是相減量、期間偏誤已抵消。",
+      "source": "M216",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "⚠️ 我們自己的 atr_mult 有 72% 的時間不起作用（M217）",
+      "verdict": "exit_lab.sizing 寫的是 stop_pct = clamp(ATR/close × 3, 5%, 8%)，註解說是「ATR 自適應」。實測探索集 325,740 個觀測：ATR(14)/收盤 中位 2.78% → ×3 = 8.35%，已經超過 8% 上限。在真正的 breakout 進場當根：<5% 被撐到 5% 18.0% / 5~8% 照用 27.7% / >8% 被砍到 8% 54.3% —— 72.3% 的情況由 clamp 決定，不是 ATR。 後果：exit_lab 的 1×R 門檻 進場價×(1+stop_pct) 對過半數交易其實是固定 8%，M213 的保本／移動停損比較本身仍成立（四個變體共用同一 stop_pct），但「共用 ATR 自適應門檻」的描述不準確。 更底層的算術：5~8% 的帶只有 1.6 倍寬，而台股個股 ATR 橫斷面散佈是 5.3 倍寬（p5 1.11% → p95 5.93%），所以沒有任何乘數能讓帶內比例超過 35%（×1.8 → 33.7%、×2.0 → 35.3%、×3.0 → 28.6%、×4.0 → 19.5%）。這推翻了退件表上「我們的 5~8% 帶與外來策略不相容」的說法 —— 不是外來策略的問題，是這個帶太窄，接不住任何 ATR 型停損，包括我們自己的。 待老闆決定：改 atr_mult 到 2 附近讓它真的有作用，或維持 ×3 並把註解改成「實質固定 8%」。",
+      "source": "M217",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "波動不是可以賺 Sharpe 的維度（M217）",
+      "verdict": "來自批次六 ③ VTTE 的可移植部分。先問底層事實：進場當下已實現波動 vs 未來 10 天報酬 —— breakout 訊號 12,479 筆按波動五分位：Q1(3.3~18.8%) +0.449% / Q2 +0.122% / Q3 +0.416% / Q4 +1.083% / Q5(55~188%) +2.183%，Q5 是 Q1 的 4.9 倍。所以 1/vol 縮放會把資金從最會賺的那格抽走。實測目標波動掃描（等權 → 目標 45/35/25/15/10）：淨報酬 1.014 → 0.909 → 0.836 → 0.753 → 0.698 → 0.676 單調遞減，std 11.15 → 7.86，Sharpe 全部落在 0.084~0.091 的窄帶。反向（高波動加碼）也一樣：淨 1.328% / Sharpe 0.0849。結論：波動是一條線，可以選在線上的哪一點，但動不了那條線本身。因為我們沒有槓桿（Phase 6 未開始），波動目標化對我們是純報酬讓利。 ⚠️ 兩個限制：(a) 這測的是橫斷面應用（哪一檔加碼），VTTE 原版是時間序列應用（整體曝險隨時間縮放），後者我們已有離散版（dynamic_position 大盤空頭 ×0.5 / 高波動 ×0.7），連續版未測；(b) Q5 的 +2.183% 我不完全相信 —— 成本模型固定 0.6% 不分流動性，年化波動 188% 的個股價差＋衝擊很可能超過 0.6%，成本模型可能系統性美化最高波動那一格。要驗證需要價差/成交量資料，記進 P4 富邦全市場快照的評估項。",
+      "source": "M217",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "1:1 固定停利出場（舊 state_v1）",
+      "verdict": "推論不成立、已淘汰：M141 說底層訊號弱 + 固定停利把 breakout 的 edge 砍在 +1R。M156 換成混合式移動停損，樣本歸零重跑。舊 55 筆封存 state_v1.json 供對照。",
+      "source": "M155 / M156",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "混合式移動停損出場（現行）",
+      "verdict": "驗證中：paper_trading 樣本累積到 100 筆或進場日滿一個月才跑 forward verdict。Exit Lab（M162）可做受控比較。",
+      "source": "M156 / GATE_ACCEPTANCE_LOG Phase 2",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "移動停損 vs 結構出場（跨四種進場的通則）",
+      "verdict": "四組獨立進場訊號、四次同一個方向：TV004 SMC 反轉（Sharpe 0.30→0.64，M178）／ST1 SuperTrend 追勢（🔴 PF 1.12→🟡 1.24，M186）／MSB1 結構突破（🔴 PF 1.10→🟡 1.23，M186）／breakout 追勢（PF 1.07→1.21，M210）。反轉型與追勢型各兩組，全部指向「丟掉移動停損、改純結構破壞」。 機制一致：V5 勝率更低但平均賺大、平均賠小——移動停損在贏家還沒跑完時就砍掉。這已經不是單一工具的巧合，是這套系統目前最穩固的一條結論。 仍不動 champion（要動得走 PRE-REGISTRATION.md），已記進 GATE_ACCEPTANCE_LOG.md Phase 2 當已知偏誤",
+      "source": "M178 / M186 / M210 / M212 彙整",
+      "light": "🔴"
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "結構出場的結論對「結構」怎麼定義不敏感(M222)",
+      "verdict": "先前四組證據(TV004/ST1/MSB1/breakout)都指向「結構出場 > 移動停損」,但四組用的都是同一個結構定義(連 2 日收盤跌破 MA20) —— 一直存在一個沒排除的可能:贏的是 MA20 這個參數,不是「結構」這個概念。批次七 ④ Turtle 提供了完全不同來源的結構定義(1980 年代 Donchian 通道,跟均線無關、跟我們的參數選擇無關)。同一批 breakout 進場、只換出場,n=15,047:持有中位 15 vs 17 天、90 百分位 35 vs 36、出場日 ±3 天內重合 73.1%、毛報酬差 −0.188pp。→ 結論升格:不是「MA20 結構出場有效」,而是「只要出場綁在價格結構上而不是綁在浮動獲利上,就比移動停損好」 —— 從參數發現變成機制發現。附帶:不需要開 V10,Donchian 出場不優於現有 V5",
+      "source": "M222",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "結構出場:對「定義」不敏感,對「速度」敏感(M223)",
+      "verdict": "與 M222 那條互補,同一批 breakout 進場、只換出場:改定義(Turtle Donchian 10日低 vs 我們 MA20)→ 出場日 73.1% 重合、毛報酬差 −0.19pp,不敏感;改速度(連2日<MA20 vs 連5日<SMA200)→ 持有中位 17 vs 89 天、毛報酬 +2.012% vs +4.756%(差 +2.745pp),高度敏感。→ 調參該往「時間尺度」調,不是往「結構怎麼定義」調。 但單筆報酬高 ≠ 划算:粗算 3 席位資金效率,V5 44趟/年×2.012%=88.5%毛 −摩擦25~47% = 淨41~63%;慢出場 8.5趟/年×4.756%=40.4%毛 −摩擦4.9~9.1% = 淨31~36% —— V5 仍勝,但慢出場摩擦低五倍,沒有毛報酬看起來那麼懸殊。建議在 exit_lab 加 V10「慢速結構出場」變體(出場變體不吃 Bonferroni k),待老闆拍板",
+      "source": "M223",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "保本停損 vs 移動停損（M213 對照實驗）",
+      "verdict": "這是目前做過最乾淨的單變數實驗：V0 與 V8 的啟動門檻（獲利達 1×風險）、初始停損、時間 backstop 全部相同，唯一差別是啟動後停損要不要跟著棘輪。5 年 breakout n≈17,100：V0 棘輪 淨 0.29% / PF 1.07 / Sharpe 0.100 / OOS 0.33 / 持有 15.6d vs V8 不棘輪 淨 0.87% / PF 1.21 / Sharpe 0.201 / OOS 1.68 / 持有 18.7d。棘輪這個動作本身值 −0.58 個百分點/筆，而且持有天數差 3 天 —— 直接證實 M210 的機制假說（移動停損在贏家還沒跑完時砍掉）。V8 與 V5（純結構破壞 0.86%）並列第一，差 0.01pp 是雜訊，不可解讀為 V8 較優；V8 賺得多但 Sharpe 較低（0.201 vs 0.230）。V9（保本+結構）0.71% 反而較差 —— 結構破壞會在部位跑完前先觸發。意外：pullback 十個變體裡 V8 是唯一明顯為正的（0.52% / PF 1.15，V5 是 −0.05%）——保本停損對「進場訊號很弱」的策略特別有用，把大量會虧的單子救成平手。來源是老闆傳的 AxeAlgo TP/SL Toolkit（該腳本本身 Gate 0 退件）。本輪不動 champion。",
+      "source": "M213",
+      "light": ""
+    },
+    {
+      "category": "strategy",
+      "section": "三、策略層（不是單一假設，是完整進出場規則）",
+      "name": "固定 R:R 停利（1:1 括號）",
+      "verdict": "已淘汰，且 M212 再次確認不用重測：M155/M156 就測過「固定停利把 breakout 的 edge 砍在 +1R」。M212 收到的 3Commas Bj Bot 用的正是這個（停損 = 近 5 日低 −1×ATR14，中位 7.40%；1:1 → 目標價 +7.40%），屬同一設計，不另開 trial。",
+      "source": "M155 / M156 / M212",
+      "light": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bullHarami",
+      "n": "12,897",
+      "uplift": "−0.257",
+      "ci": "[−0.416,−0.086]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bullEng",
+      "n": "5,899",
+      "uplift": "+0.067",
+      "ci": "[−0.171,+0.304]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "piercing",
+      "n": "1,014",
+      "uplift": "+0.399",
+      "ci": "[−0.187,+0.990]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bullBelt",
+      "n": "276",
+      "uplift": "−0.176",
+      "ci": "[−1.206,+1.068]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bullKick",
+      "n": "6,433",
+      "uplift": "+0.241",
+      "ci": "[−0.021,+0.535]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "morningStar",
+      "n": "3,391",
+      "uplift": "+0.592",
+      "ci": "[−0.034,+1.367]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "hammer",
+      "n": "22,734",
+      "uplift": "−0.026",
+      "ci": "[−0.171,+0.112]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "invHammer",
+      "n": "32,308",
+      "uplift": "+0.065",
+      "ci": "[−0.057,+0.191]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bearHarami",
+      "n": "7,723",
+      "uplift": "+0.054",
+      "ci": "[−0.163,+0.267]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bearEng",
+      "n": "12,269",
+      "uplift": "+0.049",
+      "ci": "[−0.133,+0.222]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "bearKick",
+      "n": "3,302",
+      "uplift": "+0.314",
+      "ci": "[+0.018,+0.615]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "hangingMan",
+      "n": "918",
+      "uplift": "+1.649",
+      "ci": "[+0.782,+2.508]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "eveningStar",
+      "n": "2,891",
+      "uplift": "+0.296",
+      "ci": "[−0.095,+0.709]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "family",
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "name": "shootingStar",
+      "n": "2,513",
+      "uplift": "+0.773",
+      "ci": "[+0.352,+1.200]",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "Gate 0 退件記錄 —— 傳進來但沒開 trial 的",
+      "name": "Bollinger + RSI Double Strategy v1.1",
+      "detail": "RSI(6) 上穿 50 且 收盤上穿 BB(200,2σ) 下軌",
+      "n": "1,053",
+      "verdict": "家族 3（TV002 布林下軌反彈 🔴 淨 +0.01% / PF 1.00 / 空頭 −1.22%）∩ 家族 2。參數不同（200 vs 20）但家族結論是跨參數的",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "Gate 0 退件記錄 —— 傳進來但沒開 trial 的",
+      "name": "MACD + SMA 200 Strategy",
+      "detail": "MACD(SMA 版) hist 上穿 0 且 macd>0 且 close[26]>SMA200",
+      "n": "3,287",
+      "verdict": "M186 裁決逐字點名「MACD…之後都不用再測」；SMA200 濾網 = 家族 4（TV008 🔴，25 萬筆）。附帶：macd>0 與 fastMA>slowMA 定義上等價，四條件實為三條件",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "Gate 0 退件記錄 —— 傳進來但沒開 trial 的",
+      "name": "SuperTrend STRATEGY",
+      "detail": "SuperTrend(ATR10, ×3) 翻多",
+      "n": "8,978",
+      "verdict": "就是已註冊的 ST1。M186 已跑 hypothesis_lab（🟡 PF 1.15 / OOS 打平）+ exit_lab 六 variant",
+      "light": "🟡",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "Gate 0 退件記錄 —— 傳進來但沒開 trial 的",
+      "name": "PMax Explorer",
+      "detail": "同 SuperTrend，來源換成 EMA(10)",
+      "n": "3,654",
+      "verdict": "ST1 家族。與 ③ 重疊僅 13.4%、與 EMA21/50 重疊 57%，訊號確實不同（持有 64 天 vs 27 天）但家族已收工",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "Gate 0 退件記錄 —— 傳進來但沒開 trial 的",
+      "name": "3Commas Bot（Bj Bot）",
+      "detail": "EMA(21) 上穿 EMA(50) —— 400 行裡進場只有這一行，作者註解自陳是佔位符",
+      "n": "6,596",
+      "verdict": "M186 逐字點名「均線交叉」。其出場（近 5 日低 −1×ATR、1:1 R:R）= M155/M156 已淘汰的固定停利。webhook 下單段落不碰（Phase 6 硬界線）",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "Momentum Sequence [Herman]",
+      "detail": "一根黑K + 5 根連續走高紅K",
+      "n": "1,221",
+      "verdict": "執行層不相容：自然停損中位 9.82%，四個 N 值都只有 22~27% 的訊號落在我們 5~8% 風控帶內",
+      "takeaway": "新增一種退件理由類型：不是家族已死，是我們執行不了",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "Ultimate Prop Firm [Artillery]",
+      "detail": "pivot + 供需區 + RSI + 量",
+      "n": "—",
+      "verdict": "盤中美股期貨（紐約 09:30–15:55、每日 5 筆、收盤平倉、每口手續費、20 倍槓桿）。無分K 無法驗證",
+      "takeaway": "日線版停損落在風控帶內僅 23.2%，跟 Herman 的 22~27% 幾乎一樣 —— 我們的 5~8% 帶可能系統性地與外來策略不相容，值得單獨查",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "BTCUSD SuperTrend+EMA200",
+      "detail": "SuperTrend(10,1.8) 翻多 + close>EMA200",
+      "n": "10,627",
+      "verdict": "家族 2 + 家族 4。淨 0.466% / PF 1.160 / Sharpe 0.238 🟡，差綠燈一個量級",
+      "takeaway": "EMA200 濾網砍 42% 樣本、三項全升 —— 十五支裡第一個真正賺到品質的濾網；與 ST1 重疊僅 25.8%",
+      "light": "🟡",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "TP/SL Toolkit [AxeAlgo]",
+      "detail": "EMA(9)/EMA(21) 交叉",
+      "n": "15,041",
+      "verdict": "家族 2，M186 逐字點名。與 EMA10/20 重疊 99.6%",
+      "takeaway": "保本停損 → exit_lab V8/V9，今天最大收穫（見 §三）",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "Golden Trident",
+      "detail": "30 日 Donchian 方向 + EMA200",
+      "n": "10,333",
+      "verdict": "淨 0.120% 在隨機中位數之下。招牌的 anchored VWAP 全檔只被 plot,進出場完全沒引用",
+      "takeaway": "同一把尺：我們的 breakout（創20日新高+爆量）0.611% vs 本支（僅「處於多頭結構」）0.120% —— 事件勝過狀態，差 0.49pp",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "Supertrend + ADX Regime Switch",
+      "detail": "乘數隨 ADX regime 切換（趨勢 1.75 / 盤整 4.5）+ 盤整不進場",
+      "n": "8,913",
+      "verdict": "🟡 候選 —— 這 20 支裡唯一進 Gate 1 的。淨 0.756% / PF 1.283 / Sharpe 0.400，逼近綠燈但未達",
+      "takeaway": "拆解：自適應乘數只值 +0.035pp，盤整不進場的閘門值 +0.227pp（87% 的價值在閘門）。個股層級 ADX regime 是新維度（我們只有大盤層級）",
+      "light": "🟡",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "Fib Confluence Scanner",
+      "detail": "15 條斐波那契線任一條在 ±0.5% 內",
+      "n": "176,374",
+      "verdict": "預設 minConfluence=1 → 58.1% 的 K 棒都算「匯流」",
+      "takeaway": "ablation 單調變差：>=1 +0.068% → >=3 −0.037% → >=5 −0.173%。要求越多線匯流結果越差 —— 概念被反向證偽。另 1.5% 固定停損有 79.8% 比一根 K 的平均波動還窄",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "EMA Ribbon Fan Angle",
+      "detail": "五條 EMA 斜率遞減排序 + fanScore + RSI(50,70) + 量",
+      "n": "39,153",
+      "verdict": "全條件版淨 0.183% / PF 1.060 —— 幾乎完全等同丟骰子",
+      "takeaway": "RSI 上限 70 值 −0.30pp：拿掉它 0.183% → 0.483%。「不要在超買時買」是負貢獻",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "EMA + MTF Stochastic",
+      "detail": "週線 stoch linreg + 日線 stoch + EMA38/62",
+      "n": "743",
+      "verdict": "多時間框架沒有可測量的加值",
+      "takeaway": "look-ahead 檢查通過（lookahead_off 語意複刻正確）。只要週線條件單獨看是 −0.440%；全條件 0.767%±0.759 與只要日線 0.527%±0.071 的 95% CI 完全重疊 —— MTF 砍掉 99% 樣本，改善在雜訊裡",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第三批(2026-09-10,十支)",
+      "name": "BB Power + Squeeze Release",
+      "detail": "BB Power 上穿 50 + 擠壓釋放後 10 根內",
+      "n": "2,747",
+      "verdict": "原腳本 95% CI [+0.054, +0.782] 與隨機 p95(0.345) 重疊，分不出來",
+      "takeaway": "擠壓視窗是負貢獻 −0.24pp：拿掉它 0.418% → 0.656%",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Sequence Snap",
+      "detail": "Herman 型態 + 0.05% 容忍 + RSI>40",
+      "verdict": "🔴",
+      "takeaway": "與 Herman 重疊 88.9%;停損 9.27% 僅 23.6% 落在風控帶。順帶量到 Herman 原版績效(0.759%/PF1.267)跟當時唯一候選同級 —— 批次三退它時沒量過績效,理由是執行層不相容",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Alpha S/R Channel",
+      "detail": "盤中 5m 供需區 + 吞噬/針形",
+      "verdict": "🔴",
+      "takeaway": "盤中 XAUUSD;作者自陳 \"optimized for XAUUSD\",參數全是非整數掃描值",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Poor Man's Orderflow",
+      "detail": "OHLCV 模擬吸籌/衝量 + 群聚",
+      "verdict": "🔴",
+      "takeaway": "保留集第一次發揮作用:全池 🟢(1.603%)→ 探索集 🟡(0.991%,CI 跨零)。⚠️ 我這輪先在全池上跑,污染了保留集(已記錄)。另:馬丁格爾結構(虧損加碼翻倍+5倍槓桿)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "VWAP Trend Momentum",
+      "detail": "session VWAP 回踩",
+      "verdict": "🔴",
+      "takeaway": "日線上代數退化:每根都是新的一天 → sVwap = hlc3 → close>sVwap ⟺ C>(H+L)/2,一個約 50% 的擲硬幣條件",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Momentum Exhaustion",
+      "detail": "突破 + EMA20>50 + RSI 濾網",
+      "verdict": "🔴",
+      "takeaway": "趨勢濾網 +0.285pp;兩個 RSI 濾網合計約 0",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "RSI Range Compression",
+      "detail": "RSI 突破自身高點 + EMA50 斜率 + ADX≥15 + 擠壓",
+      "verdict": "🔴",
+      "takeaway": "全條件 0.811% / PF 1.304 🟡。擠壓視窗是負貢獻 −0.055pp:拿掉後 0.811%→0.840%。isSqueeze 佔全部 K 棒 19.5%",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Gaussian Channel + StochRSI(ETH 版)",
+      "detail": "4 極 Ehlers 濾波(89)通道翻綠 + 突破上軌 + StochRSI 極值 + SMA200 + 收紅K",
+      "verdict": "🔴",
+      "takeaway": "六個變體全 🟡,最好 1.050% / PF 1.349。拆解:SMA200 值 Δ+0.184、收紅K Δ+0.101、StochRSI Δ+0.082 —— 加值全在那兩道我們本來就有的濾網上。filt>filt[1] 是斜率翻轉 = 家族 2,M186 逐字收工名單含 Gaussian Filter Trend",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Universal Aggressive Trend MACD v3.3",
+      "detail": "MACD 變體 + 移動停利",
+      "verdict": "🔴",
+      "takeaway": "家族 2,M186 裁決逐字點名「MACD…之後都不用再測」。當時未量測即退件(家族理由充分)",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Poor Man's MA AlgoPilot v2.1",
+      "detail": "均線狀態 AlgoPilot",
+      "verdict": "🔴",
+      "takeaway": "家族 2。同上,未量測即退件",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第四批(2026-09-10~11,十支)—— 開始產出對我們自己策略有用的東西",
+      "name": "Hybrid Breakout",
+      "detail": "Minervini 趨勢模板 + 擠壓 + 量",
+      "verdict": "🔴",
+      "takeaway": "停損買單成交率 45.8%。全條件 PF 1.540 但含濾網自身選樣效果(見 §三 M216 列)",
+      "light": "🔴",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "Ichimoku Confluence",
+      "detail": "TK 交叉 + 雲位分級",
+      "verdict": "🔴",
+      "takeaway": "全期 0.223~0.280% vs 基準 0.157%。雲位分級在空頭有防禦效果(全部交叉 −1.034% → Strong+Neutral −0.404%,市場 −1.062%)但多頭無超額,兩相抵銷。位移處理正確無 look-ahead。MTF 濾網(htf=\"D\")在日線恆為真",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "Technical Summary + Crowd Consensus",
+      "detail": "22 指標投票",
+      "verdict": "🔴 腳本 / 🟡 概念",
+      "takeaway": "腳本在日線零交易(phase 狀態機被 _isIntraday 擋住)。但概念實測:共識 ≥85% 淨 0.549% vs 基準 0.305%,+0.244pp,且單調劑量反應(60%→0.444 / 70%→0.502 / 85%→0.549)。空頭時比大盤還爛(−1.162% vs −0.929%)。極空共識(≤15%)預測不了下跌(−0.022%)——看多共識有訊息量,看空沒有",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "Liquidity Sweep Reversal",
+      "detail": "pivot 7/7 掃蕩 + 5 根內收復",
+      "verdict": "🔴",
+      "takeaway": "見 §四 家族 5:與 TV005 重疊僅 6.0%,兩個都負",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "MTF Momentum Stack",
+      "detail": "15m/60m/240m 三框架對齊",
+      "verdict": "🔴",
+      "takeaway": "盤中無資料;MTF 概念已於第四批量到無加值",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "DMI/ADX Pullback + Decay",
+      "detail": "趨勢中回檔買 EMA9 收復",
+      "verdict": "🔴",
+      "takeaway": "今天對我們自己系統最重要的一支 —— 見 §三 M216 列。另帶一個沒測過的出場:ADX 從峰值衰退 30% 出場(跟價格無關的趨勢強度衰退),記為 exit_lab 候選",
+      "light": "🔴",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "TASC An Ag Selling Model",
+      "detail": "農產品收成年週期分批賣出",
+      "verdict": "🔴",
+      "takeaway": "完全不同資產與目標函數(只做空、棕櫚/穀物期貨、生產者避險而非 alpha)。季節性週期是策略全部,搬到台股核心即消失",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "FCPO 策略 (KDJ+寶塔+HA+EMA)",
+      "detail": "馬來西亞棕櫚油 5 分K 五層框架",
+      "verdict": "🔴",
+      "takeaway": "盤中+外國期貨。核心是「上升趨勢中買 KDJ 超賣回檔」= §三 M216 量到的 −0.21~−0.49pp。作者正確避開 HA 蠟燭回測陷阱(分別 request 原始 OHLC 與 HA);但「寶塔線」實作只是 close > close[1],第五層濾網沒在濾東西",
+      "light": "🔴",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "ORB Breakout Scalping",
+      "detail": "開盤區間突破",
+      "verdict": "🔴",
+      "takeaway": "盤中專用(開盤 N 分鐘區間),台股日線無開盤區間可定義",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "Sovereign Horizon Matrix v8.0",
+      "detail": "多層矩陣評分",
+      "verdict": "🔴",
+      "takeaway": "家族 2 的複合包裝;評分層全部由價格衍生,無新資訊維度",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第五批(2026-09-11,十支)",
+      "name": "Relative Momentum Rotation",
+      "detail": "橫斷面 ROC20 排名前 X% + 突破 + SMA200",
+      "verdict": "🔴 腳本 / 候選概念",
+      "takeaway": "48 支裡第一支碰到 D5 橫斷面維度。全期 2.806% / PF 1.66(超過 TV004 的 1.65)、單調劑量反應乾淨(前20% 0.909 → 前10% 1.275 → 前5% 1.458)。但我預註冊的「橫斷面對期間偏誤免疫」假設失敗:多頭 Δ+2.617、空頭 Δ−1.283 —— 這是 momentum crash,不是免疫。空頭期 n 只有 99,不能下結論,要 7 年資料才判得了。另:最弱 5% 的 Δ−0.069 ≈ 0,「強有訊息量、弱沒有」第二次出現",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Zone Flow S/R Strategy",
+      "detail": "樞紐區(Classic/Fib/Camarilla/DM)+ 吞噬 / 針形掃蕩",
+      "verdict": "🔴",
+      "takeaway": "同作者(Awab_Hassan)批次四 ② Alpha S/R 的再投稿;tooltip 自陳 calibrated for XAUUSD 15m。兩條路徑各踩家族 3 與家族 5。日線上 pivotPeriod=Daily 使區間每根重算,狀態機只有一根 K 的壽命。帶走:ATR 停損帶寬測量(見 §三)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Return Dispersion Matrix",
+      "detail": "50 根 (前報酬,今報酬) 四象限普查決定追勢/回歸",
+      "verdict": "🔴",
+      "takeaway": "機制被實測否定:Q1/Q3 只差漂移(上漲比例 58.3% vs 43.9%,自相關 +0.007 vs +0.027);Q2 與 Q4 統計上是同一個狀態(漂移 50.6/49.8、自相關 −0.0954/−0.1000)卻被映射到「進場」與「不交易」。Q1 閘門獨有訊號報酬 −0.064%(vs close>SMA200 獨有 +0.608%)。Q2 閘門反向選股:RSI<35 不管 regime −0.204% → 只在 Q2 −0.631%",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Vol-Target Trend Engine (VTTE)",
+      "detail": "無進場訊號;SMA200 閘門 + 曝險 = min(1, 目標波動/已實現波動)",
+      "verdict": "🔴 新退件類型:不是同類物件",
+      "takeaway": "單一槓桿ETF 的連續配置引擎,我們是橫斷面選股,沒有訊號可測。作者自稱「almost no tunable surface」但三行上方就記錄了一次樣本內調參。帶走:波動維度測量(見 §三)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Gaussian Channel + StochRSI(BTC 版)",
+      "detail": "同上,PER 144 / MULT 1.414 / 下界 15,拿掉 SMA200 與收紅K",
+      "verdict": "🔴",
+      "takeaway": "批次四 ⑦ 的重複投稿,且拿掉了貢獻最大的兩道濾網。作者註解自陳逐資產調參(ETH 下界 22~28 plateau,BTC 需 15;收紅K 對 ETH 正、對 BTC 無效)—— 52 支裡最乾淨的過擬合自白。新測:k>80 or k<15 的 OR 是負貢獻,只取動能半 +0.874% → 加上超賣半稀釋到 +0.654%(−0.22pp)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "hamster-bot MRS",
+      "detail": "SMA3 錨 −7/−8/−9% 三檔馬丁格爾網格,無停損",
+      "verdict": "🔴",
+      "takeaway": "家族 6(新增)。margin_long=margin_short=0(回測裡不可能斷頭)、停損整段被註解掉、手續費 0.045%(幣安 taker,台股 13 倍)。路徑測量:L1 觸發後 84.6% 會被拉到滿倉;20 天內回錨 77.2%(高勝率是真的);沒回來的 22.8% 中位最深 −12.95%、14.3% 跌破 −20%。死因是同時性:2025-04-08 有 85.2% 的股票同日觸發,5 年 6 天 >40%",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Multi-Factor Adaptive Z-Score",
+      "detail": "0.4·z(ROC14)+0.3·z(RSI14)+0.3·z(量比),自適應 EMA 平滑,穿越 0",
+      "verdict": "🔴",
+      "takeaway": "57 支裡最高摩擦成本:年 9.14%(15.2 趟 × 0.6%),接近三倍於已判死的 EMA10/20(3.24%),且等於大盤長期年化。原因是結構性的 —— z-score 均值依定義為 0,「穿越 0」是定義不是訊號。背離偵測只被 plot、進出場沒引用(第二次,同 Golden Trident 的 anchored VWAP)。account_equity 是手打靜態值不是 strategy.equity",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "SMC OB + FVG + Liquidity Sweep",
+      "detail": "掃蕩 → BOS(位移確認)→ OB 回測",
+      "verdict": "🔴",
+      "takeaway": "四個零件三個已 🔴。關鍵 ablation(增量對照,比 TV006 單獨測更乾淨):BOS 直接進 +0.840%/PF 1.277 → 掃蕩+BOS +0.905%/PF 1.296 → 再加 OB 回測掉到 +0.117%/PF 1.045,低於全部K棒基準 +0.165%。等回檔吃掉 87% 的 edge。 掃蕩本身只值 +0.065pp 且只濾掉 30% 訊號(家族 5 第三組獨立證據)。作者 pivot 的 look-ahead 處理正確;但 longEntryPrice := close 記的是訊號K收盤、實際成交在次根開盤 → 1R 保本點偏掉",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Ichimoku TK-cross + MFI(SOL 4H)",
+      "detail": "TK(20)/Kijun(60) 交叉 + 收盤在雲上(位移 60)+ MFI(14)>50",
+      "verdict": "🟡 候選 —— 批次六唯一",
+      "takeaway": "見下方專段",
+      "light": "🟡",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Compression Breakout System (CBS)",
+      "detail": "BB 寬度百分位 <25 擠壓 → 5 根內突破 20 日高 + 量 + SMA200",
+      "verdict": "🔴",
+      "takeaway": "①②③ 是我們自己的 breakout 加一道擠壓:突破+量+SMA200 = +1.370%/PF 1.459 → 加百分位擠壓掉到 +0.893%(Δ−0.477pp)、加絕對寬度擠壓 +1.059%(Δ−0.311pp)。擠壓視窗負貢獻的第四次獨立測量(BB Power −0.24 / RSI Coil −0.055 / Hybrid / 本支)。而且作者主打的「百分位自我標準化」比絕對門檻還差 0.166pp —— 標準化劣於原始的第二次獨立確認（第一次是 ⑥ 的 z(ROC) vs raw ROC）。作者自陳回測是 AAPL 單檔、起點 2005，並記錄「pre-trend era drags」——在最極端的倖存者上選期間",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "EMA Pullback Trend Continuation",
+      "detail": "EMA50>EMA200 + 回踩 EMA50 收復 + 量 + RSI>40",
+      "verdict": "🔴",
+      "takeaway": "與我們 M202 隔離掉的 pullback ±3 天重疊 75.8%。淨 +0.073% / PF 1.026，我們自己的 pullback +0.031% / PF 1.015，兩個都遠低於全部K棒基準 +0.328%、PF 低於虛無中位 1.06。陌生人用不同指標（EMA50 vs MA20、RSI>40 vs 量縮）獨立重寫，落點幾乎完全重合、結果一樣 —— M202 的隔離不是我們寫法的產物，是這個型態本身沒有 edge",
+      "light": "🔴",
+      "source": "M202"
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "TRADLEWARE-DCA+Trend ETF",
+      "detail": "月定額 + SMA200 出場 + ATH 下 −15/−20/−30% 三檔補回",
+      "verdict": "🔴 不是同類物件（第二次）",
+      "takeaway": "長期累積計畫，不是訊號策略，我們是橫斷面選股。作者自己的表格裡 HODL +1132%/DD −36% 打敗 DEFAULTS +553%/DD −20% —— 用一半報酬換 16pp 回撤，跟 VTTE 一樣是風險配置不是 alpha（呼應 §三 波動維度那列：可以在線上移動，不能移動那條線）。同一作者第三次記錄逐資產調參：MGK 2010起要 DC on/rungs 20-30-40、發布預設是 MGK 2020起 DC off/rungs 15-20-30、QQQ 要 DC off + 遲滯 2%、VOO 要 DC off。⚠️ 但這位作者的誠實度值得記一筆：主動記錄失敗模式、QQQ −50% 回撤、TV 與 Python 88 vs 83 筆對不上「flagged, not resolved」、並自我更正先前對 VOO 的高估",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Channel Reversion System (CRS)",
+      "detail": "50 日 Donchian 下四分位 + close>SMA200",
+      "verdict": "🔴",
+      "takeaway": "第六支「上升趨勢中買弱勢」,也是第一次拿到顯著負值:全期加值 −0.123pp CI[−0.210,−0.037]、年線下 −0.544pp CI[−0.793,−0.294],n=31,235。作者主打的趨勢濾網把傷害從 −0.54 降到 −0.05,但沒變成正的。帶走:家族 3 的界線 —— 同一套規則在 ^TWII 指數上 PF 1.38、22 筆、正期望值,個股不成立但指數成立;只是在場 7% 換到 +10%,同期買進持有 +401%",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "PG MCX Silver Long V6",
+      "detail": "VWMA/SD/ROC,印度商交所白銀 30 分K",
+      "verdict": "🔴",
+      "takeaway": "盤中 + 外國商品期貨 + 7 倍槓桿。進場條件在台股日線觸發 49.1% 的 K 棒 —— 是狀態不是訊號(第三支同病:Fib 58.1%、MFZ 穿越零)。1.5% 緊急停損比台股單日 ATR 還窄的比例 80.0%,跟第三批 Fib Confluence 的 79.8% 幾乎同一個數字",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Execution-Aware Trend [BSL]",
+      "detail": "EMA50>EMA200 + EMA200斜率 + 突破前20根高",
+      "verdict": "🔴 腳本 / 對我們自己最有用的一支",
+      "takeaway": "十九支裡方法論最嚴謹(樣本內外切分做成一級輸入、面板有 n≥100 門檻)。逼出爆量 ablation:我們的 breakout 空頭加值 −0.073pp(等於丟骰子),加趨勢濾網 +0.713pp。爆量單獨只值 +0.020pp,疊在趨勢濾網上才值 +0.074/+0.215pp。 ⚠️ 這個修訂案後來沒通過保留集(PRE-REG 6.7)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "IB Completed",
+      "detail": "開盤區間 09:30–10:30 ET,美股期貨",
+      "verdict": "🔴",
+      "takeaway": "盤中,日線上零交易(狀態機來不及完成就被 isNewDay 重設)。帶走:盤中無法驗證的投稿累計 8/55 = 14.5%(批次七、八續增,見各批;截至批次八 ④ 為 14/91 = 15.4%),是唯一一類靠資料就能解鎖的退件",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Flawless Victory Strategy",
+      "detail": "BB(20,1σ)下軌 + RSI>42,停損 6.604%/停利 2.328%",
+      "verdict": "🔴",
+      "takeaway": "家族 3,批次一 ① 同型。四位有效數字的停損停利 = 掃描器輸出。 實測 13,117 筆:勝率 72.1% 而且是虧的(每筆 −0.506% / PF 0.709)—— 打平需要 73.9%(零成本)或 80.7%(台股)。零成本下就已經是負的。 作者把安全邊際掃光了",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Ichimoku+Candle_X+HULL_X+MacD",
+      "detail": "五條件全要",
+      "verdict": "🔴",
+      "takeaway": "五個條件五個已 🔴,單獨觸發率全在 49~52%(都是狀態)。五個疊起來 +0.240pp,輸給單一個 close>SMA200 的 +0.612pp。 淨 0.357% 擦著隨機 p95(0.345)上緣。帶走:修正「匯流越多越差」那條先驗 —— 同類型條件堆疊是負的,不同趨勢代理堆疊是正的(但那叫趨勢濾網不叫匯流)",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "RSI Divergence Indicator",
+      "detail": "RSI(9) 背離,pivot 1/3",
+      "verdict": "🔴 腳本 / 待預註冊觀察",
+      "takeaway": "檔頭三行自陳 GOOGL PF 7.06→18.96、SPY 2.35,三組參數兩個標的。正規多頭背離只在空頭有效:年線下 +0.875pp CI[+0.360,+1.390] n=566、年線上 −0.324pp、全期相消為零 —— 這是「背離有沒有用」吵不完的原因。隱性背離形狀相反(多頭 +0.291pp),兩個相反的東西被 OR 在同一個扳機上。TV004 形狀第二次獨立出現",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Open Close Cross Strategy R5.1",
+      "detail": "SMMA(收,8) 上穿 SMMA(開,8),3 倍框架",
+      "verdict": "🔴 新類型:資料本身是假的",
+      "takeaway": "security(..., lookahead=barmerge.lookahead_on) 且預設開啟。作者檔頭自陳「修掉之後 performance will drop dramatically」。實測 12,609 筆、同一規則、只差 3 根 K 棒的後見之明:PF 1.09→4.00、勝率 44.6%→65.5%、淨報酬 ×15。 修正後 +0.224% vs 基準 +0.117%,實質是零",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Bjorgum Double Tap",
+      "detail": "雙底 + 頸線突破",
+      "verdict": "🔴",
+      "takeaway": "進場是「等結構被打破才進」不是抄底,結構上接近 TV004 而非 LSR,值得測。結果 n=107/10年/247檔、CI[−1.556,+2.370] —— 不是沒 edge,是測不出來也交易不了(每檔每年 0.04 次,配 0~3 席位)。容量死法,同批次二 Golden Cross",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Bollinger + RSI Double Strategy v1.2",
+      "detail": "ChartArt",
+      "verdict": "🔴",
+      "takeaway": "批次一 ① 的 long-only 版,進場條件逐字相同(M212 已量 1,053 訊號)。30 秒退件、不量測 —— 這是 M218 新配額規則的第一次套用。作者自陳「going long-only made it more successful in backtesting」:在同一份回測上拿掉虧錢的那一邊,不是改進是二選一。第三支 BB 下軌+RSI(另二:批次一 ①、批次六 ⑯ Flawless Victory)",
+      "light": "🔴",
+      "source": "M212"
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Fractal Breakout Strategy",
+      "detail": "ChartArt",
+      "verdict": "🔴",
+      "takeaway": "不量測,兩個理由。(1) 核心計算有 bug:fractal_average = (fractal_price[1]+[2]+[3])/3 的索引是「幾根K前」不是「第幾個分形」,而 fractal_price 是階梯函數 → 三項幾乎永遠相等 → 均值退化成單一值,use_longer_average(2 vs 3)開關完全無作用。作者說的「最近 3 個分形高點均值」從來沒被算出來過。 同類:Golden Trident 的 anchored VWAP、MFZ 的背離(算了沒引用),本支是引用了但算錯。(2) 更重要:這個問題的保留集今天已經燒掉 —— 它的進場 = 突破前一結構高點 + 趨勢濾網,而 PRE-REG §6 今天已用掉「趨勢濾網加在突破上」的保留集。硬說「分形濾網與 EMA 濾網是不同問題」就是切香腸。這是第一支因為「已經沒有辦法驗證它」而退件的。 公道話:no_repainting 預設 true 且是作者主動做的防重繪開關,對照 ⑲ OCC 把 lookahead_on 設成預設 —— 這點 ChartArt 做對了。第四支 ChartArt,四支全退",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "UT Bot Strategy",
+      "detail": "HPotter / 匿名",
+      "verdict": "🔴",
+      "takeaway": "待驗證策略清單.md:52 的 M186 收工名單逐字點名「UT Bot」。不量測。 純讀碼三點:(1) ema = ema(src,1) 就是 src 本身 → buy 的前半段恆真,EMA 那行是裝飾(第四個裝飾性計算);(2) a=1, c=10 → 翻轉距離僅 ~2.8%(台股 ATR(10)/收盤中位),對照 SuperTrend 常用 3×。純算術估年摩擦成本 18~30%,會是新紀錄(現有校準:Golden Cross 0.41% / EMA10/20 3.24% / MFZ 9.14%);(3) 雙向 always-in 無停損",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "Twin Optimized Trend Tracker (TOTT)",
+      "detail": "KivancOzbilgic / Anil Özekşi",
+      "verdict": "🔴",
+      "takeaway": "把 SuperTrend 的 hl2±ATR×mult 換成 MA±MA×1%,其餘遞迴一模一樣。家族 2。招牌賣點是空的:策略叫 *Twin*,而 coeff=0.001 → 雙線相距 0.2% ≈ 兩個跳動點(台股 100 元股票一檔 0.1%),比當日 ATR 窄 12 倍,實際什麼都沒擋。「招牌賣點是負債」清單的第 11 個,但類型不同 —— 前 10 個是負貢獻,這個是小到量不出來",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "ANN Strategy v2",
+      "detail": "匿名",
+      "verdict": "🔴",
+      "takeaway": "39 神經元 / 3 層 tanh / 203 個權重,輸入只有一個純量(今天 ohlc4 的漲跌幅)→ 整個網路是一條 ℝ→ℝ 曲線。解碼後 f 通過原點、單調遞增、幾乎完全線性(−10%→−0.0167、+10%→+0.0167,符號變號點只有 0 附近一個,做多區間恰好 50.0%)。等價於 if ohlc4 > ohlc4[1]: 做多 else: 做空 —— 家族 1 最原始的形式,連量都沒有。附帶:threshold input 宣告未引用(第四個裝飾性輸入);l2_10 有權重 41.317 而其餘 202 個全在 ±2 內(訓練爆炸,且 tanh 飽和後該節點退化成常數偏置);每天翻面 → 年摩擦成本約 72%",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "MACD + Stochastic Double Strategy",
+      "detail": "ChartArt",
+      "verdict": "🔴",
+      "takeaway": "MACD 柱體上穿零(M186 逐字)∩ 隨機指標超賣反彈(家族 3)。作者自陳唯一貢獻是把超賣門檻 20 改成 29 —— 已收工家族的參數微調,M212 掃描結論管這個。刻意不預測「三個條件同根很罕見」 —— 批次一 ① 我就是這樣猜的,實測 1,053 個訊號,錯得離譜",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "name": "MACD ReLoaded",
+      "detail": "KivancOzbilgic",
+      "verdict": "🔴",
+      "takeaway": "進場 = crossover(hist,0),M186 逐字。「ReLoaded」= 11 種 MA 型別可選 —— 那不是 11 個策略,是同一個策略的 11 個參數",
+      "light": "🔴",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "① Super Scalper 5/15Min",
+      "detail": "close−open > ATR(WMA14) ∧ RSI25>RSI100 —— 大陽線追高",
+      "n": "17,542",
+      "verdict": "家族 1∩2。與 breakout ±3天重疊 57.8%,退件記錄新高(前高 EMA10/20 vs ST1 的 40.2%)。年摩擦 3.42~6.41%",
+      "takeaway": "視覺設計與數學方向相反的第一支:畫 band、命名 lower_band、Buy 標籤放 K 棒下方 —— 三個設計都指向抄底,數學是追高。因為 band 用當根 close 算,是恆等式。→ 判讀法:band 類策略先確認基準是前一根或均線,不是當根收盤",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "② Stochastic + RSI Double",
+      "detail": "crossover(%K,%D) ∧ %K<20 ∧ crossover(RSI,30) 同根",
+      "n": "1,780",
+      "verdict": "家族 3。與 M212 已退的 SerdarYILMAZ ±3天重疊 100.0% —— 退件記錄第一次完全含納。與 TV002 重疊 71.0%",
+      "takeaway": "「雙重確認」兩邊確認的是同一件事(都是超賣),不是兩個獨立證據。訊號從 59,818 砍到 1,780(稀有 33 倍)但沒變準。稀有 ≠ 準確",
+      "light": "",
+      "source": "M212"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "③ Optimized Trend Tracker (OTT)",
+      "detail": "crossover(VAR(2), OTT[2]),OTT = MAvg ± 1.4% 棘輪帶",
+      "n": "17,159",
+      "verdict": "家族 2(M186 收工)。第 5 支 Kivanc,是已讀碼退件的 TOTT 的底層版。年摩擦 5.13~9.61%",
+      "takeaway": "新判讀法:帶寬 ÷ 基準線自身抖動。VAR(2) 與收盤中位偏離 1.06%、帶寬 1.4% → 濾網只有雜訊的 1.3 倍,所以一年翻 18 次。比事後算摩擦成本更早能判死,且不用跑回測。另:258 行裡 57.4% 是 20 檔外國商品的 screener,真正決定進出場 8.5%",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "④ Turtles by tmr0",
+      "detail": "high > highest(high,20)[1],出場 low ≤ lowest(low,10)[1]",
+      "n": "52,943",
+      "verdict": "進場與 breakout ±3天重疊 59.1%,家族已知",
+      "takeaway": "★ 本批最有價值。 照 AxeAlgo→V8 前例採收出場機制,量完不用開 V10:同一批 breakout 進場,Turtle 的 Donchian 出場 vs 我們 V5 的 MA20 出場 —— 持有中位 15 vs 17 天、90 百分位 35 vs 36、出場日 ±3 天內重合 73.1%、毛報酬 −0.188pp。→ 詳見 §三新增列",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑤ Backtest Adapter (jdehorty)",
+      "detail": "src == 1/2/−1/−2,預設 src=close",
+      "n": "0",
+      "verdict": "第二支空殼(第一支 M212 Daveatt BEST)。探索集 495,877 根、0 訊號,與 Daveatt 版數字同型",
+      "takeaway": "協定比 Daveatt 版乾淨(四態分離進出場、出場交給訊號源),但乾淨的空殼還是空殼。真正待驗對象是它要配的 Lorentzian Classification(同批 ⑫ 已測,見下)。實作瑕疵:用 strategy.order 而非 strategy.close 平倉,量不等時會翻成反向部位",
+      "light": "",
+      "source": "M212"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑥ Stop loss and Take Profit in $$",
+      "detail": "crossover(sma14, sma28) —— 作者註解自陳 \"random entry condition\"",
+      "n": "不量測",
+      "verdict": "家族 2(M186 逐字),且作者自陳佔位符。同 3Commas Bot (Bjorgum)",
+      "takeaway": "採收 moneyToSLPoints 後不採用:固定金額停損 → 停損距離隨股價亂跳(20元股 0.500% / 1000元股 0.010%,差 50 倍),方向與 position_sizing.atr_position() 相反(我們是停損距離由 ATR 定、金額定部位;它是部位固定、金額定距離)。從反面確認 atr_mult 選項 C 的方向是對的。附帶:Pine 預設 1 股 → $100 停損需價格走 100 元,70.9% 的台股整張身價都不到,這支範例在台股示範不了它自己",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑦ Bollinger + RSI Double v1.0",
+      "detail": "crossover(RSI16, 45) ∧ crossover(收, BB(20,2)下軌)",
+      "n": "1,610",
+      "verdict": "家族 3。v1.0 的訊號 100% ⊂ TV002(定義決定,不用測);TV002 已實測 🔴 淨 +0.01% / PF 1.00 / 空頭 −1.22%。M216 已答「加濾網救不活均值回歸」",
+      "takeaway": "同一支腳本的第三個版本(v1.0/v1.1/v1.2 全退)。v1.0 vs v1.1 重疊僅 2.0%(BB20 vs BB200)—— 「逐字相同」不適用時仍可退,因為家族結論跨參數。② 註解說「跌破 45 才買」程式是「上穿 45 才買」(方向相反第二支);③ RSIvalue=45 → 區間 45~55 是 RSI 中線 ±5,根本不是超賣;④ stop=BBlower 掛在市價之下 = 市價單,第五個裝飾性計算。第 9 支 ChartArt",
+      "light": "🔴",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑧ Daily Close Comparison (ChartArt)",
+      "detail": "close > close[1]",
+      "n": "——",
+      "verdict": "家族 1 最原始形式。年摩擦 41~77%(實測)",
+      "takeaway": "★ 三重收穫。(1) 作者檔頭自陳「equal to ANN Strategy but without the ANN」—— 我們解碼 ANN v2 的結論獲外部獨立確認,而且早十年。(2) 象限理論第三度吻合:Q2 25.11% vs Q4 25.13%(差 0.02pp),p=45.49% 下的獨立預測值 24.79%;正確檢定 Q1+Q3 49.760% vs Q2+Q4 50.240% = −0.480pp,方向不但不延續還略反轉。(3) 池化 CI 校準當場擋下一個假陽性:今天漲→明日 +0.1221% vs 今天跌→+0.0333%,差 +0.0888pp 池化 CI [+0.073,+0.105] 不含 0 看起來顯著;套 M216 量到的「池化 CI 窄 7 倍」校正後 ≈ [−0.02,+0.20] 含 0。→ 詳見 §四方法論新增",
+      "light": "",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑨ UT Bot Strategy",
+      "detail": "crossover(close, ATR(10)×1 棘輪停損)",
+      "n": "32,143",
+      "verdict": "重複投稿,M186 收工名單逐字點名、批次六已讀碼退件",
+      "takeaway": "★ 讀碼估算被實測推翻 2 倍:當時純算術估年摩擦 18~30%「會是新紀錄」,實測 9.3~17.5%。原因:棘輪機制讓停損只在從極值回撤 1 ATR 才翻,趨勢有延續性 → 實際 33 次/年遠低於 naive 推算。三個讀碼判斷全對(ema(src,1) 是裝飾 ✓、ATR%估 2.8 實測 2.54 ✓、always-in 無停損 ✓),只有從它們推出的頻率錯。→ 讀碼能認結構,頻率必須量。 UT Bot 不是摩擦成本紀錄保持者,⑧ 才是",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑩ Open Close Cross NoRepaint",
+      "detail": "crossover(ZEMA(收,48), ZEMA(開,48))",
+      "n": "23,296",
+      "verdict": "家族 2。R5.1 修正版已量過:+0.224% vs 基準 +0.117%,實質是零",
+      "takeaway": "公道話:前瞻偏誤真的修好了 —— 拿掉 security(lookahead_on) 改用「MA 週期×6」模擬高階時框,與 ChartArt 在 Fractal Breakout 主動設 no_repainting=true 同類。精確化簡(ZEMA 是線性算子):ZEMA(收,48) − ZEMA(開,48) ≡ ZEMA(收−開,48),最大絕對誤差 1.74e-12 → 「開收交叉」= 48 日平滑後的平均 K 棒實體由負轉正。我先猜它 ≈ MA 斜率翻正,實測相關僅 0.688、重疊 48.3% —— 猜錯了。原因是跳空:台股平均跳空 = 平均實體的 68%,而K 棒實體完全不含跳空。→ 判讀法:open-based 指標量的是日內移動,跳空對它隱形",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次七(2026-09-11,十一支)",
+      "name": "⑪ ZigZag PA Strategy V4.1",
+      "detail": "17 種諧波型態 OR,進場 任一型態 ∧ close ≤ fib0.236",
+      "n": "13,477",
+      "verdict": "家族 3(諧波 = 在下跌腿的 fib 回撤買)。預設 useAltTF=true, tf='60' 是分K,原版測不了",
+      "takeaway": "(1) ZigZag 沒有幅度門檻 —— close>=open vs close<=open 變色就算轉折,54.6% 的 K 棒都是「轉折點」。真 ZigZag 要 %/ATR 門檻。所以 X-A-B-C-D 五個「波段」是相鄰幾根 K 棒,諧波比例量在雜訊上。(2) 「17 種型態」實為 1 種:64.6% 的觸發來自 ABCD,因為 ABCD 只有 2 個比例條件而其餘 4 個。(3) 風報比 0.81:1(進場窗 d+0.236·range、停利 +0.382·range、停損 −0.472·range)→ 零成本打平需 55.3%,台股成本下 60.8~97.1%(視 range 大小)。「停利比停損近」第三支(前二:Flawless Victory、AO+Stoch+RSI)",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑮ Hull Moving Average Swing Trader (SEASIDE420)",
+      "detail": "n1 > n2,即 HMA(open,210) 較前一根上升 ∧ price[1] > c1",
+      "n": "——",
+      "verdict": "家族 2;整組 c1/c2 機關化簡後就是斜率比較",
+      "takeaway": "★ 裝飾性計算第四亞型:代數上自我消去的機關。 前三個亞型是「算了沒用 / 算錯沒用 / 可逆變換」,本支是算式展開後整段消失。三個恆等式在 PIT 宇宙 168,659 根上各 100.000000% 成立,不是近似:(1) n2 的每個輸入都取 price[1] → n2 ≡ n1[1],所以「兩條 Hull 線」其實是同一條線與它自己的前一根;(2) Hull_Line = n1 / n1 * n2 → ≡ n2(n1/n1 直接消掉,作者大概想寫 n1/n1*n2 之類的縮放但寫成了恆等式);(3) c2 = Hull_retracted − n2 + price,而 Hull_retracted = n2 ∓ 2 → c2 ≡ price ∓ 2,於是 price > c2 在上升時恆真、下降時恆假 → price > c2 ≡ n1 > n2。→ 圖上那條 c2 黑線與填色帶看起來像通道,實際上是價格自己平移 ±2 元,兩條線永遠平行、通道寬度恆為 2 元。唯一不是裝飾的是 c1:price[1] > c1 ⟺ price + price[1] > n1 + n2 − 2,即「最近兩根均價高於 HMA 兩根均值(留 1 元寬容)」,實測在 HMA 上升的 84,775 根裡有 92.2% 成立 → 只砍掉 7.8%,是弱濾網不是主體。絕對單位第七個實例,而且是最廉價的一種:± 2 沒有任何單位依據,在 20 元股是 10%、600 元股是 0.33%;它在 c2 裡被完全消掉(所以不影響訊號),只在 c1 裡留下一個隨股價變化的容差 —— 同一個常數在同一支腳本裡一處無效、一處有效。出場:price < c2(= HMA 轉降)就 strategy.close,與進場同一個條件的反面 → always-in 雙向翻倉的單一趨勢指標,家族 2,M186 已收工。其他:calc_on_every_tick=true + default_qty_value=100(全押)+ pyramiding=0;price 預設取 open 這點反而是對的(開盤價在該根開始就固定,不會盤中重繪)。做空側疑似筆誤:做多用 price > c2 and price[1] > c1,做空用 price < c1 and price[1] < c2 —— c1/c2 的角色對調了,不是鏡像。",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑭ UT Bot alerts strategy (StrategiesForEveryone)",
+      "detail": "crossover(close, 3×ATR(1) 棘輪停損) ∧ close > EMA(200)",
+      "n": "11,998",
+      "verdict": "家族 2;M186 收工名單逐字點名 UT Bot",
+      "takeaway": "★ 用不同的遞迴寫法獨立複製了批次八 ① 的「帶寬平滑度」發現,兩組數字幾乎重疊。 本支 a=3, c=1 = 3×ATR(1) = 3×當根 TR,與 ① 的 hl2 ± 3×TR 帶寬同源(中位 5.882% vs ① 6.54%),但 ① 是 SuperTrend 遞迴、本支是 UT Bot 棘輪、基準線也不同(close vs hl2)。兩組獨立量測:與 ST1(3×ATR(10))重疊 本支 34.5% / ① 35.4%;訊號數相對 ST1 本支 1.71 倍(11,998 / 7,020)/ ① 1.7 倍。→ 換遞迴寫法與基準線幾乎不動結果,軸 ② 站得住,而且與遞迴寫法無關。 這是本專案第一次用兩個不同機制複製同一條校準。同時帶出一個與軸 ① 的張力,如實記下:本支與舊 UT Bot(1×ATR(10)、32,325 訊號)同為棘輪但帶寬差 2.60 倍,重疊卻高達 68.1%、訊號數只少 2.7 倍 —— 軸 ① 說「1× vs 3× 應該是 11.7 倍 / 重疊 ~5%」。差別在軸 ① 是在同一個 ATR(10) 上改乘數,本支同時把平滑度拿掉了。3×ATR(1) 是又寬又抖的帶(變異係數 0.83 vs ATR(10) 的 0.58),塌窄時重新觸發,把寬度的過濾效果吃掉一部分。→ 軸 ① 的 11.7 倍只在「平滑度不變」時成立,兩軸不可加。判讀順序寫成:帶寬 ÷ 抖動 → 遞迴寫法 → 基準線 → ATR 平滑方式。裝飾性計算第五個實例(亞型①):ema_ut = ta.ema(src, 1) 就是 src,於是 above = crossover(src, stop),而 buy = src > stop and above 的前半段被後半段蘊含 —— 實測 11,998 次 crossover 裡 0 次前半段為假,恆真。與批次七 ⑨ 的 UT Bot 是同一個裝飾,兩位不同作者各自抄到同一段。作者模板效應(新判讀法):外殼(日期閘門 + 時段閘門 + EMA200 濾網 + ATR(14)×1.5 停損 + 0.75R 保本 + 3R 停利平 50% + 2.5% 風險部位 + leverage 預設開)與批次七 ⑮ AI SuperTrend x Pivot Percentile 逐項相同,只換掉核心訊號。→ 同一作者發佈的多支策略共用一套外殼,績效差異全部來自核心;而那套外殼裡的每一件我們都單獨量過。commission_value = 0.03(%)vs 台股法定 0.4710% + 滑價,低估 7.9~17.9 倍;leverage=true 預設讓部位不受本金限制 → 他公開的權益曲線是「無槓桿上限 × 低估成本」兩件事一起放大。",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑬ RSI versus SMA (JayRogers)",
+      "detail": "SMA(RSI(open,8) − 50, 34) 穿越 0 翻向;預設 tradeInvert=false → 跌破 0(RSI 弱)時做多",
+      "n": "3,793",
+      "verdict": "兩個方向都是零",
+      "takeaway": "★ 腳本自帶反向開關 = 免費的受控實驗。 用同一套機制跑正反兩向:預設(買弱)加值 +0.055 [−0.278,+0.388]、反向(買強)加值 +0.015 [−0.359,+0.389]、隨機基準 +0.003;買強 − 買弱 = −0.040pp [−0.466,+0.386] —— 兩邊都是零,「強有訊息量、弱沒有」先驗在此沒重現,但不是反例而是「兩邊都沒東西」。原因在化簡:SMA(RSI(8)−50, 34) 是把 8 期 RSI 再平滑 34 期,已經不是震盪指標,是一條很慢的趨勢代理線(一年只穿越 2.9 次)→ 落在家族 2(M186 收工的趨勢翻轉指標)而非震盪指標兩端,兩向皆雜訊與該家族結論一致。年摩擦 1.68~3.15%,不是死因。★ 該給的公道:防重繪機制有想法 —— shunt = rsiSource == open ? 0 : 1,用 open 當來源不位移、用其他來源自動位移 1 根;理由是 open 在 K 棒開始就固定、即時訊號不會盤中閃現又消失,close 會變動到收盤。這是針對即時使用的防重繪,本批多數腳本連這層都沒想過。 問題:(1) switchDelay() 定義了從未被呼叫(裝飾性計算亞型①);(2) trail_points = 120 是 tick 單位,與 ⑫ 同一個鋸齒機制(9元 13.3% → 10元 60.0%,差 1 元變 4.5 倍)—— 絕對單位第六個實例;(3) tradeInvert 語意與命名相反 —— 開關叫「反轉交易方向」且預設 false,但 false 那支才是逆勢的,照字面理解會搞反",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑫ MicuRobert EMA cross V2",
+      "detail": "DEMA(open,5) 上穿 DEMA(open,34) 或 open 上穿 DEMA5 且 DEMA5>DEMA34",
+      "n": "124,733(11.87%)",
+      "verdict": "家族 2,年摩擦 17~32%(本批最高)",
+      "takeaway": "★ 絕對單位第五個實例,機制是新的:在同一個市場內部就不一致。 TP/SL 以「pips」計(syminfo.mintick × 10),而台股 tick size 是價格的階梯函數(<10:0.01 / 10-50:0.05 / 50-100:0.1 / 100-500:0.5 / 500-1000:1 / ≥1000:5)→ 停損% 呈鋸齒:帶內遞減、邊界跳升。實例:9 元停損 24.4% → 10 元停損 110.0%(差 1 元,距離變 4.5 倍);99 元 22.2% → 100 元 110.0%。PIT 宇宙實測:中位停損 40.5% 股價、p95 99.5%、4.7% 的股票停損 >100% 永遠不觸發。→ 前四個絕對單位實例(⑥ $100、㉔ 1%、④ 25/75點、⑩ 2000/200USD)的問題是「跨市場不轉移」,本支是「同一市場內部就不一致」—— 更隱蔽,因為在單一標的上回測看起來完全正常。 標題名不副實:作者叫 \"EMA cross\",但路徑2(價格穿快線的回踩進場)貢獻 73.1% 的訊號,與普通 EMA5/34 交叉只重疊 23.9% —— 實質是「順勢回踩」不是「均線交叉」(兩者都在收工家族)。時段閘門在日線上可能全擋:time('1', trade_session) 要求 1 分鐘解析度,日線上行為未定義,可能恆 na 使 istradingsession 恆 false → 零交易(同批次七 ㉔ Iron SRA 的 Work 閘門)。函式命名錯誤:f_LB_zlema 實作的是 DEMA(2×EMA − EMA(EMA))不是 ZLEMA(ema(src+(src−src[lag]), n));作者 input 標籤寫對(「DEMA length」)但函式名沒改,不影響邏輯但會誤導讀者",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑪ BB Breakout Strategy (TradeChartist)",
+      "detail": "close > SMA(55) + 1×stdev(55) 做多 / 跌破下軌翻空(always-in)",
+      "n": "12,760",
+      "verdict": "家族 2,加值 CI 含 0",
+      "takeaway": "★ 帶回一個對 §四 方法論排除項的反例。 化簡:close > SMA55 + 1σ ⟺ z-score(close,55) > 1 —— 直接命中「對自己標準化的因子比原始因子差」那條。公平對照(訊號數校準到相當):標準化 z>1 加值 +0.239pp [−0.023,+0.500] vs 原始「偏離均值 > 1.00%」加值 +0.046pp [−0.214,+0.305] → 標準化好 +0.193pp,與 M217 在 ROC 因子上的方向(原始好 0.039pp)相反。兩者都不顯著,但方向相反 → 該條排除項要修:標準化好不好取決於原始因子的量綱有沒有跨股票可比性。M217 的機制解釋(標準化把絕對趨勢換成相對趨勢,下跌段會把「跌得比較慢」誤判成「開始漲」)對 ROC(本來就無量綱 %)成立,再標準化是多餘;對價格對均線的偏離(有量綱,單位是元)標準化是必要的。→ 詳見 §四方法論修訂。⚠️ 我在這支犯的錯:第一次比的是 z>1 vs close > SMA55 —— 那是 1σ vs 0σ 兩個不同門檻,不是「標準化 vs 原始」,量到的主要是門檻嚴格度。校準到相同訊號數後結論方向一樣但理由完全不同。退件理由:家族 2(SMA55±1σ 的帶狀態切換),加值 +0.239pp CI 含 0,套 ×7 遠遠含 0;年摩擦 1.31~2.45%(翻面 4.6 次/年)不是死因。工程乾淨 —— 無裝飾性計算、無前瞻,mult 上限鎖 2 是作者主動加的風控。它退件是因為加值不顯著且落在收工家族,不是寫得差",
+      "light": "",
+      "source": "M217"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑩ BEST Engulfing + MA (Daveatt)",
+      "detail": "吞沒型態 ∧ 均線(SMA32)方向,兩者狀態同時轉多的首根",
+      "n": "45,792(4.36%)",
+      "verdict": "家族 1 ∩ 家族 2;吞沒條件被 OR 消掉",
+      "takeaway": "★ 新錯誤類型:拆成互補變體再 OR = 判別條件被消掉。 作者把吞沒拆成 Bull1(完整吞沒:上緣更高 ∧ 下緣更低)與 Bull2(上緣更高 ∧ 下緣不更低),然後 isBullishEngulfing = Bull1 or Bull2。兩個下緣條件互補 → OR 起來等於 (B ∨ ¬B) = 恆真 → 下緣條件整個消失,只剩「收紅→收綠 ∧ 實體更大 ∧ 上緣更高」。實測逐根 100.00% 一致(1,050,389/1,050,389),而腳本的「吞沒」比真吞沒多 5.83 倍(7.03% vs 1.20% 的 K 棒)。同理 isBearishEngulfing 消掉的是上緣條件。→ 這跟「裝飾性計算」三亞型都不同:程式沒 bug、邏輯自洽、每行都按作者寫的執行,但兩個互補條件 OR 起來那個判別維度就消失了。讀碼幾乎看不出來 —— 要把布林式寫下來做代數化簡才會現形。 這支正好支持老闆訂的「先化簡成最小等價式再判定」流程:不化簡的話會被當成「吞沒型態 + 均線濾網」退件(理由對但描述錯),真實情況是它根本沒在測吞沒。TP/SL 是絕對單位第四個實例,且最極端:input_tp_pips = 2000 \"USD\" / input_sl_pips = 200,對 PIT 宇宙中位股價 40.5 元 = 4938% / 494%,99.4% / 87.7% 的股票整張身價不到 → 兩者在台股永遠不會觸發,實際出場只剩 close[1] < MA;作者以為設了 10:1 風報比,跑的是「跌破均線就出」。年摩擦 6.20~11.63%(每檔每年 10.9 次)。strategy.entry(\"Long\", 1, ...) 用 1/0 當方向布林(同批次七 ⑯)",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑨ VWAP Trendfollow (wbburgin)",
+      "detail": "crossover(close, VWAP+0.88σ) ∧ VWAP 趨勢向上;停利 crossunder(close, VWAP+1.76σ)",
+      "n": "247,649(23.58%)",
+      "verdict": "整個指標在日線上塌掉",
+      "takeaway": "★ 「恆等式塌陷」第二個實例,且比第一個徹底。 anchor 預設 \"Session\" → timeframe.change(\"D\") → 日線上每根都成立 → VWAP 每根重置、週期只有一根 → 單根 VWAP = hlc3、單根標準差 = 0 → stdevAbs = 0 → 四條 band 全部塌成 hlc3。而 close > hlc3 ⟺ 2c > h+l ⟺ close > hl2(代數恆等;實測 99.04% 相同,不一致的 4,198 根全部是 c 恰好等於 hl2 的平盤根,2c−h−l 在 1e-15 量級,是浮點除以 3 與除以 2 的捨入差)。結果:進場 = 收盤穿越自己 K 棒的中點(23.58% 的 K 棒);停利條件與反向進場條件 100% 相同(1,050,389/1,050,389 逐根一致) —— 不是策略,是每根按收盤在上半部或下半部翻面。每年翻 59 次 → 年摩擦 34%(僅次於批次七 ⑧ Daily Close 的 41~77%)。→ 判讀法擴充:任何「週期性重置」的指標(VWAP / Anchored VWAP / Session Range / Developing POC),先問「在我的時框上那個重置條件多久成立一次」;若每根都成立,指標週期就是 1,所有衍生統計量(標準差、均值、通道)全部退化。 對照批次七 ① Super Scalper(band 用當根 close 算是恆等式,但進場還有 ATR,沒完全塌)—— 本支塌得徹底。附帶:休眠的真前瞻 —— request.earnings/dividends/splits(..., barmerge.lookahead_on) 三個都取當期值(公布前就拿到),但 anchor 預設 \"Session\" 使它們不進 switch,預設下休眠。→ lookahead_on 第三種情況(前兩種:批次八 ② 搭 [1] 是正確慣例、批次七 ⑩ OCC 搭當根是真前瞻):搭當期值的真前瞻,但被預設值關掉",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑧ TrendMaster Pro 2.3",
+      "detail": "crossover(SMA9, SMA21) + 六道濾網(波動/close>SMA20/RSI>55/MACD>signal/Stoch/ADX>25)",
+      "n": "2,633(0.25%)",
+      "verdict": "家族 2;價值在濾網不在扳機,而那組濾網正是 PRE-REG §6 保留集失敗的東西",
+      "takeaway": "★ 修正我自己在 ⑱/⑳ 之後下的概括「堆疊沒有發生」—— 那講太滿了。 三支對照:⑱ 兩道確認留下 89.2%、⑳ 五道留下 58.0%、本支六道留下 9.5%(27,790 → 2,633)。差別不在濾網數量,在濾網與扳機的時間關係:⑱ 扳機=動能翻正、濾網=動能狀態 → 扳機觸發時濾網早已成立 → 不濾;本支扳機=趨勢開始、濾網=趨勢已確立(RSI>55/ADX>25)→ 趨勢剛開始時這些還沒成立 → 真的濾掉九成。→ 量「已確立狀態」的濾網套在標記「狀態改變」的扳機上會真的過濾;量同一件事的則不會。 正確虛無(濾網也套基準):訊號 +1.238%(n=768) vs 基準【有套濾網】+0.788%(n=802) vs 基準【未套】+0.150%(n=9,886) → 六道濾網本身值 +0.637pp、均線交叉只加 +0.451pp 且 CI [−0.771,+1.673] 含 0。而那 +0.637pp 正是 PRE-REG §6 已測並在保留集失敗的東西(「趨勢濾網加在突破上」探索集 +0.713 → 保留集 −0.008)—— 這批濾網就是同一類趨勢狀態組合,很可能也過不了保留集,而我們已經沒有乾淨的保留集可驗。裝飾性機制:isInTradingSession 四個時段(1800-0000/0000-0800/0800-1300/1300-1800)涵蓋整整 24 小時 → 閘門恆開,整套 session 機制(週幾濾網、每時段交易計數器)唯一效果是排除週末;波動濾網 4×stdev20 > 2×ATR20 觸發 93.69% 幾乎恆真;enableTrendFilter 預設 false 使 trendMaType/trendMaLength 成為死設定",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑦ SR TREND STRATEGY (synapticEx 衍生)",
+      "detail": "5 根樞紐高低 → 21 根平均區間寬 r → trend==1(close 高於 樞紐低+r 與 樞紐高−r)∧ close > 前樞紐高",
+      "n": "23,368(2.22%)",
+      "verdict": "第三支「已經沒有辦法驗證它」",
+      "takeaway": "結構 = 突破前一個結構高點 + 趨勢濾網,而 PRE-REG §6 今天已用掉這個問題的保留集(+0.713 → −0.008,沒過)。三支不同作者、不同結構定義,都落在同一個已燒毀的保留集上:批次六 ⑳ ChartArt Fractal Breakout(分形)、批次七 ⑰ TradeDots(20日高+量+SMA200)、本支(樞紐)。硬說「樞紐濾網跟 EMA 濾網是不同問題」就是切香腸。實測:trend==1 佔 47.1% 的 K 棒 → 又一個「是狀態不是訊號」;與我們 breakout ±3天重疊 48.2%;年摩擦 3.16~5.94%。★ 該給的公道:樞紐偵測寫得對 —— h = high[5]<high[4]<high[3]>high[2]>high[1],樞紐中心在 [3] 但條件用到 [1]/[2],三根後才確認才取值,無重繪無前瞻。對照批次七 ⑪ ZigZag PA(K 棒變色就算轉折,54.6% 的 K 棒是「轉折點」),這支嚴謹得多。整支 26 行,沒有一行裝飾性計算,本批最精簡。它退件不是因為寫得差,是因為我們已經沒有乾淨的保留集可以驗證這個問題。",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "⑥ Backtesting 3commas DCA Bot v2 (rouxam)",
+      "detail": "RSI(7)<30 進場 + 6 張安全單(偏離 1.5%×1.6^n、量 140×1.5^n)+ 停利 4.5%(自均價)+ 無停損",
+      "n": "16,790",
+      "verdict": "三層拆解每層都往下掉;家族 6 第三個獨立實作",
+      "takeaway": "★ 本批最完整的一次「表面很強 → 換虛無 → 算資金」拆解。 階梯實算:最大覆蓋跌幅 39.44%、滿倉 3,009(= initial_capital)。表面:98.68% 勝率、每筆 +4.004%(作者成本 0.2%)。換正確虛無(同階梯同停利、只把 RSI 換成隨機):隨機 98.33% / +3.984% → 加值 +0.020pp,CI [−0.061,+0.100] 未套校正就已含 0。進場訊號等於沒有,+4% 全來自 DCA 的報酬結構。 算預留資金:必須為整條階梯預留 3,009,實際平均只用 528(17.6%),平均持有 32 天 → 每筆賺 21.1 元 / 3,009 = 0.703%,× 7.9 筆/年 = 5.53%/年;套台股成本降到 4.33~5.02%/年,低於大盤 8~9%。⚠️ 而且左尾被截斷 —— 1.6~2.1% 的 deal 在 500 根時仍未出場,按市價計入(最差 −80.8%);真實的無停損 DCA 會一直抱著,結局未知。⚠️ 我在這支犯的錯是本 session 最典型的一次:把結論寫死在量測腳本的輸出字串裡(「群聚密度越高,爆倉率越高」),實測完全相反 —— 觸發密度 低<10% 爆倉 2.76% / 中 2.12% / 高 1.59% / 極高>50% 只有 1.14%。事後想合理:全市場 RSI<30 通常是指數級超賣接近底部;單一檔在市場正常時自己跌破,比較可能是個股出事。而且 M217 那條「損失不獨立、同一天到、都在滿倉」的死因在這支不成立 —— 它單筆吃 100% 資金,同時只能跑一個 deal,沒有多部位可以一起虧。我把上一個實作的死因當成家族通則套用,沒檢查結構是否相同。",
+      "light": "",
+      "source": "M217"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "④ Captain Backtest Model (tradeforopp)",
+      "detail": "紐約時間 06:00-10:00 區間 → 10:00-11:15 先破哪邊定偏向 → 10:00-16:00 順勢交易",
+      "n": "測不了",
+      "verdict": "盤中無法驗證(非策略缺陷)",
+      "takeaway": "沒有任何指標 —— 整個策略由三個紐約時窗 + 區間先破哪邊定義。日線上沒有盤中時段結構,time(\"\", \"0600-1000\", \"America/New_York\") 無從判定。照 IB Completed 前例不發明日線版代測(那會變成測我的發明)。★ 「絕對單位不跨市場」第三個實例:risk = 25 points / reward = 75 points(1:3),在 ES/NQ 上「點」是自然單位,台股 1 點 = 1 元 → 停損 25 元有 32.3% 的股票整張身價不到、停利 75 元有 69.9% 不到;以 PIT 宇宙中位股價 41.8 元計,停損 60% / 停利 180%。同病:批次七 ⑥ SL/TP in $$(固定金額,停損距離隨股價差 50 倍)、批次七 ㉔ Iron SRA(1% 括號 = 0.39×ATR)。→ 判讀法:看到停損停利用「點/$/pips」這類絕對單位,先換算成當地股價的百分比再說 —— 跨市場移植時這是第一個要檢查的,比家族歸類還早。 公道話:這支設計本身沒有明顯缺陷 —— 無前瞻、無裝飾性計算、retrace_1/retrace_2 兩道回撤確認有想法、stop_orders 讓你選市價或停損單進場。它退件純粹因為我們沒有分K資料,不是因為寫得差。 與批次七 ⑲ Hammers 對照:那支是「工程好、假設錯」,這支是「工程好、假設可能沒問題、但我們驗不了」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "② ICT Master Suite (TradingIQ)",
+      "detail": "五個策略,預設只開 Model 2022 = 流動性掃蕩 → 掃蕩後 FVG → fib 附近進場",
+      "n": "掃蕩後 FVG 68,317(探索集)",
+      "verdict": "兩個已測 🔴 的交集,且掃蕩那半有兩個獨立實作都失敗",
+      "takeaway": "約 2,000 行 + 外部函式庫。五個策略的家族對應全部命中已排除方向:Model 2022 = TV007 FVG(🔴 +0.24%/PF 1.08)∩ TV005-LSR 掃蕩(🔴 −0.30%/PF 0.87,比隨機還差);Unicorn = Breaker Block ∩ FVG(TV006 🔴 ∩ TV007 🔴);Silver Bullet 與 Liquidity Raid 是紐約時段(session 1330-1600)→ 盤中測不了;OTE = fib 0.79/0.705/0.62 回撤進場 = 家族 3。掃蕩那一半特別站不住:TV005-LSR 與 M216 老闆傳的另一版(pivot 7/7、0.15×ATR)訊號重疊僅 6.0%、兩個獨立操作化都是負的,本支會是第三次。實測掃蕩濾網幾乎沒濾:多頭 FVG 全部 130,026(12.38% 的 K 棒),掃蕩後 20 根內的 68,317 —— 保留 52.5%。這是「堆疊沒有發生」的第三個實例(⑱ 留 89.2%、⑳ 留 58.0%、本支 52.5%)。★ 該給的公道:lookahead_on 這次是對的用法 —— request.security(tf, high[1], lookahead=lookahead_on) 搭配 high[1](高階時框的前一根)是取得「已完成前一根 HTF K 棒」的標準非重繪慣例,而且只餵給畫線、不進任何進場條件。正好與批次七 ⑩ OCC R5.1 對照 —— 那支是對當根用 lookahead_on,實測後見之明讓 PF 從 1.09 跳到 4.00。同一個關鍵字,一個是正確慣例一個是偷看未來;判讀要看它搭配的是 [1] 還是當根。 其他:commission_value=0.02% 低估 24 倍(僅次於 0.01% 的 47 倍);slippage=2 有設,比多數投稿誠實;import Trading-IQ/ICTlibrary/1 讓一部分邏輯不可見(同 ⑫ Lorentzian)",
+      "light": "🔴",
+      "source": "M216"
+    },
+    {
+      "category": "rejected",
+      "section": "批次八(2026-09-11 起)",
+      "name": "① SUPERTREND ATR WITH TSL (exit490)",
+      "detail": "hl2 ± 3 × TR(當根) 棘輪帶翻多",
+      "n": "24,738(PIT 探索集)/ 11,241(舊籃子)",
+      "verdict": "家族 2(M186 收工),與 ST1 重疊 35.4%,年摩擦 3.26~6.12%",
+      "takeaway": "★ 替 SuperTrend 變異軸表補上第四條,而且它比「基準線」更重要。 barsBack = input(defval=1) → ta.atr(1) 的 RMA alpha=1,就是當根 TR,沒有任何平滑。帶寬中位 6.54% 與 ST1 的 3×ATR(10)(約 7.6%)相近,但訊號多 1.7 倍。機制:帶寬本身在抖 —— 變異係數 0.771 vs 0.457、逐日變動中位 2.29pp vs 0.229pp(10 倍);低波動日 TR 塌陷 → 帶寬跟著塌 → 移動停損被誤觸。→ ③ 基準線與 ④ 帶寬平滑度的訊號數變化都是 1.7 倍,但重疊率 55.9% vs 35.4% —— 換基準線是「相似訊號挪位置」,不平滑帶寬是「產生不同訊號」。帶寬的穩定度比基準線的選擇更關鍵。 兩個宇宙結果一致(重疊 35.4% vs 37.5%)。其他:calc_on_every_tick + calc_on_order_fills 都開(回測與即時不一致)、default_qty_value=100 單筆吃滿權益、只能選 LONG 或 SHORT 沒有 both、ToMonth 預設 31 / ToDay 預設 12 月日對調(年份是 9999 故實務無害,但是錯的)。移動停損遞迴可疑(updatedEntryPrice := stopLossPrice 把參考點換成停損價、stopLossPercent 累加),但進場已是收工家族,不值得再拆",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "①",
+      "name": "Nadaraya-Watson Envelope [LuxAlgo]",
+      "verdict": "家族 3。核回歸平滑價格 + MAE 通道,碰上/下軌反轉。作者自己在面板上寫 Repainting Mode Enabled —— 預設模式會回頭改歷史,repaint=false 那條才是因果的",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "②",
+      "name": "Fibonacci Bollinger Bands",
+      "verdict": "家族 3。VWMA(200) ± 六檔費氏倍數 stdev。見下方「畫夠多條線」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "③",
+      "name": "Breakout Probability (Expo)",
+      "verdict": "不是訊號,是基準率計算器。我們有 run_signal_base_rate.py(M109)。見下方「自證的勝率」",
+      "light": "",
+      "source": "M109"
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "④",
+      "name": "ML Adaptive SuperTrend [AlgoAlpha]",
+      "verdict": "家族 2。k-means 分三群波動度 → 自動選 ATR 倍數。分群是因果的(只看過去),但選完還是 SuperTrend",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑤",
+      "name": "Divergence for Many Indicators v4",
+      "verdict": "家族 3(常規背離 = 抄底)。見下方「十一個振盪器不是十一個證據」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑥",
+      "name": "Smart Money Breakout Channels [AlgoAlpha]",
+      "verdict": "家族 2。upper/lower 實質是對 stdev(正規化價格,14) 算的 Aroon —— 跟 TV001 同一個構造,換了輸入序列",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑦",
+      "name": "CM_SlingShotSystem",
+      "verdict": "家族 2。EMA38/62 交叉 + 回踩快線。M186 逐字點名均線交叉",
+      "light": "",
+      "source": "M186"
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑧",
+      "name": "ICT Concepts [LuxAlgo]",
+      "verdict": "家族 5 大全集(MSS/BOS/OB/FVG/Liquidity/NWOG/Killzone)。Killzone 對台股無意義 —— 09:00–13:30 單一時段,沒有倫敦/紐約重疊可言",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑨",
+      "name": "SuperTrend AI (Clustering) [LuxAlgo]",
+      "verdict": "家族 2。見下方「這是我們沒有的 walk-forward,而且不該有」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑩",
+      "name": "Buyside & Sellside Liquidity [LuxAlgo]",
+      "verdict": "家族 5。與批次六 Liquidity Swings 同構",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑪",
+      "name": "Order Blocks & Breaker Blocks [LuxAlgo]",
+      "verdict": "TV006 已 🔴(M174)",
+      "light": "🔴",
+      "source": "M174"
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑫",
+      "name": "Pivot Point SuperTrend",
+      "verdict": "家族 2。中心線改用樞紐點加權(center=(center*2+pp)/3)的 SuperTrend",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑬",
+      "name": "Chandelier Exit",
+      "verdict": "這是出場不是進場 —— 見下方「唯一值得記的出場」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑭",
+      "name": "AlphaTrend [KivancOzbilgic]",
+      "verdict": "家族 2。low−ATR×k / high+ATR×k 棘輪帶,由 MFI≥50 切換方向",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑮",
+      "name": "Support Resistance Dynamic v2",
+      "verdict": "家族 4。樞紐點分群成 S/R 帶",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑯",
+      "name": "Trend Lines v2",
+      "verdict": "家族 2 的幾何版。兩個樞紐點連線 + 未被穿越",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑰",
+      "name": "Madrid MA Ribbon",
+      "verdict": "家族 2。十九條 EMA 上色。十九條同源均線是一條均線的十九種延遲",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑱",
+      "name": "Super OrderBlock / FVG / BoS Tools",
+      "verdict": "家族 5。OB+FVG 疊加標記 = TV006 ∩ TV007,兩個都 🔴",
+      "light": "🔴",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑲",
+      "name": "CM_Price-Action-Bars",
+      "verdict": "家族 1。針棒/光頭棒/內含棒/外包棒 —— M231 十四個古典型態一次量完的結論直接適用",
+      "light": "",
+      "source": "M231"
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "⑳",
+      "name": "EMA 20/50/100/200",
+      "verdict": "家族 2。純顯示",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "㉑",
+      "name": "Breakout Finder [LonesomeTheBlue]",
+      "verdict": "最接近我們自己的 breakout —— 見下方「唯一的真候選,但現在不能碰」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "㉒",
+      "name": "Volume Flow Indicator [LazyBear]",
+      "verdict": "家族 1(純量價)。波動度門檻過濾 + 成交量上限後的累積流向。H008–H012 已判死",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "㉓",
+      "name": "Volume-based S/R Zones V2",
+      "verdict": "家族 4 + 家族 5。分形 + 量大於 MA 的位階帶",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "㉔",
+      "name": "RSI Chart Bars",
+      "verdict": "家族 2。RSI>70 / <30 給 K 棒上色",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "rejected",
+      "section": "批次九(2026-09-12,二十五支)—— 全數退件,0 trial,但抓到三個方法論點",
+      "id": "㉕",
+      "name": "DIY Custom Strategy Builder [ZP]",
+      "verdict": "不是指標,是框架 —— 見下方「這支是我們的鏡子」",
+      "light": "",
+      "source": ""
+    },
+    {
+      "category": "hypothesis",
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "name": "MG1 融資變動幅度",
+      "detail": "+0.235",
+      "verdict": "敏感但撐住",
+      "light": "",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "name": "breakout 突破+爆量",
+      "detail": "+0.440",
+      "verdict": "CI 含 0",
+      "light": "",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "name": "pullback 貼均線+量縮",
+      "detail": "−0.258",
+      "verdict": "兩邊都沒有",
+      "light": "",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "name": "TV004 SMC swing CHoCH",
+      "detail": "−2.949",
+      "verdict": "樣本不足，不判定",
+      "light": "",
+      "source": "M227"
+    },
+    {
+      "category": "hypothesis",
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "name": "TV011",
+      "detail": "+0.763",
+      "verdict": "崩掉",
+      "light": "",
+      "source": "M227"
+    }
+  ],
+  "skipped_tables": [
+    {
+      "line": 20,
+      "section": "一、燈號門檻（讀表前先看）",
+      "cols": [
+        "燈",
+        "條件"
+      ],
+      "n_rows": 4
+    },
+    {
+      "line": 250,
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "cols": [
+        "",
+        "n",
+        "加值",
+        "95% CI"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 262,
+      "section": "二之三之二、月營收（2026-09-12 / M234）—— 自融資之後第一條真正的新輸入，結論仍是紅",
+      "cols": [
+        "",
+        "主（+1 月 11 日）",
+        "對照（+2 月 1 日）",
+        "變化"
+      ],
+      "n_rows": 4
+    },
+    {
+      "line": 303,
+      "section": "二之三之三、跨市場:MG1 在加密貨幣不成立（2026-09-12 / M248）",
+      "cols": [
+        "市場",
+        "逐檔散戶槓桿資料"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 422,
+      "section": "TV001 Aroon —— 用修正後的實作重測（M233）",
+      "cols": [
+        "",
+        "n",
+        "加值",
+        "日期分群 95% CI",
+        "p"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 500,
+      "section": "家族 1（純 K 棒型態）—— 2026-09-12 由十四個古典型態一次量完，死因具體化",
+      "cols": [
+        "",
+        "n",
+        "觸發率",
+        "加值",
+        "95% CI"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 842,
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "cols": [
+        "",
+        "訊號 n",
+        "淨%",
+        "同樣本隨機",
+        "**加值**"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 853,
+      "section": "第六批(2026-09-11,二十七支)—— 二十六支退件、一支候選(已通過保留集)",
+      "cols": [
+        "TK 交叉配濾網",
+        "n",
+        "淨%"
+      ],
+      "n_rows": 6
+    },
+    {
+      "line": 1129,
+      "section": "批次十(2026-09-16~17,三十七支)—— 36 退件 + 1 開 trial,k 維持 34,成本 0",
+      "cols": [
+        "#",
+        "腳本",
+        "為什麼退(理由互相獨立,任一個都足夠)"
+      ],
+      "n_rows": 37
+    },
+    {
+      "line": 1176,
+      "section": "批次十(2026-09-16~17,三十七支)—— 36 退件 + 1 開 trial,k 維持 34,成本 0",
+      "cols": [
+        "一層一層加上去",
+        "報酬",
+        "n",
+        "**邊際**"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 1195,
+      "section": "批次十(2026-09-16~17,三十七支)—— 36 退件 + 1 開 trial,k 維持 34,成本 0",
+      "cols": [
+        "",
+        "零成本",
+        "扣 0.771%"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 1298,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "",
+        "單票通過率",
+        "",
+        "兩兩一致率",
+        "實測",
+        "獨立假設下"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 1313,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "",
+        "1/3 確認",
+        "2/3",
+        "3/3"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 1333,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "口徑",
+        "數字"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 1354,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "#",
+        "腳本",
+        "行數",
+        "隱含主張落在"
+      ],
+      "n_rows": 17
+    },
+    {
+      "line": 1381,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "#",
+        "腳本",
+        "化簡後的進場",
+        "家族"
+      ],
+      "n_rows": 23
+    },
+    {
+      "line": 1443,
+      "section": "批次十一(2026-09-17,四十一支)—— 全數退件,k 維持 34,成本 0",
+      "cols": [
+        "",
+        "基準",
+        "裸交叉",
+        "加濾網"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 1484,
+      "section": "⚠️ 方法論限制:「買全市場恐慌」用橫斷面驗不出來(批次七 ⑬ + ㉒)",
+      "cols": [
+        "",
+        "訊號",
+        "點估計",
+        "同日群聚最高"
+      ],
+      "n_rows": 1
+    },
+    {
+      "line": 1495,
+      "section": "⚠️ 方法論限制:「買全市場恐慌」用橫斷面驗不出來(批次七 ⑬ + ㉒)",
+      "cols": [
+        "",
+        "n",
+        "觸發率",
+        "加值",
+        "日期分群 95% CI",
+        "p"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 1540,
+      "section": "作者的 commission 設定 vs 台股實際(新增於批次七)",
+      "cols": [
+        "腳本",
+        "設定",
+        "低估倍數"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 1559,
+      "section": "摩擦成本階梯(跨批次校準,新增於批次七)",
+      "cols": [
+        "策略",
+        "年摩擦成本",
+        "來源"
+      ],
+      "n_rows": 7
+    },
+    {
+      "line": 1575,
+      "section": "帶寬是主導參數,重疊率低不等於本質差異(新增於批次七)",
+      "cols": [
+        "",
+        "帶寬",
+        "訊號數",
+        "與 ST1 ±3天重疊"
+      ],
+      "n_rows": 3
+    },
+    {
+      "line": 1587,
+      "section": "帶寬是主導參數,重疊率低不等於本質差異(新增於批次七)",
+      "cols": [
+        "變異軸",
+        "訊號數變化",
+        "與基準重疊"
+      ],
+      "n_rows": 5
+    },
+    {
+      "line": 1659,
+      "section": "宇宙敏感度 —— 訊號在「原本看不到的那半個市場」上還成立嗎（M227 新增）",
+      "cols": [
+        "訊號",
+        "為正年數",
+        "中位",
+        "形狀"
+      ],
+      "n_rows": 4
+    }
+  ],
+  "note": "由 scripts/build_conclusions_index.py 從 Markdown 產生。**Markdown 是唯一真相來源**,這份 JSON 隨時可重建。認不出簽章的表會列在 skipped_tables —— 覆蓋率是明示的,不是猜的。"
+}
