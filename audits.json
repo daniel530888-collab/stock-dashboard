@@ -1,0 +1,487 @@
+{
+  "last_updated": "2026-09-26 01:42",
+  "audits": {
+    "fill_rule": {
+      "asof": "20260924",
+      "states": [
+        {
+          "state": "champion",
+          "strategy": "breakout",
+          "above_market": 0,
+          "total": 16,
+          "pct": 0.0,
+          "worst_code": null,
+          "worst_premium_pct": null
+        },
+        {
+          "state": "challenger",
+          "strategy": "tv004_smc_choch",
+          "above_market": 0,
+          "total": 1,
+          "pct": 0.0,
+          "worst_code": null,
+          "worst_premium_pct": null
+        }
+      ]
+    },
+    "signal_agreement": {
+      "since": "20260801",
+      "n_days": 13,
+      "days": [
+        {
+          "day": "20260826",
+          "universe": 584,
+          "backfilled": 386,
+          "outside_universe": 189,
+          "both": 127,
+          "backfill_only": 70,
+          "live_only": 121,
+          "agreement_pct": 39.9,
+          "clean": false
+        },
+        {
+          "day": "20260827",
+          "universe": 614,
+          "backfilled": 335,
+          "outside_universe": 163,
+          "both": 167,
+          "backfill_only": 5,
+          "live_only": 3,
+          "agreement_pct": 95.4,
+          "clean": true
+        },
+        {
+          "day": "20260828",
+          "universe": 626,
+          "backfilled": 344,
+          "outside_universe": 195,
+          "both": 61,
+          "backfill_only": 88,
+          "live_only": 117,
+          "agreement_pct": 22.9,
+          "clean": false
+        },
+        {
+          "day": "20260831",
+          "universe": 626,
+          "backfilled": 386,
+          "outside_universe": 188,
+          "both": 58,
+          "backfill_only": 140,
+          "live_only": 93,
+          "agreement_pct": 19.9,
+          "clean": false
+        },
+        {
+          "day": "20260901",
+          "universe": 612,
+          "backfilled": 402,
+          "outside_universe": 191,
+          "both": 206,
+          "backfill_only": 5,
+          "live_only": 8,
+          "agreement_pct": 94.1,
+          "clean": true
+        },
+        {
+          "day": "20260902",
+          "universe": 592,
+          "backfilled": 499,
+          "outside_universe": 258,
+          "both": 238,
+          "backfill_only": 3,
+          "live_only": 1,
+          "agreement_pct": 98.3,
+          "clean": true
+        },
+        {
+          "day": "20260903",
+          "universe": 592,
+          "backfilled": 327,
+          "outside_universe": 179,
+          "both": 145,
+          "backfill_only": 3,
+          "live_only": 0,
+          "agreement_pct": 98.0,
+          "clean": true
+        },
+        {
+          "day": "20260904",
+          "universe": 623,
+          "backfilled": 454,
+          "outside_universe": 186,
+          "both": 260,
+          "backfill_only": 8,
+          "live_only": 1,
+          "agreement_pct": 96.7,
+          "clean": true
+        },
+        {
+          "day": "20260907",
+          "universe": 605,
+          "backfilled": 354,
+          "outside_universe": 136,
+          "both": 213,
+          "backfill_only": 5,
+          "live_only": 3,
+          "agreement_pct": 96.4,
+          "clean": true
+        },
+        {
+          "day": "20260908",
+          "universe": 624,
+          "backfilled": 391,
+          "outside_universe": 182,
+          "both": 202,
+          "backfill_only": 7,
+          "live_only": 3,
+          "agreement_pct": 95.3,
+          "clean": true
+        },
+        {
+          "day": "20260909",
+          "universe": 603,
+          "backfilled": 451,
+          "outside_universe": 215,
+          "both": 229,
+          "backfill_only": 7,
+          "live_only": 5,
+          "agreement_pct": 95.0,
+          "clean": true
+        },
+        {
+          "day": "20260910",
+          "universe": 603,
+          "backfilled": 413,
+          "outside_universe": 209,
+          "both": 197,
+          "backfill_only": 7,
+          "live_only": 3,
+          "agreement_pct": 95.2,
+          "clean": true
+        },
+        {
+          "day": "20260911",
+          "universe": 601,
+          "backfilled": 307,
+          "outside_universe": 147,
+          "both": 95,
+          "backfill_only": 65,
+          "live_only": 100,
+          "agreement_pct": 36.5,
+          "clean": false
+        }
+      ],
+      "clean_threshold_pct": 80.0,
+      "n_clean": 9,
+      "clean_range_pct": [
+        94.1,
+        98.3
+      ],
+      "suspect_days": [
+        "20260826",
+        "20260828",
+        "20260831",
+        "20260911"
+      ],
+      "outside_universe_pct": 48.3,
+      "note": "一致率低 = 回填與 live 的訊號對不上,**疑似那天用了過期資料**。跟 audit_snapshot_freshness(比價格)是完全不同的資料路徑,兩支指到同一批日期就不是判準太鬆。"
+    },
+    "trading_day_coverage": {
+      "calendar_source": "data/twse_daily/(證交所自己的檔,刻意不用 ^TWII)",
+      "exchange_calendar_source": "證交所 FMTQIK(第三權威,不經過每日抓取)",
+      "exchange_calendar_latest": "2026-09-24",
+      "exchange_calendar_undecidable": null,
+      "never_arrived": [
+        "2026-09-14"
+      ],
+      "window": [
+        "2026-09-11",
+        "2026-09-24"
+      ],
+      "n_trading_days_in_window": 10,
+      "ate_trading_days": [
+        "2026-09-14"
+      ],
+      "calendar_latest": "2026-09-24",
+      "beyond_calendar": [],
+      "unknown_runs": [
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-07",
+        "2026-09-08",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11"
+      ],
+      "repeat_runs": [
+        {
+          "run_day": "2026-09-14",
+          "data_asof": "2026-09-11"
+        },
+        {
+          "run_day": "2026-09-25",
+          "data_asof": "2026-09-24"
+        }
+      ],
+      "n_runs": 24,
+      "note": "ate = 那個交易日的收盤從來沒進過任何 streak / 出場判定。unknown ≠ ok —— 那是 M254 之前沒有 data_asof 欄,判不了。repeat 是 M275 擋下的重複跑,記錄用,不是錯誤。"
+    },
+    "decay_flags": {
+      "min_exit_days": 5,
+      "states": {
+        "champion": {
+          "flags": [
+            {
+              "strategy": "breakout",
+              "n_considered": 3,
+              "n_exit_days": 3,
+              "window": 30,
+              "expectancy_pct": null,
+              "decay": false,
+              "insufficient_reason": "已平倉樣本數 3 筆,低於滾動窗口 30 筆,尚無法判斷是否衰退"
+            },
+            {
+              "strategy": "pullback",
+              "n_considered": 30,
+              "n_exit_days": 5,
+              "window": 30,
+              "expectancy_pct": -2.66,
+              "decay": true,
+              "insufficient_reason": null
+            }
+          ]
+        },
+        "challenger": {
+          "flags": []
+        }
+      },
+      "note": "衰退偵測原本只從 LINE 出去(M83)—— 憑證沒設或沒人看就等於沒偵測,而且沒有歷史。這裡是第二個出口,不重算、不改判定。`n_exit_days` 是 M285 加的:30 筆全擠在同一天出場時,那個期望值量到的是一天的行情被數了 30 次。",
+      "decayed": [
+        "champion/pullback"
+      ],
+      "undecidable_clustered": []
+    },
+    "position_stalls": {
+      "thresholds": {
+        "no_data_days": 10,
+        "deferred_days": 3
+      },
+      "states": {
+        "champion": {
+          "n_open": 19,
+          "last_asof_values": [
+            "2026-09-24"
+          ],
+          "n_distinct_last_asof": 1,
+          "oldest_last_asof": "2026-09-24",
+          "no_data_stalled": [],
+          "exit_deferred": [],
+          "most_behind": [
+            {
+              "ticker": "2379.TW",
+              "last_asof": "2026-09-24"
+            },
+            {
+              "ticker": "2412.TW",
+              "last_asof": "2026-09-24"
+            },
+            {
+              "ticker": "2338.TW",
+              "last_asof": "2026-09-24"
+            },
+            {
+              "ticker": "6937.TW",
+              "last_asof": "2026-09-24"
+            },
+            {
+              "ticker": "2428.TW",
+              "last_asof": "2026-09-24"
+            }
+          ]
+        },
+        "challenger": {
+          "n_open": 54,
+          "last_asof_values": [],
+          "n_distinct_last_asof": 0,
+          "oldest_last_asof": null,
+          "no_data_stalled": [],
+          "exit_deferred": [],
+          "most_behind": []
+        }
+      },
+      "stalled": [],
+      "note": "三種卡法都會讓部位停在 open 裡,而已平倉樣本看不到它們 —— 下市通常接近全損,最壞的結局剛好是唯一不會出現在樣本裡的。這幾個計數器原本只有 log.warning(M275/M278/M279),而 GHA 的 log 只有跑壞時才有人看。"
+    },
+    "pipeline_uptime": {
+      "span": [
+        "2026-08-24",
+        "2026-09-25"
+      ],
+      "span_days": 33,
+      "n_runs": 98,
+      "n_completed": 97,
+      "n_aborted": 0,
+      "n_stage_failures": 0,
+      "n_trading_days_in_span": 24,
+      "missed_trading_days": [],
+      "trading_day_coverage_pct": 100.0,
+      "ran_on_non_trading_days": [
+        "2026-09-12",
+        "2026-09-25"
+      ],
+      "blind_months": [],
+      "asof": "2026-09-25",
+      "nominal_utc": "06:37",
+      "delay_min_median": 149,
+      "delay_min_p90": 392,
+      "delay_min_max": 457,
+      "worst_delays": [
+        [
+          "2026-08-25",
+          457
+        ],
+        [
+          "2026-09-25",
+          412
+        ],
+        [
+          "2026-09-21",
+          392
+        ]
+      ],
+      "slowest_stages": [
+        {
+          "stage": "全市場分析",
+          "median_sec": 166.6,
+          "n": 98
+        },
+        {
+          "stage": "今日發現掃描",
+          "median_sec": 64.0,
+          "n": 98
+        },
+        {
+          "stage": "追蹤清單深度分析",
+          "median_sec": 24.7,
+          "n": 98
+        },
+        {
+          "stage": "MG1 融資狀態滾動",
+          "median_sec": 5.1,
+          "n": 24
+        },
+        {
+          "stage": "Supabase備份",
+          "median_sec": 3.3,
+          "n": 98
+        }
+      ],
+      "full_month_reached": true,
+      "days_to_full_month": 0,
+      "note": "交易日曆取自證交所 FMTQIK(session.trading_days)—— **不經過每日抓取那根管子**。2026-09-23 之前取自 data/twse_daily/,而那些檔是 pipeline 自己寫的:pipeline 停 → 日曆停 → 漏跑靜靜消失。窗口上界是**今天**不是最後一次跑的那天,理由同上。今天若還沒收盤(session.is_session_closed)則不計入應跑日。"
+    },
+    "daily_products": {
+      "as_of": "2026-09-25",
+      "n_expected": 11,
+      "products": [
+        {
+          "name": "docs/health.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/candidate_ranking.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/challenger.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/trident.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/correlation.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/progress.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/weekly_review.json",
+          "status": "stale",
+          "date": "2026-09-24",
+          "note": "停在 2026-09-24(欄位 last_updated)"
+        },
+        {
+          "name": "docs/seats.json",
+          "status": "stale",
+          "date": "2026-09-26",
+          "note": "停在 2026-09-26(欄位 last_updated)"
+        },
+        {
+          "name": "docs/data.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "docs/discovered.json",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "last_updated"
+        },
+        {
+          "name": "data/pit/2026-09-25",
+          "status": "ok",
+          "date": "2026-09-25",
+          "note": "5 個檔案 · PIT point-in-time 快照(M190/M328/M338)"
+        }
+      ],
+      "missing": [],
+      "stale": [
+        "docs/weekly_review.json",
+        "docs/seats.json"
+      ],
+      "unknown": []
+    },
+    "supabase_backup": {
+      "status": "ok",
+      "latest": "20260926",
+      "days_since": 0,
+      "n_tables": 9,
+      "failed_tables": [],
+      "missing_tables": [],
+      "zeroed": [],
+      "stale": false
+    }
+  },
+  "note": "每日自動稽核。**非致命** —— 這裡的工作是讓問題看得見,不是擋部署。該擋的有各自的守門(M254 資料新鮮度、M265 公司行為)。",
+  "flags": [
+    "**4 天訊號對不上**(疑似過期資料):['20260826', '20260828', '20260831', '20260911']",
+    "**1 個交易日的資料從來沒進來過**:['2026-09-14'](今天的判斷用的是更早的收盤價)",
+    "**1 個交易日沒有任何一跑看到過**:['2026-09-14']",
+    "**2 個每日產物停在舊日期**(看起來正常但沒更新):['docs/weekly_review.json', 'docs/seats.json']",
+    "**策略衰退**:['champion/pullback']"
+  ]
+}
