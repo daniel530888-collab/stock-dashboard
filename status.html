@@ -1,0 +1,256 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系統現在在幹嘛</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000; --bg-card: #0D0D0D; --bg-hover: #141414;
+    --text-primary: #F2F0EA; --text-secondary: #9C9A93; --text-muted: #63615A;
+    --gold: #CBBFA8; --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    --ok: #6FAE7C; --warn: #D8A657; --bad: #D06A62;
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-page); color: var(--text-primary);
+    font-family: var(--font-text); line-height: 1.6;
+    font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 13px;
+    color: var(--text-secondary); text-decoration: none;
+  }
+  .back-link:hover { color: var(--gold); }
+  header.hero { padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border); position: relative; }
+  header.hero::after {
+    content: ''; position: absolute; bottom: -1px; left: 0;
+    width: 48px; height: 2px; background: var(--gold);
+  }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.5rem;
+  }
+  h1 { font-size: 30px; font-weight: 700; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); font-size: 13.5px; margin: 0; max-width: 700px; }
+  section { padding: 1.6rem 0; border-bottom: 1px solid var(--border); }
+  section h2 {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.8rem; font-weight: 600;
+  }
+  .grid { display: grid; gap: 8px; }
+  .row {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.75rem 0.95rem;
+  }
+  .row.bad { border-color: rgba(208,106,98,0.45); }
+  .row.warn { border-color: rgba(216,166,87,0.4); }
+  .k { font-size: 12px; color: var(--text-muted); }
+  .v { font-size: 20px; font-weight: 600; }
+  .v.sm { font-size: 15px; }
+  .note { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 0; }
+  .note b { color: var(--text-primary); }
+  .cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .led {
+    display: grid; grid-template-columns: minmax(0,1.5fr) repeat(3, 62px) 96px;
+    gap: 10px; align-items: baseline;
+  }
+  .led .num { font-family: var(--font-mono); text-align: right; }
+  .led-head { color: var(--text-muted); font-size: 11px; }
+  .star { color: var(--gold); }
+  .mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+  .flag { color: var(--warn); font-size: 13px; }
+  footer { padding: 1.4rem 0 3rem; }
+  .empty { color: var(--text-muted); font-size: 13.5px; padding: 1.5rem 0; }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 1rem; }
+    .led { grid-template-columns: 1fr; gap: 2px; }
+    .led .num { text-align: left; }
+    .led-head { display: none; }
+  }
+</style>
+
+<div class="topbar"><div class="wrap"><a class="back-link" href="./index.html">← 返回看板</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">System Status</p>
+  <h1>系統現在在幹嘛</h1>
+  <p class="sub">上一跑做了什麼、下一跑什麼時候、四本帳本各有多少、什麼東西停著。
+    <b>這一頁只讀不算</b> —— 每個數字都來自它自己的來源檔，這裡不重新判斷任何事。</p>
+</div></header>
+
+<main class="wrap" id="body"><p class="empty">載入中…</p></main>
+<footer><div class="wrap"><p class="note" id="foot"></p></div></footer>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ⚠️ 這一頁的來源字串**本來就帶 Markdown 的 `**`** —— `audits.json` 的旗標
+//    是寫給 log 與 LINE 看的，`status.json` 的 `note` 是我在 LEDGERS 裡寫的。
+//    照抄會在畫面上印出兩顆星。M450 在 review.html 修過同一件事，
+//    而這一頁**第一版只修了旗標、漏了帳本的 note**，是測試抓到的。
+//    **先轉義再換**，所以 XSS 面不變；只認 `**…**`，不做完整 Markdown。
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+// 台北時間；沒有就講「不明」，不要靜默當今天（M439 的規則）
+function tpe(iso) {
+  if (!iso) return '日期不明';
+  const d = new Date(iso);
+  if (isNaN(d)) return '日期不明';
+  return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit' });
+}
+function ago(iso) {
+  if (!iso) return '';
+  const h = (Date.now() - new Date(iso)) / 3600000;
+  if (isNaN(h)) return '';
+  return h < 48 ? `（${h.toFixed(0)} 小時前）` : `（${(h / 24).toFixed(0)} 天前）`;
+}
+
+function cell(k, v, note) {
+  return `<div class="row"><div class="k">${esc(k)}</div>`
+    + `<div class="v">${esc(String(v))}</div>`
+    + (note ? `<p class="note">${note}</p>` : '') + `</div>`;
+}
+
+function render(d) {
+  const lr = d.last_run || {}, nr = d.next_run || {}, g = d.gate || {};
+  const out = [];
+
+  // ── 上一跑
+  const failed = lr.n_stage_failure > 0;
+  out.push(`<section><h2>上一跑</h2><div class="grid">`
+    + `<div class="row${failed ? ' bad' : ''}">`
+    + `<div class="k">開始時間（台北）</div>`
+    + `<div class="v sm">${esc(tpe(lr.started_utc))} ${esc(ago(lr.started_utc))}</div>`
+    + `<p class="note">`
+    + (lr.available === false ? md(lr.reason || '讀不到')
+      : `${lr.completed ? '跑完了' : '<b>沒有跑完</b>'}`
+        + ` · ${lr.n_stage_success} 個 stage 成功`
+        + (failed ? ` · <b>${lr.n_stage_failure} 個失敗：${esc((lr.failed_stages || []).join('、'))}</b>` : '')
+        + ` · 共 ${lr.total_sec} 秒`)
+    + `</p>`
+    + ((lr.slowest || []).length
+      ? `<p class="note mono">最慢：`
+        + lr.slowest.map(s => `${esc(s.stage)} ${s.sec}s`).join('　') + `</p>` : '')
+    + `</div></div></section>`);
+
+  // ── 下一跑（★ 名目 vs 實測遲到，兩個都給）
+  out.push(`<section><h2>下一跑</h2><div class="grid"><div class="row">`
+    + `<div class="k">名目時間（台北）</div>`
+    + `<div class="v sm">${esc(nr.nominal_taipei || '—')}</div>`
+    + `<p class="note">`
+    + (nr.available === false ? md(nr.reason || '')
+      : `<b>這是名目，不是實際</b> —— GHA 實測中位遲到 ${nr.median_late_min} 分、`
+        + `p90 ${nr.p90_late_min} 分。所以實際大概落在 `
+        + `<b>${esc(nr.nominal_taipei || '')} 之後 2~6 小時</b>。`)
+    + `</p>`
+    + ((nr.skipped_holidays || []).length
+      ? `<p class="note">跳過的休市日：<b>${esc(nr.skipped_holidays.join('、'))}</b>`
+        + `　—— GHA 的 cron 不知道國定假日，這裡用交易所日曆濾掉</p>` : '')
+    + (nr.cron ? `<p class="note mono">cron ${esc(nr.cron)}</p>` : '')
+    + `</div></div></section>`);
+
+  // ── 四本帳本
+  out.push(`<section><h2>四本帳本</h2><div class="grid">`
+    + `<div class="row led led-head"><span>帳本</span>`
+    + `<span class="num">持倉</span><span class="num">已平倉</span>`
+    + `<span class="num">排隊</span><span class="num">最後一跑</span></div>`
+    + (d.ledgers || []).map(l => {
+        const star = (l.note || '').startsWith('★');
+        return `<div class="row"><div class="led">`
+          + `<span${star ? ' class="star"' : ''}><b>${esc(l.label)}</b></span>`
+          + `<span class="num">${l.available === false ? '—' : l.open}</span>`
+          + `<span class="num">${l.available === false ? '—' : l.closed}</span>`
+          + `<span class="num">${l.available === false ? '—' : l.pending}</span>`
+          + `<span class="num">${esc(l.last_run_date || '—')}</span></div>`
+          + `<p class="note">${md(l.note)}</p></div>`;
+      }).join('')
+    + `</div></section>`);
+
+  // ── Phase 2
+  const paused = (d.clocks || []).length > 0;
+  out.push(`<section><h2>Phase 2</h2><div class="cells">`
+    + cell('成熟已平倉', `${g.n_mature_closed ?? '—'}/${g.target_closed ?? 60}`,
+           '成熟 = 進場日 + max_hold_days ≤ 今天')
+    + cell('眼睛', esc(g.life_state || '—'),
+           'closed = 時鐘暫停中；綁判決不綁筆數')
+    + cell('起算日', esc(g.since || '—'), 'PRE-REG §21.3')
+    + cell('帳本落後', g.ledger_lag_days == null ? '—' : `${g.ledger_lag_days} 天`,
+           '週批次最多延遲一週（§21.4 已知代價）')
+    + `</div>`
+    + `<p class="note" style="margin-top:10px">分子來自 <b>${esc(g.ledger || '—')}</b></p>`
+    + `</section>`);
+
+  // ── 刻意停著的
+  out.push(`<section><h2>刻意停著的</h2>`
+    + (paused
+      ? `<div class="grid">` + d.clocks.map(c =>
+          `<div class="row warn"><div class="k">${esc(c.label)}</div>`
+          + `<div class="v sm">自 ${esc(c.paused_since)} 暫停</div>`
+          + `<p class="note">解除條件：${esc(c.unlock_section)}`
+          + `　—— <b>停著是一個決定，不是壞掉</b></p></div>`).join('')
+        + `</div>`
+      : `<p class="empty">沒有東西停著。</p>`)
+    + `</section>`);
+
+  // ── 稽核旗標（照抄，不重判）
+  const flags = d.audit_flags || [];
+  out.push(`<section><h2>今日稽核旗標</h2>`
+    + (flags.length
+      // ⚠️ 旗標字串本來就帶 Markdown 的 `**`（audits.json 是給 log 與 LINE
+      //    用的）。照抄會在畫面上印出字面星號 —— M450 在 review.html 修過
+      //    同一件事。這裡只轉 `**…**`，不做完整 Markdown：轉義之後再換，
+      //    所以 XSS 面不變。
+      ? `<div class="grid">` + flags.map(f =>
+          `<div class="row warn"><p class="flag">`
+          + md(String(f))
+          + `</p></div>`).join('')
+        + `</div>`
+      : `<p class="empty">沒有旗標。</p>`)
+    + `<p class="note" style="margin-top:10px">`
+    + `照抄 <span class="mono">audits.json</span>（${esc(d.audits_as_of || '日期不明')} 算的），`
+    + `<b>這裡不重新判斷</b> —— 重判會出現同一件事兩個答案。</p>`
+    + `</section>`);
+
+  // ── 資料健康
+  const h = d.health || {}, hs = h.summary || {};
+  out.push(`<section><h2>資料健康</h2><div class="cells">`
+    + cell('宇宙檔數', hs.universe_size ?? '—', '')
+    + cell('抓取成功率',
+           hs.success_rate == null ? '—' : `${(hs.success_rate * 100).toFixed(1)}%`,
+           `失敗 ${hs.failed ?? '—'} 檔`)
+    + cell('品質旗標', h.n_quality_flags ?? '—', '')
+    + `</div><p class="note" style="margin-top:10px">`
+    + `${esc(tpe(h.as_of))} ${esc(ago(h.as_of))}</p></section>`);
+
+  document.getElementById('body').innerHTML = out.join('');
+  document.getElementById('foot').innerHTML =
+    `產生於 ${esc(tpe(d.last_updated))}`
+    + ((d.missing || []).length
+      ? `　⚠️ 有 ${d.missing.length} 份來源讀不到：<b>${esc(d.missing.join('、'))}</b>`
+      : '')
+    + `<br>${md(d.note || '')}`;
+}
+
+(async () => {
+  try {
+    const r = await fetch('./status.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    render(await r.json());
+  } catch (e) {
+    // 讀不到就講讀不到 —— 靜默空白會被讀成「系統沒事」
+    document.getElementById('body').innerHTML =
+      `<p class="empty">讀不到 <span class="mono">status.json</span>（${esc(e.message)}）`
+      + `　—— 先跑 <span class="mono">py src/status_stage.py</span>。`
+      + `<br><b>這不代表系統沒事，是這一頁自己拿不到資料。</b></p>`;
+  }
+})();
+</script>
