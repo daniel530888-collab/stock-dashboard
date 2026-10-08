@@ -1,0 +1,1370 @@
+{
+  "last_updated": "2026-10-08T14:05:00.738076+00:00",
+  "metadata": {
+    "data_version": "1.5",
+    "update_time": "2026-10-08T14:05:00.738076+00:00",
+    "source": "yfinance+twse_openapi",
+    "total_tracked": 1,
+    "total_succeeded": 1,
+    "missing_data": 0,
+    "status": "ok"
+  },
+  "hold_days": 15,
+  "stock": {
+    "ticker": "9103.TW",
+    "name": "美德醫療-DR",
+    "close_price": 5.88,
+    "price_anomaly": false,
+    "price_anomaly_reason": null,
+    "data_asof": "2026-10-08",
+    "change": 0.53,
+    "change_pct": 9.91,
+    "verified_entry_price": 5.53,
+    "entry_strategy_used": "insufficient_history",
+    "stop_loss": 5.15,
+    "stop_loss_pct": 6.9,
+    "take_profit_1x": 5.91,
+    "take_profit_1_5x": 6.1,
+    "health": {
+      "status": "unknown",
+      "label": "資料不足",
+      "reason": "無月營收 YoY 資料",
+      "method": "yoy_monthly_revenue"
+    },
+    "relative_strength_twii": {
+      "stock_return_pct": 15.98,
+      "index_return_pct": 4.51,
+      "relative_strength_pct": 11.46,
+      "alpha_beta": {
+        "beta": 0.05,
+        "alpha_annualized_pct": 41.62,
+        "r_squared": 0.001,
+        "n_obs": 119,
+        "reason": null
+      }
+    },
+    "relative_strength_sox": {
+      "stock_return_pct": 15.98,
+      "index_return_pct": 8.28,
+      "relative_strength_pct": 7.7,
+      "alpha_beta": {
+        "beta": 0.03,
+        "alpha_annualized_pct": 21.5,
+        "r_squared": 0.002,
+        "n_obs": 117,
+        "reason": null
+      }
+    },
+    "rsi": 86.5,
+    "vol_ratio": 2.26,
+    "ma20": 5.04,
+    "atr14": 0.1264,
+    "breakout_signal": true,
+    "pullback_signal": false,
+    "tv004_signal": false,
+    "strategy_explanations": [
+      {
+        "strategy": "breakout",
+        "explain": "收盤價突破近20日高點,且成交量達均量的1.5倍以上,顯示買盤動能強勁"
+      }
+    ],
+    "score": {
+      "total_score": 39.3,
+      "factors": [
+        {
+          "name": "基本面健康度",
+          "score": 50.0,
+          "weight": 0.25,
+          "contribution": 12.5,
+          "reason": "基本面資料不足,以中性分數計算(不代表健康或轉弱)"
+        },
+        {
+          "name": "相對強弱",
+          "score": 69.1,
+          "weight": 0.2,
+          "contribution": 13.8,
+          "reason": "近期表現強於大盤11.5個百分點"
+        },
+        {
+          "name": "策略訊號品質",
+          "score": 0,
+          "weight": 0.35,
+          "contribution": 0.0,
+          "reason": "觸發突破型訊號,歷史勝率0.0%,Sharpe Ratio -5.599"
+        },
+        {
+          "name": "動能與量能",
+          "score": 65.0,
+          "weight": 0.2,
+          "contribution": 13.0,
+          "reason": "RSI=86.5偏過熱;量能達均量2.26倍,買氣積極"
+        }
+      ],
+      "recommendation_reasons": [
+        "收盤價突破近20日高點,且成交量達均量的1.5倍以上,顯示買盤動能強勁"
+      ],
+      "risk_warnings": [
+        "RSI(86.5)已達過熱區間,短線可能有拉回風險",
+        "歷史回測曾出現23.2%的最大回撤,務必做好停損與資金控管",
+        "歷史訊號樣本僅3筆,統計意義有限,結果僅供參考",
+        "注意:預計持有期間內(2026-10-10,約 2 天後)有「9月營收公布截止」,屆時盤面可能受影響,不代表個股基本面轉弱。"
+      ]
+    },
+    "watch": {
+      "breakout_trigger_price": 5.88,
+      "distance_to_breakout_pct": 0.0,
+      "pullback_zone_low": 4.94,
+      "pullback_zone_high": 5.14
+    },
+    "near_miss": {
+      "breakout_pct": null,
+      "pullback_pct": 12.54
+    },
+    "history": [
+      {
+        "date": "2026-07-15",
+        "open": 4.89,
+        "high": 5.15,
+        "low": 4.89,
+        "close": 5.11
+      },
+      {
+        "date": "2026-07-16",
+        "open": 5.12,
+        "high": 5.19,
+        "low": 5.06,
+        "close": 5.07
+      },
+      {
+        "date": "2026-07-17",
+        "open": 5.07,
+        "high": 5.42,
+        "low": 5.03,
+        "close": 5.28
+      },
+      {
+        "date": "2026-07-20",
+        "open": 5.4,
+        "high": 5.59,
+        "low": 5.17,
+        "close": 5.18
+      },
+      {
+        "date": "2026-07-21",
+        "open": 5.22,
+        "high": 5.37,
+        "low": 5.22,
+        "close": 5.29
+      },
+      {
+        "date": "2026-07-22",
+        "open": 5.36,
+        "high": 5.72,
+        "low": 5.34,
+        "close": 5.5
+      },
+      {
+        "date": "2026-07-23",
+        "open": 5.7,
+        "high": 6.05,
+        "low": 5.67,
+        "close": 5.73
+      },
+      {
+        "date": "2026-07-24",
+        "open": 5.73,
+        "high": 5.73,
+        "low": 5.37,
+        "close": 5.38
+      },
+      {
+        "date": "2026-07-27",
+        "open": 5.4,
+        "high": 5.55,
+        "low": 5.27,
+        "close": 5.34
+      },
+      {
+        "date": "2026-07-28",
+        "open": 5.34,
+        "high": 5.36,
+        "low": 5.14,
+        "close": 5.31
+      },
+      {
+        "date": "2026-07-29",
+        "open": 5.35,
+        "high": 5.44,
+        "low": 5.07,
+        "close": 5.13
+      },
+      {
+        "date": "2026-07-30",
+        "open": 5.13,
+        "high": 5.17,
+        "low": 5.0,
+        "close": 5.06
+      },
+      {
+        "date": "2026-07-31",
+        "open": 5.07,
+        "high": 5.13,
+        "low": 5.02,
+        "close": 5.04
+      },
+      {
+        "date": "2026-08-03",
+        "open": 5.09,
+        "high": 5.13,
+        "low": 5.04,
+        "close": 5.12
+      },
+      {
+        "date": "2026-08-04",
+        "open": 5.23,
+        "high": 5.23,
+        "low": 5.06,
+        "close": 5.12
+      },
+      {
+        "date": "2026-08-05",
+        "open": 5.14,
+        "high": 5.33,
+        "low": 5.12,
+        "close": 5.3
+      },
+      {
+        "date": "2026-08-06",
+        "open": 5.28,
+        "high": 5.31,
+        "low": 5.19,
+        "close": 5.23
+      },
+      {
+        "date": "2026-08-07",
+        "open": 5.24,
+        "high": 5.29,
+        "low": 5.23,
+        "close": 5.28
+      },
+      {
+        "date": "2026-08-10",
+        "open": 5.32,
+        "high": 5.32,
+        "low": 5.19,
+        "close": 5.28
+      },
+      {
+        "date": "2026-08-11",
+        "open": 5.28,
+        "high": 5.3,
+        "low": 5.18,
+        "close": 5.18
+      },
+      {
+        "date": "2026-08-12",
+        "open": 5.26,
+        "high": 5.3,
+        "low": 5.2,
+        "close": 5.22
+      },
+      {
+        "date": "2026-08-13",
+        "open": 5.26,
+        "high": 5.26,
+        "low": 5.1,
+        "close": 5.12
+      },
+      {
+        "date": "2026-08-14",
+        "open": 5.13,
+        "high": 5.24,
+        "low": 5.07,
+        "close": 5.16
+      },
+      {
+        "date": "2026-08-17",
+        "open": 5.17,
+        "high": 5.21,
+        "low": 5.14,
+        "close": 5.2
+      },
+      {
+        "date": "2026-08-18",
+        "open": 5.21,
+        "high": 5.23,
+        "low": 5.14,
+        "close": 5.2
+      },
+      {
+        "date": "2026-08-19",
+        "open": 5.2,
+        "high": 5.25,
+        "low": 5.16,
+        "close": 5.17
+      },
+      {
+        "date": "2026-08-20",
+        "open": 5.24,
+        "high": 5.31,
+        "low": 5.19,
+        "close": 5.21
+      },
+      {
+        "date": "2026-08-21",
+        "open": 5.28,
+        "high": 5.28,
+        "low": 5.21,
+        "close": 5.25
+      },
+      {
+        "date": "2026-08-24",
+        "open": 5.23,
+        "high": 5.23,
+        "low": 5.13,
+        "close": 5.13
+      },
+      {
+        "date": "2026-08-25",
+        "open": 5.1,
+        "high": 5.12,
+        "low": 5.04,
+        "close": 5.11
+      },
+      {
+        "date": "2026-08-26",
+        "open": 5.05,
+        "high": 5.18,
+        "low": 5.05,
+        "close": 5.15
+      },
+      {
+        "date": "2026-08-27",
+        "open": 5.16,
+        "high": 5.17,
+        "low": 5.08,
+        "close": 5.14
+      },
+      {
+        "date": "2026-08-28",
+        "open": 5.15,
+        "high": 5.15,
+        "low": 5.08,
+        "close": 5.08
+      },
+      {
+        "date": "2026-08-31",
+        "open": 5.13,
+        "high": 5.13,
+        "low": 5.06,
+        "close": 5.13
+      },
+      {
+        "date": "2026-09-01",
+        "open": 5.13,
+        "high": 5.13,
+        "low": 5.07,
+        "close": 5.09
+      },
+      {
+        "date": "2026-09-02",
+        "open": 5.06,
+        "high": 5.1,
+        "low": 5.06,
+        "close": 5.07
+      },
+      {
+        "date": "2026-09-03",
+        "open": 5.09,
+        "high": 5.11,
+        "low": 5.03,
+        "close": 5.03
+      },
+      {
+        "date": "2026-09-04",
+        "open": 5.04,
+        "high": 5.14,
+        "low": 5.02,
+        "close": 5.14
+      },
+      {
+        "date": "2026-09-07",
+        "open": 5.14,
+        "high": 5.15,
+        "low": 5.07,
+        "close": 5.15
+      },
+      {
+        "date": "2026-09-08",
+        "open": 5.14,
+        "high": 5.14,
+        "low": 5.09,
+        "close": 5.11
+      },
+      {
+        "date": "2026-09-09",
+        "open": 5.07,
+        "high": 5.12,
+        "low": 5.04,
+        "close": 5.07
+      },
+      {
+        "date": "2026-09-10",
+        "open": 5.07,
+        "high": 5.08,
+        "low": 5.0,
+        "close": 5.0
+      },
+      {
+        "date": "2026-09-11",
+        "open": 5.0,
+        "high": 5.01,
+        "low": 4.98,
+        "close": 5.0
+      },
+      {
+        "date": "2026-09-14",
+        "open": 5.0,
+        "high": 5.01,
+        "low": 4.95,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-15",
+        "open": 4.99,
+        "high": 5.04,
+        "low": 4.96,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-16",
+        "open": 5.02,
+        "high": 5.02,
+        "low": 4.95,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-17",
+        "open": 4.98,
+        "high": 5.0,
+        "low": 4.95,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-18",
+        "open": 5.0,
+        "high": 5.0,
+        "low": 4.95,
+        "close": 4.99
+      },
+      {
+        "date": "2026-09-21",
+        "open": 4.99,
+        "high": 5.02,
+        "low": 4.97,
+        "close": 4.98
+      },
+      {
+        "date": "2026-09-22",
+        "open": 5.0,
+        "high": 5.0,
+        "low": 4.96,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-23",
+        "open": 4.99,
+        "high": 5.03,
+        "low": 4.95,
+        "close": 5.0
+      },
+      {
+        "date": "2026-09-24",
+        "open": 4.97,
+        "high": 4.99,
+        "low": 4.96,
+        "close": 4.97
+      },
+      {
+        "date": "2026-09-29",
+        "open": 4.97,
+        "high": 5.01,
+        "low": 4.96,
+        "close": 4.96
+      },
+      {
+        "date": "2026-09-30",
+        "open": 4.96,
+        "high": 5.0,
+        "low": 4.96,
+        "close": 4.98
+      },
+      {
+        "date": "2026-10-01",
+        "open": 4.97,
+        "high": 4.98,
+        "low": 4.94,
+        "close": 4.94
+      },
+      {
+        "date": "2026-10-02",
+        "open": 4.94,
+        "high": 4.98,
+        "low": 4.92,
+        "close": 4.95
+      },
+      {
+        "date": "2026-10-05",
+        "open": 4.95,
+        "high": 4.95,
+        "low": 4.89,
+        "close": 4.89
+      },
+      {
+        "date": "2026-10-06",
+        "open": 4.98,
+        "high": 5.21,
+        "low": 4.97,
+        "close": 5.08
+      },
+      {
+        "date": "2026-10-07",
+        "open": 5.3,
+        "high": 5.44,
+        "low": 5.23,
+        "close": 5.35
+      },
+      {
+        "date": "2026-10-08",
+        "open": 5.75,
+        "high": 5.88,
+        "low": 5.5,
+        "close": 5.88
+      }
+    ],
+    "backtest": {
+      "breakout": {
+        "signal_count": 3,
+        "win_rate": 0.0,
+        "avg_return": -8.77,
+        "avg_win_relative_position": null,
+        "sharpe_ratio": -5.599,
+        "sortino_ratio": -3.518,
+        "calmar_ratio": -3.413,
+        "cagr_pct": -79.19,
+        "max_drawdown_pct": 23.2,
+        "recovery_factor": -1.05,
+        "profit_factor": 0.0,
+        "expectancy_pct": -8.77
+      },
+      "pullback": {
+        "signal_count": 34,
+        "win_rate": 17.6,
+        "avg_return": -1.1,
+        "avg_win_relative_position": 0.227,
+        "sharpe_ratio": -0.608,
+        "sortino_ratio": -1.034,
+        "calmar_ratio": -0.503,
+        "cagr_pct": -20.28,
+        "max_drawdown_pct": 40.34,
+        "recovery_factor": -0.91,
+        "profit_factor": 0.63,
+        "expectancy_pct": -1.1
+      }
+    },
+    "walk_forward": {
+      "breakout": {
+        "n_folds": 3,
+        "folds": [
+          {
+            "fold": 1,
+            "start_date": "2026-01-08",
+            "end_date": "2026-04-16",
+            "signal_count": 0,
+            "win_rate": null,
+            "avg_return": null,
+            "sharpe_ratio": null,
+            "sortino_ratio": null,
+            "calmar_ratio": null,
+            "cagr_pct": null,
+            "max_drawdown_pct": null,
+            "recovery_factor": null,
+            "profit_factor": null,
+            "expectancy_pct": null
+          },
+          {
+            "fold": 2,
+            "start_date": "2026-04-17",
+            "end_date": "2026-07-14",
+            "signal_count": 2,
+            "win_rate": 0.0,
+            "avg_return": -7.83,
+            "sharpe_ratio": -3.655,
+            "sortino_ratio": -3.212,
+            "calmar_ratio": -5.378,
+            "cagr_pct": -75.56,
+            "max_drawdown_pct": 14.05,
+            "recovery_factor": -1.1,
+            "profit_factor": 0.0,
+            "expectancy_pct": -7.83
+          },
+          {
+            "fold": 3,
+            "start_date": "2026-07-15",
+            "end_date": "2026-10-08",
+            "signal_count": 1,
+            "win_rate": 0.0,
+            "avg_return": -10.65,
+            "sharpe_ratio": null,
+            "sortino_ratio": null,
+            "calmar_ratio": null,
+            "cagr_pct": -84.91,
+            "max_drawdown_pct": 0.0,
+            "recovery_factor": null,
+            "profit_factor": 0.0,
+            "expectancy_pct": -10.65
+          }
+        ],
+        "consistency": {
+          "folds_with_signal": 2,
+          "profitable_folds": 0,
+          "profitable_fold_ratio": 0.0,
+          "is_consistent": false,
+          "reason": null
+        }
+      },
+      "pullback": {
+        "n_folds": 3,
+        "folds": [
+          {
+            "fold": 1,
+            "start_date": "2026-01-08",
+            "end_date": "2026-04-16",
+            "signal_count": 2,
+            "win_rate": 0.0,
+            "avg_return": -5.01,
+            "sharpe_ratio": -6.634,
+            "sortino_ratio": -3.756,
+            "calmar_ratio": -8.067,
+            "cagr_pct": -58.0,
+            "max_drawdown_pct": 7.19,
+            "recovery_factor": -1.36,
+            "profit_factor": 0.0,
+            "expectancy_pct": -5.01
+          },
+          {
+            "fold": 2,
+            "start_date": "2026-04-17",
+            "end_date": "2026-07-14",
+            "signal_count": 4,
+            "win_rate": 75.0,
+            "avg_return": 13.12,
+            "sharpe_ratio": 3.578,
+            "sortino_ratio": 7.163,
+            "calmar_ratio": 80.541,
+            "cagr_pct": 604.86,
+            "max_drawdown_pct": 7.51,
+            "recovery_factor": 7.88,
+            "profit_factor": 7.99,
+            "expectancy_pct": 13.12
+          },
+          {
+            "fold": 3,
+            "start_date": "2026-07-15",
+            "end_date": "2026-10-08",
+            "signal_count": 23,
+            "win_rate": 13.0,
+            "avg_return": -1.88,
+            "sharpe_ratio": -4.743,
+            "sortino_ratio": -3.038,
+            "calmar_ratio": -0.732,
+            "cagr_pct": -27.41,
+            "max_drawdown_pct": 37.47,
+            "recovery_factor": -0.95,
+            "profit_factor": 0.09,
+            "expectancy_pct": -1.88
+          }
+        ],
+        "consistency": {
+          "folds_with_signal": 3,
+          "profitable_folds": 1,
+          "profitable_fold_ratio": 0.33,
+          "is_consistent": false,
+          "reason": null
+        }
+      }
+    },
+    "monte_carlo": {
+      "breakout": {
+        "n_simulations": null,
+        "n_trades": null,
+        "final_return_pct": {
+          "p5": null,
+          "p25": null,
+          "p50": null,
+          "p75": null,
+          "p95": null
+        },
+        "max_drawdown_pct": {
+          "p50": null,
+          "p95": null
+        },
+        "probability_of_loss_pct": null,
+        "reason": "歷史交易樣本不足(僅3筆,需至少10筆),無法做蒙地卡羅模擬"
+      },
+      "pullback": {
+        "n_simulations": 1000,
+        "n_trades": 36,
+        "final_return_pct": {
+          "p5": -69.63,
+          "p25": -57.09,
+          "p50": -45.08,
+          "p75": -26.0,
+          "p95": 15.91
+        },
+        "max_drawdown_pct": {
+          "p50": 52.33,
+          "p95": 69.82
+        },
+        "probability_of_loss_pct": 91.7,
+        "reason": null
+      }
+    },
+    "report_metrics": {
+      "breakout": {
+        "exposure": {
+          "exposure_pct": 20.88,
+          "held_days": 38,
+          "total_days": 182,
+          "reason": null
+        },
+        "capacity": {
+          "daily_capacity_twd": 33549,
+          "median_daily_turnover_twd": 3354891,
+          "participation_rate_pct": 1.0,
+          "lookback_days": 60,
+          "reason": null
+        },
+        "rolling_return": {
+          "window": 5,
+          "series": [],
+          "best_pct": null,
+          "worst_pct": null,
+          "latest_pct": null,
+          "reason": "交易筆數 3 筆,不足以組成 5 筆的滾動視窗"
+        },
+        "rolling_sharpe": {
+          "window": 5,
+          "series": [],
+          "best": null,
+          "worst": null,
+          "latest": null,
+          "reason": "交易筆數 3 筆,不足以組成 5 筆的滾動視窗"
+        },
+        "drawdown_timeline": {
+          "series": [
+            0.0,
+            14.05,
+            23.2
+          ],
+          "max_drawdown_pct": 23.2,
+          "longest_drawdown_trades": 2,
+          "current_drawdown_pct": 23.2,
+          "reason": null
+        }
+      },
+      "pullback": {
+        "exposure": {
+          "exposure_pct": 75.27,
+          "held_days": 137,
+          "total_days": 182,
+          "reason": null
+        },
+        "capacity": {
+          "daily_capacity_twd": 33549,
+          "median_daily_turnover_twd": 3354891,
+          "participation_rate_pct": 1.0,
+          "lookback_days": 60,
+          "reason": null
+        },
+        "rolling_return": {
+          "window": 5,
+          "series": [
+            -25.92,
+            -31.06,
+            -30.72,
+            -33.45,
+            -32.12,
+            -16.46,
+            15.55,
+            52.93,
+            53.51,
+            64.22,
+            44.25,
+            12.28,
+            -10.91,
+            -2.92,
+            -5.71,
+            -3.9,
+            -3.01,
+            -4.71,
+            -8.13,
+            -9.9,
+            -12.32,
+            -11.64,
+            -9.94,
+            -10.03,
+            -11.82,
+            -12.39,
+            -13.1,
+            -13.98,
+            -13.64,
+            -11.57,
+            -11.41,
+            -11.95
+          ],
+          "best_pct": 64.22,
+          "worst_pct": -33.45,
+          "latest_pct": -11.95,
+          "reason": null
+        },
+        "rolling_sharpe": {
+          "window": 5,
+          "series": [
+            -9.142,
+            -12.159,
+            -11.977,
+            -18.248,
+            -12.429,
+            -1.564,
+            1.057,
+            2.635,
+            2.672,
+            3.315,
+            2.307,
+            0.974,
+            -2.414,
+            -0.941,
+            -3.098,
+            -2.165,
+            -1.996,
+            -2.109,
+            -4.034,
+            -6.243,
+            -12.146,
+            -9.088,
+            -10.526,
+            -10.323,
+            -9.656,
+            -9.327,
+            -12.874,
+            -16.239,
+            -15.353,
+            -11.595,
+            -12.18,
+            -14.08
+          ],
+          "best": 3.315,
+          "worst": -18.248,
+          "latest": -14.08,
+          "reason": null
+        },
+        "drawdown_timeline": {
+          "series": [
+            0.0,
+            7.19,
+            10.99,
+            15.84,
+            23.77,
+            31.06,
+            35.71,
+            40.76,
+            42.87,
+            36.32,
+            20.33,
+            1.68,
+            9.06,
+            6.19,
+            8.14,
+            10.55,
+            12.4,
+            11.72,
+            11.55,
+            11.72,
+            13.24,
+            16.52,
+            18.9,
+            20.31,
+            22.6,
+            23.34,
+            24.82,
+            27.03,
+            29.72,
+            32.18,
+            33.38,
+            35.33,
+            36.98,
+            37.85,
+            39.92,
+            41.34
+          ],
+          "max_drawdown_pct": 42.87,
+          "longest_drawdown_trades": 35,
+          "current_drawdown_pct": 41.34,
+          "reason": null
+        }
+      }
+    },
+    "trading_modes": {
+      "short_term": {
+        "mode": "short_term",
+        "label": "短線交易",
+        "hold_days": 15,
+        "risk_per_trade_pct": 1.0,
+        "total_score": 65.5,
+        "confidence": {
+          "score": 65.6,
+          "reason": "五個維度存在部分分歧,建議搭配其他條件確認",
+          "tier": "medium"
+        },
+        "decision": {
+          "action": "NO_TRADE",
+          "reason": "未通過模式篩選條件,不建議交易"
+        },
+        "position_sizing": {
+          "recommended_method": "dynamic",
+          "recommended_capital_fraction": 0.0,
+          "entry_price": 5.88,
+          "stop_loss": 5.5,
+          "risk_per_trade_pct": 1.0,
+          "methods": {
+            "fixed_risk": {
+              "method": "fixed_risk",
+              "label": "固定風險%",
+              "capital_fraction": 0.154737,
+              "risk_fraction": 0.01,
+              "risk_per_share": 0.38,
+              "stop_distance_pct": 6.46,
+              "formula": "資金比例 = 每筆風險% ÷ 停損幅度%   (等價於:可承受虧損 ÷ 每股風險 × 進場價 ÷ 本金)",
+              "steps": [
+                "每股風險 = 進場價 5.88 − 停損價 5.50 = 0.38 元",
+                "停損幅度 = 0.38 ÷ 5.88 = 6.46%",
+                "資金比例 = 每筆風險 1.00% ÷ 停損幅度 6.46% = 0.1547(本金的 15.47%)",
+                "→ 本金 100 萬時,建議投入 154,737 元,最壞情況虧 10,000 元"
+              ],
+              "caveat": "前提是停損真的守得住。跳空跌破停損時實際虧損會超過預算,這是所有固定風險法共同的假設限制。",
+              "reason": null
+            },
+            "atr": {
+              "method": "atr",
+              "label": "ATR 部位",
+              "capital_fraction": 0.232542,
+              "risk_fraction": 0.01,
+              "atr": 0.13,
+              "atr_multiplier": 2.0,
+              "stop_distance_pct": 4.3,
+              "formula": "停損距離 = ATR × 倍數;資金比例 = 每筆風險% ÷ (停損距離 ÷ 進場價)",
+              "steps": [
+                "停損距離 = ATR 0.13 × 2.0 = 0.25 元",
+                "換算幅度 = 0.25 ÷ 5.88 = 4.30%",
+                "資金比例 = 1.00% ÷ 4.30% = 0.2325",
+                "→ 本金 100 萬時,建議投入 232,542 元"
+              ],
+              "caveat": "ATR 是近期平均波動,不含跳空。財報、法說會、突發利空造成的跳空會直接跳過這個停損距離。",
+              "reason": null
+            },
+            "volatility": {
+              "method": "volatility",
+              "label": "波動度部位",
+              "capital_fraction": 0.507666,
+              "risk_fraction": null,
+              "stock_annual_vol_pct": 39.4,
+              "formula": "資金比例 = 目標年化波動% ÷ 個股年化波動%;個股年化波動 = 日報酬標準差 × √252",
+              "steps": [
+                "日報酬標準差 = 2.482%(取樣 120 天)",
+                "個股年化波動 = 2.482% × √252 = 39.40%",
+                "資金比例 = 目標 20.00% ÷ 39.40% = 0.5077",
+                "→ 本金 100 萬時,建議投入 507,666 元"
+              ],
+              "caveat": "用歷史波動預測未來波動。波動會叢聚(平靜期後常接劇烈期),所以在市場由靜轉動的轉折點,這個方法會系統性低估風險。",
+              "reason": null
+            },
+            "kelly": {
+              "method": "kelly",
+              "label": "凱利公式",
+              "capital_fraction": null,
+              "risk_fraction": null,
+              "formula": null,
+              "steps": [],
+              "caveat": null,
+              "reason": "凱利值為負,代表此策略不具正期望值,不應投入資金"
+            },
+            "dynamic": {
+              "method": "dynamic",
+              "label": "動態部位",
+              "capital_fraction": 0.0,
+              "risk_fraction": null,
+              "multiplier": 0.0,
+              "formula": "最終資金比例 = 固定風險%基準 × 大盤環境乘數 × 回撤乘數 × 篩選乘數",
+              "steps": [
+                "基準(固定風險%)資金比例 = 0.1547",
+                "目前回撤等級 severe → ×0.0(停止新倉)",
+                "未通過該模式的硬性篩選 → ×0(不該進場)",
+                "最終資金比例 = 0.1547 × 0.00 = 0.0000"
+              ],
+              "caveat": "目前環境下建議不進場。這是刻意的:硬性條件沒過或已在深度回撤時,最好的部位大小就是零。",
+              "reason": null
+            }
+          },
+          "note": "資金比例乘上你的本金就是建議投入金額;建議股數 = 投入金額 ÷ 進場價(台股零股可買,不需湊整張)。本金只存在你的瀏覽器,系統不知道也不需要知道。"
+        },
+        "dimensions": {
+          "trend": {
+            "score": 70.0,
+            "weight": 0.2,
+            "reason": "均線多頭排列、ADX 20 盤整、MACD 柱狀體為正"
+          },
+          "momentum": {
+            "score": 60.0,
+            "weight": 0.3,
+            "reason": "RSI 87 過熱、5日動能 +19.0%、KD 黃金交叉方向"
+          },
+          "volume": {
+            "score": 90.0,
+            "weight": 0.25,
+            "reason": "爆量 6.5 倍"
+          },
+          "fundamental": {
+            "score": 50.0,
+            "weight": 0.1,
+            "reason": "基本面資料不足"
+          },
+          "risk": {
+            "score": 40.0,
+            "weight": 0.15,
+            "reason": "波動中等(ATR 2.2%)、歷史最大回撤 23.2% 偏大"
+          }
+        },
+        "passes_filters": false,
+        "filter_reasons": [
+          "ADX 20 低於門檻 20(趨勢不明確)"
+        ],
+        "levels": {
+          "entry_price": 5.88,
+          "stop_loss": 5.5,
+          "take_profit": 6.26,
+          "take_profit_1_5x": 6.45,
+          "stop_loss_pct": 6.45,
+          "take_profit_pct": 6.45,
+          "risk_reward": 1.0,
+          "reason": null
+        },
+        "reason": null
+      },
+      "swing": {
+        "mode": "swing",
+        "label": "波段交易",
+        "hold_days": 15,
+        "risk_per_trade_pct": 1.5,
+        "total_score": 60.5,
+        "confidence": {
+          "score": 65.6,
+          "reason": "五個維度存在部分分歧,建議搭配其他條件確認",
+          "tier": "medium"
+        },
+        "decision": {
+          "action": "NO_TRADE",
+          "reason": "未通過模式篩選條件,不建議交易"
+        },
+        "position_sizing": {
+          "recommended_method": "dynamic",
+          "recommended_capital_fraction": 0.0,
+          "entry_price": 5.88,
+          "stop_loss": 5.5,
+          "risk_per_trade_pct": 1.5,
+          "methods": {
+            "fixed_risk": {
+              "method": "fixed_risk",
+              "label": "固定風險%",
+              "capital_fraction": 0.232105,
+              "risk_fraction": 0.015,
+              "risk_per_share": 0.38,
+              "stop_distance_pct": 6.46,
+              "formula": "資金比例 = 每筆風險% ÷ 停損幅度%   (等價於:可承受虧損 ÷ 每股風險 × 進場價 ÷ 本金)",
+              "steps": [
+                "每股風險 = 進場價 5.88 − 停損價 5.50 = 0.38 元",
+                "停損幅度 = 0.38 ÷ 5.88 = 6.46%",
+                "資金比例 = 每筆風險 1.50% ÷ 停損幅度 6.46% = 0.2321(本金的 23.21%)",
+                "→ 本金 100 萬時,建議投入 232,105 元,最壞情況虧 15,000 元"
+              ],
+              "caveat": "前提是停損真的守得住。跳空跌破停損時實際虧損會超過預算,這是所有固定風險法共同的假設限制。",
+              "reason": null
+            },
+            "atr": {
+              "method": "atr",
+              "label": "ATR 部位",
+              "capital_fraction": 0.348813,
+              "risk_fraction": 0.015,
+              "atr": 0.13,
+              "atr_multiplier": 2.0,
+              "stop_distance_pct": 4.3,
+              "formula": "停損距離 = ATR × 倍數;資金比例 = 每筆風險% ÷ (停損距離 ÷ 進場價)",
+              "steps": [
+                "停損距離 = ATR 0.13 × 2.0 = 0.25 元",
+                "換算幅度 = 0.25 ÷ 5.88 = 4.30%",
+                "資金比例 = 1.50% ÷ 4.30% = 0.3488",
+                "→ 本金 100 萬時,建議投入 348,813 元"
+              ],
+              "caveat": "ATR 是近期平均波動,不含跳空。財報、法說會、突發利空造成的跳空會直接跳過這個停損距離。",
+              "reason": null
+            },
+            "volatility": {
+              "method": "volatility",
+              "label": "波動度部位",
+              "capital_fraction": 0.507666,
+              "risk_fraction": null,
+              "stock_annual_vol_pct": 39.4,
+              "formula": "資金比例 = 目標年化波動% ÷ 個股年化波動%;個股年化波動 = 日報酬標準差 × √252",
+              "steps": [
+                "日報酬標準差 = 2.482%(取樣 120 天)",
+                "個股年化波動 = 2.482% × √252 = 39.40%",
+                "資金比例 = 目標 20.00% ÷ 39.40% = 0.5077",
+                "→ 本金 100 萬時,建議投入 507,666 元"
+              ],
+              "caveat": "用歷史波動預測未來波動。波動會叢聚(平靜期後常接劇烈期),所以在市場由靜轉動的轉折點,這個方法會系統性低估風險。",
+              "reason": null
+            },
+            "kelly": {
+              "method": "kelly",
+              "label": "凱利公式",
+              "capital_fraction": null,
+              "risk_fraction": null,
+              "formula": null,
+              "steps": [],
+              "caveat": null,
+              "reason": "凱利值為負,代表此策略不具正期望值,不應投入資金"
+            },
+            "dynamic": {
+              "method": "dynamic",
+              "label": "動態部位",
+              "capital_fraction": 0.0,
+              "risk_fraction": null,
+              "multiplier": 0.0,
+              "formula": "最終資金比例 = 固定風險%基準 × 大盤環境乘數 × 回撤乘數 × 篩選乘數",
+              "steps": [
+                "基準(固定風險%)資金比例 = 0.2321",
+                "目前回撤等級 severe → ×0.0(停止新倉)",
+                "未通過該模式的硬性篩選 → ×0(不該進場)",
+                "最終資金比例 = 0.2321 × 0.00 = 0.0000"
+              ],
+              "caveat": "目前環境下建議不進場。這是刻意的:硬性條件沒過或已在深度回撤時,最好的部位大小就是零。",
+              "reason": null
+            }
+          },
+          "note": "資金比例乘上你的本金就是建議投入金額;建議股數 = 投入金額 ÷ 進場價(台股零股可買,不需湊整張)。本金只存在你的瀏覽器,系統不知道也不需要知道。"
+        },
+        "dimensions": {
+          "trend": {
+            "score": 70.0,
+            "weight": 0.3,
+            "reason": "均線多頭排列、ADX 20 盤整、MACD 柱狀體為正"
+          },
+          "momentum": {
+            "score": 60.0,
+            "weight": 0.2,
+            "reason": "RSI 87 過熱、5日動能 +19.0%、KD 黃金交叉方向"
+          },
+          "volume": {
+            "score": 90.0,
+            "weight": 0.1,
+            "reason": "爆量 6.5 倍"
+          },
+          "fundamental": {
+            "score": 50.0,
+            "weight": 0.25,
+            "reason": "基本面資料不足"
+          },
+          "risk": {
+            "score": 40.0,
+            "weight": 0.15,
+            "reason": "波動中等(ATR 2.2%)、歷史最大回撤 23.2% 偏大"
+          }
+        },
+        "passes_filters": false,
+        "filter_reasons": [
+          "ADX 20 低於門檻 25(趨勢不明確)"
+        ],
+        "levels": {
+          "entry_price": 5.88,
+          "stop_loss": 5.5,
+          "take_profit": 6.26,
+          "take_profit_1_5x": 6.45,
+          "stop_loss_pct": 6.45,
+          "take_profit_pct": 6.45,
+          "risk_reward": 1.0,
+          "reason": null
+        },
+        "reason": null
+      }
+    },
+    "risk_report": {
+      "r_multiple": {
+        "r_values": [
+          -0.41,
+          -1.04,
+          -0.59,
+          -0.79,
+          -1.37,
+          -1.38,
+          -0.98,
+          -1.14,
+          -0.52,
+          1.66,
+          3.64,
+          3.39,
+          -1.09,
+          0.46,
+          -0.3,
+          -0.38,
+          -0.3,
+          0.11,
+          0.03,
+          -0.03,
+          -0.25,
+          -0.55,
+          -0.41,
+          -0.25,
+          -0.42,
+          -0.14,
+          -0.28,
+          -0.43,
+          -0.53,
+          -0.51,
+          -0.26,
+          -0.42,
+          -0.37,
+          -0.2,
+          -0.48,
+          -0.34
+        ],
+        "avg_r": -0.19,
+        "max_r": 3.64,
+        "min_r": -1.38,
+        "total_r": -6.87,
+        "reason": null
+      },
+      "expected_value": {
+        "win_rate_pct": 16.7,
+        "avg_win_pct": 10.69,
+        "avg_loss_pct": 3.72,
+        "expected_value_pct": -1.316,
+        "is_tradeable": false,
+        "reason": "期望值為負或零,長期執行會虧損,不建議交易"
+      },
+      "kelly": {
+        "kelly_pct": -12.31,
+        "adjusted_kelly_pct": -6.15,
+        "fraction": 0.5,
+        "win_loss_ratio": 2.88,
+        "reason": "凱利值為負,代表此策略不具正期望值,不應投入資金"
+      },
+      "var": {
+        "var": {
+          "95": -8.25,
+          "99": -9.51
+        },
+        "cvar": {
+          "95": -9.49,
+          "99": -9.55
+        },
+        "n_trades": 36,
+        "reason": null
+      },
+      "drawdown_status": {
+        "level": "severe",
+        "current_drawdown_pct": 41.34,
+        "action": "回撤已達 41.3%(超過 30%),建議暫停新交易並全面檢視策略是否失效",
+        "reason": null
+      },
+      "based_on_strategy": "pullback",
+      "based_on_max_drawdown_pct": 40.34
+    },
+    "smart_money": {
+      "order_blocks": [
+        {
+          "direction": "bullish",
+          "zone_low": 4.89,
+          "zone_high": 4.95,
+          "formed_date": "2026-10-05",
+          "break_date": "2026-10-08",
+          "tested": false
+        },
+        {
+          "direction": "bullish",
+          "zone_low": 4.89,
+          "zone_high": 4.95,
+          "formed_date": "2026-10-05",
+          "break_date": "2026-10-06",
+          "tested": false
+        },
+        {
+          "direction": "bullish",
+          "zone_low": 4.59,
+          "zone_high": 4.65,
+          "formed_date": "2026-05-06",
+          "break_date": "2026-05-08",
+          "tested": false
+        }
+      ],
+      "fair_value_gaps": [
+        {
+          "direction": "bullish",
+          "zone_low": 5.21,
+          "zone_high": 5.5,
+          "formed_date": "2026-10-07"
+        },
+        {
+          "direction": "bullish",
+          "zone_low": 4.95,
+          "zone_high": 5.23,
+          "formed_date": "2026-10-06"
+        },
+        {
+          "direction": "bullish",
+          "zone_low": 4.66,
+          "zone_high": 4.87,
+          "formed_date": "2026-05-08"
+        }
+      ],
+      "power_of_three": {
+        "phase": "distribution",
+        "confidence": "medium",
+        "range_low": 4.94,
+        "range_high": 5.15,
+        "reason": "價格向上離開近20日區間且未收回,屬於走出方向的階段"
+      },
+      "errors": [],
+      "price_in_zones": []
+    },
+    "valuation": {
+      "pe_ratio": null,
+      "pb_ratio": null,
+      "dividend_yield_pct": null,
+      "as_of": null,
+      "reason": "無估值資料"
+    },
+    "data_quality": {
+      "ticker": "9103.TW",
+      "is_valid": true,
+      "issues": [],
+      "row_count": 182
+    },
+    "corporate_events": {
+      "upcoming_exdividend": null,
+      "recent_disclosures": []
+    },
+    "trident_signal": null,
+    "mg1_signal": false,
+    "mg1_chg_signed": 0.082928
+  }
+}

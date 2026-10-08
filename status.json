@@ -1,0 +1,111 @@
+{
+  "last_updated": "2026-10-08T22:08:31.943759+08:00",
+  "last_run": {
+    "available": true,
+    "started_utc": "2026-10-08T14:00:12.876965+00:00",
+    "completed": false,
+    "n_stage_success": 14,
+    "n_stage_failure": 0,
+    "failed_stages": [],
+    "slowest": [
+      {
+        "stage": "全市場分析",
+        "sec": 322.6
+      },
+      {
+        "stage": "今日發現掃描",
+        "sec": 85.8
+      },
+      {
+        "stage": "追蹤清單深度分析",
+        "sec": 63.9
+      }
+    ],
+    "total_sec": 499.0
+  },
+  "next_run": {
+    "available": true,
+    "nominal_utc": "2026-10-12T06:37:00+00:00",
+    "nominal_taipei": "2026-10-12 14:37",
+    "cron": "37 6 * * 1-5",
+    "skipped_holidays": [
+      "2026-10-09"
+    ],
+    "median_late_min": 149,
+    "p90_late_min": 392,
+    "caveat": "名目時間是 cron 排的，**GHA 實測中位遲到 149 分、p90 392 分**（M426）。外部觸發已於 M426 否決，M428 改用多排一個時段當保險。"
+  },
+  "ledgers": [
+    {
+      "file": "state_auction.json",
+      "label": "§21 收盤競價",
+      "note": "★ Phase 2 的分子從這一本數（M449）",
+      "available": true,
+      "open": 81,
+      "closed": 2,
+      "pending": 0,
+      "last_run_date": "2026-10-05"
+    },
+    {
+      "file": "state.json",
+      "label": "champion（舊機制）",
+      "note": "Fib 0.705 折價限價 —— §13.4 已否決，**不計入 Phase 2**",
+      "available": true,
+      "open": 22,
+      "closed": 66,
+      "pending": 30,
+      "last_run_date": "2026-10-08"
+    },
+    {
+      "file": "state_challenger.json",
+      "label": "challenger",
+      "note": "MG1（收盤競價，09-25 起）+ TV004（時鐘暫停中）",
+      "available": true,
+      "open": 95,
+      "closed": 12,
+      "pending": 0,
+      "last_run_date": "2026-10-08"
+    },
+    {
+      "file": "state_trident.json",
+      "label": "㉓ Trident",
+      "note": "PRE-REG §16 forward test",
+      "available": true,
+      "open": 48,
+      "closed": 22,
+      "pending": 5,
+      "last_run_date": "2026-10-08"
+    }
+  ],
+  "clocks": [
+    {
+      "label": "Challenger 時鐘（TV004）",
+      "paused_since": "2026-09-14",
+      "unlock_section": "PRE-REG §14.3"
+    }
+  ],
+  "audit_flags": [],
+  "audits_as_of": "2026-10-08 22:08",
+  "gate": {
+    "life_state": "stirring",
+    "n_mature_closed": 0,
+    "target_closed": 60,
+    "since": "2026-09-23",
+    "ledger": "state_auction.json (PRE-REG §21 收盤競價)",
+    "ledger_lag_days": 3
+  },
+  "health": {
+    "as_of": "2026-10-08T14:05:18.861872+00:00",
+    "summary": {
+      "universe_size": 616,
+      "succeeded": 616,
+      "failed": 0,
+      "success_rate": 1.0,
+      "data_quality_flag_count": 2
+    },
+    "n_fetch_failures": 0,
+    "n_quality_flags": 2
+  },
+  "missing": [],
+  "note": "這一頁**只讀不算** —— 每個數字都指向它的來源檔，不在這裡重新判斷任何事（重判會出現同一件事兩個答案）。"
+}
