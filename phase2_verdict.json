@@ -1,0 +1,401 @@
+{
+  "last_updated": "2026-10-16T12:03:14.516919+00:00",
+  "metadata": {
+    "data_version": "1.5",
+    "update_time": "2026-10-16T12:03:14.516919+00:00",
+    "source": "data/paper_trading/state.json",
+    "total_tracked": 76,
+    "total_succeeded": 76,
+    "missing_data": 0,
+    "status": "ok",
+    "analysis_type": "phase2_final_verdict_v1"
+  },
+  "n_real_closed_trades": 76,
+  "win_rate_pct": 19.7,
+  "strategy_breakdown": {
+    "pullback": 63,
+    "breakout": 13
+  },
+  "per_strategy": {
+    "breakout": {
+      "n": 13,
+      "insufficient": false,
+      "win_rate_pct": 15.4,
+      "expectancy_pct": -4.78,
+      "profit_factor": 0.08,
+      "sharpe_ratio": -7.661,
+      "sortino_ratio": -4.522
+    },
+    "pullback": {
+      "n": 63,
+      "insufficient": false,
+      "win_rate_pct": 20.6,
+      "expectancy_pct": -2.46,
+      "profit_factor": 0.29,
+      "sharpe_ratio": -2.541,
+      "sortino_ratio": -2.628
+    }
+  },
+  "cohort_maturity": {
+    "as_of": "2026-10-16",
+    "n_cohorts": 17,
+    "n_mature_cohorts": 6,
+    "any_mature": true,
+    "cohorts": {
+      "2026-09-03": {
+        "entered": 27,
+        "closed": 25,
+        "open": 2,
+        "max_hold": 30,
+        "days_elapsed": 43,
+        "mature": true
+      },
+      "2026-09-04": {
+        "entered": 11,
+        "closed": 11,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 42,
+        "mature": true
+      },
+      "2026-09-07": {
+        "entered": 8,
+        "closed": 7,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 39,
+        "mature": true
+      },
+      "2026-09-08": {
+        "entered": 10,
+        "closed": 7,
+        "open": 3,
+        "max_hold": 30,
+        "days_elapsed": 38,
+        "mature": true
+      },
+      "2026-09-09": {
+        "entered": 7,
+        "closed": 6,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 37,
+        "mature": true
+      },
+      "2026-09-10": {
+        "entered": 12,
+        "closed": 10,
+        "open": 2,
+        "max_hold": 30,
+        "days_elapsed": 36,
+        "mature": true
+      },
+      "2026-09-18": {
+        "entered": 1,
+        "closed": 1,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 28,
+        "mature": false
+      },
+      "2026-09-21": {
+        "entered": 1,
+        "closed": 1,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 25,
+        "mature": false
+      },
+      "2026-09-22": {
+        "entered": 1,
+        "closed": 1,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 24,
+        "mature": false
+      },
+      "2026-09-29": {
+        "entered": 1,
+        "closed": 0,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 17,
+        "mature": false
+      },
+      "2026-09-30": {
+        "entered": 2,
+        "closed": 2,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 16,
+        "mature": false
+      },
+      "2026-10-05": {
+        "entered": 1,
+        "closed": 0,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 11,
+        "mature": false
+      },
+      "2026-10-06": {
+        "entered": 3,
+        "closed": 2,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 10,
+        "mature": false
+      },
+      "2026-10-08": {
+        "entered": 3,
+        "closed": 1,
+        "open": 2,
+        "max_hold": 30,
+        "days_elapsed": 8,
+        "mature": false
+      },
+      "2026-10-12": {
+        "entered": 2,
+        "closed": 1,
+        "open": 1,
+        "max_hold": 30,
+        "days_elapsed": 4,
+        "mature": false
+      },
+      "2026-10-13": {
+        "entered": 1,
+        "closed": 1,
+        "open": 0,
+        "max_hold": 30,
+        "days_elapsed": 3,
+        "mature": false
+      },
+      "2026-10-15": {
+        "entered": 5,
+        "closed": 0,
+        "open": 5,
+        "max_hold": 30,
+        "days_elapsed": 1,
+        "mature": false
+      }
+    },
+    "sampling_bias": {
+      "available": true,
+      "price_date": "20261016",
+      "n_closed": 76,
+      "n_open_marked": 20,
+      "n_no_quote": 0,
+      "closed_only_mean_pct": -2.858,
+      "whole_book_mean_pct": -0.272,
+      "bias_pp": -2.586,
+      "closed_share_of_book": 0.7917,
+      "note": "closed_only 比 whole_book 低多少,就是只看已平倉會低估多少。未平倉那組只扣了進場端成本,所以這個差是**下限**。"
+    }
+  },
+  "phase2_scope": {
+    "scope": "breakout",
+    "exit_policy_since": "2026-09-12",
+    "n_in_scope": 10,
+    "n_excluded": {
+      "策略不在範圍": 63,
+      "出場政策切換前進場": 3
+    },
+    "basis": "PRE-REGISTRATION 第 12 節(2026-09-12 拍板 B + 甲),凍結時 breakout 已平倉 0 筆 —— 判準定在看到任何數字之前"
+  },
+  "verdict_valid": true,
+  "open_positions_at_analysis": 20,
+  "entry_date_range": [
+    "2026-09-03",
+    "2026-10-13"
+  ],
+  "exit_date_range": [
+    "2026-09-09",
+    "2026-10-16"
+  ],
+  "avg_hold_days": 8.09,
+  "strategy_actual_cumulative_return_pct": -90.01,
+  "advanced_metrics": {
+    "sharpe_ratio": -3.099,
+    "sortino_ratio": -2.956,
+    "calmar_ratio": -0.679,
+    "cagr_pct": -61.09,
+    "max_drawdown_pct": 90.0,
+    "recovery_factor": -1.0,
+    "profit_factor": 0.24,
+    "expectancy_pct": -2.86
+  },
+  "monte_carlo": {
+    "n_simulations": 1000,
+    "n_trades": 76,
+    "final_return_pct": {
+      "p5": -94.87,
+      "p25": -92.77,
+      "p50": -90.05,
+      "p75": -86.81,
+      "p95": -79.8
+    },
+    "max_drawdown_pct": {
+      "p50": 90.4,
+      "p95": 94.72
+    },
+    "probability_of_loss_pct": 100.0,
+    "reason": null
+  },
+  "benchmark": {
+    "criterion_12_4_4": {
+      "status": "UNDERFUNDED",
+      "available": true,
+      "reason": "76 筆訊號都開不成部位 —— 期末池子 17,867，單筆需要 23,400",
+      "pool_value_at_end": 17867.06,
+      "n_signals": 76,
+      "n_skipped": 76,
+      "skipped": [
+        {
+          "ticker": "1514.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2014.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2207.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-22",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2208.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2317.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2329.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2338.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-10-12",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2356.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-11",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2439.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-09",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2498.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-15",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2618.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2646.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2731.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "2915.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "3030.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-11",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "3416.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "3545.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-15",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "4968.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "6202.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-16",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        },
+        {
+          "ticker": "6477.TW",
+          "entry_date": "2026-09-03",
+          "exit_date": "2026-09-18",
+          "why": "池子 3,008 < 單筆 23,400（規則2）"
+        }
+      ],
+      "spec": "PRE-REG §24｜DCA 起 2026-08-26、3,000 × 6/16/26、非交易日順延｜單筆 23,400（§24.4 的 46,800 = 2 × 23,400 釘死）｜最多 2 檔｜規則4 的 20% 不套（ELSE 分支）｜未平倉不計｜不含除權息還原（低估 benchmark）",
+      "what": "PRE-REG 12.4 第 4 條（規則1 benchmark + §24 資金模型）｜三態 PASS / FAIL / UNDERFUNDED（未能檢驗 ≠ 通過）"
+    },
+    "taiex_buy_and_hold": {
+      "available": true,
+      "snapshot_file": "data/2026/10/20261016/raw/index_TWII.csv",
+      "window_start_used": "2026-09-03",
+      "window_end_used": "2026-10-16",
+      "window_end_target": "2026-10-16",
+      "truncated_before_target_end": false,
+      "index_close_start": 45857.66,
+      "index_close_end": 47111.26,
+      "index_return_pct_over_window": 2.73,
+      "what": "同期間單純持有 TAIEX(buy-and-hold)—— **參考用,不是 PRE-REG 12.4 第 4 條的判準**"
+    }
+  },
+  "honest_caveats": [
+    "樣本數僅76筆,遠低於一般統計上想對Sharpe/勝率下結論所需要的規模",
+    "**這支腳本每次重跑數字可能大幅跳動**:M111 首次 n=30 時 Sharpe≈0.26、profit_factor≈1.06(當時判為『訊號很弱』);M118 n=35 時 Sharpe≈1.4、profit_factor≈1.34。個位數的交易筆數變化就能讓風險調整後報酬翻幾倍——這本身就是樣本不足最直接的證據,任何單次數字都不該當成穩定估計。",
+    "進場日期集中在2026-09-03~2026-10-13、出場集中在2026-09-09~2026-10-16,實際只涵蓋約1.5~2週,不是路線圖要求的涵蓋多頭/空頭/盤整的跨regime驗證",
+    "策略分佈不均:{'pullback': 63, 'breakout': 13},結論實質上更接近其中筆數最多那個策略近期的表現。見 per_strategy 欄位的逐策略拆分。",
+    "**單一策略主導是結構性的,不會隨樣本數變多而改善**(M118 查證):pullback 條件(貼MA20 2%帶內+量縮)是全市場常態,breakout(創20日新高+爆量)很稀有,queue_pending_entries() 又對每個觸發訊號一律排隊(P0-41 刻意的全樣本設計)——所以 pending/open/closed 每個階段都是 pullback ≈ breakout 的 6~7 倍。等 ledger 長到 100 筆時仍會是 ~86% pullback,'等更多樣本' 解決不了跨策略/跨regime 覆蓋。",
+    "Benchmark比較是同期間簡單持有大盤的報酬率,不是CAPM Alpha/Beta迴歸(樣本期間不足20個重疊交易日,不夠做那個)",
+    "Monte Carlo bootstrap假設交易報酬互相獨立,但同一天進場的多筆交易可能有相關性,模擬出的合理範圍可能比實際樂觀",
+    "max_drawdown_pct/cagr_pct/calmar_ratio/recovery_factor跟monte_carlo都是用「訊號依序出現、每次全押、資金完全滾入下一筆」這個既有慣例(build_equity_curve()的簡化假設,原本是為了算單一股票自己的歷史訊號報酬設計的)去算——但這76筆是跨多檔股票的真實帳戶紀錄,真實帳戶當下同時持有20筆未平倉部位、每筆只佔一小部分資金,不是依序全押。所以這裡算出的cumulative_return/max_drawdown/monte_carlo機率,反映的是「如果把整個帳戶依序押在這76筆訊號上」的假設情境,不是真實帳戶實際經歷的損益曲線,數字會比真實風險誇大很多,不能直接拿來說「帳戶虧了多少」。win_rate/expectancy_pct/profit_factor/sharpe_ratio/sortino_ratio(逐筆為單位,不涉及資金滾入假設)比較能代表這76筆本身的品質。"
+  ],
+  "verdict": "尚不足以對「edge是否顯著優於benchmark」下結論。這76筆真實平倉的粗略數字(勝率19.7%、實際累積報酬-90.01%)已經算出來了,但樣本量、時間跨度、策略分佈都還沒有達到能下結論的門檻,見honest_caveats。GATE_AUDIT.md這一項判定應從「❌,卡在0筆真實成交」更新為「❌,已有初步資料但樣本仍不足,見docs/phase2_verdict.json」——判定本身不變,但理由要更新,不要繼續用過期的「0筆」說法。"
+}
