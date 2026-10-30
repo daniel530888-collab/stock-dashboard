@@ -1,0 +1,86 @@
+{
+  "power": {
+    "n_trades_ledger": 20316,
+    "years": 9.14,
+    "signals_per_year": 2222.0,
+    "assumed_fill_rate_per_year": 162.0,
+    "mean_pct": 0.6784,
+    "sd_pct": 16.862,
+    "pf": 1.15,
+    "sharpe_annualised": 0.165,
+    "min_pf": 1.2,
+    "min_sharpe": 0.3,
+    "n_required_c2": 2373,
+    "years_required_c2": 14.7,
+    "n_preregistered": 60,
+    "variance_between_day_pct": 19.5,
+    "pass_rate_by_n": {
+      "60": 7.0,
+      "100": 6.3,
+      "200": 12.1,
+      "400": 10.3
+    },
+    "note": "第②③條的聯合通過率,是**上限** —— 第⑤⑥條是再多的 AND。不是 Phase 2 判決,是對測驗本身的檢查,不改任何判準。"
+  },
+  "power_generated": "2026-09-14",
+  "fill": {
+    "n_signals": 20469,
+    "tiers": [
+      {
+        "discount_pct": 0.0,
+        "fill_rate_pct": 83.9,
+        "filled_net_pct": -0.572,
+        "missed_net_pct": 1.479,
+        "gap_pp": -2.051
+      },
+      {
+        "discount_pct": 1.0,
+        "fill_rate_pct": 63.8,
+        "filled_net_pct": -0.318,
+        "missed_net_pct": 1.012,
+        "gap_pp": -1.33
+      },
+      {
+        "discount_pct": 2.0,
+        "fill_rate_pct": 42.9,
+        "filled_net_pct": -0.222,
+        "missed_net_pct": 0.724,
+        "gap_pp": -0.946
+      },
+      {
+        "discount_pct": 4.0,
+        "fill_rate_pct": 17.7,
+        "filled_net_pct": -0.442,
+        "missed_net_pct": 0.633,
+        "gap_pp": -1.076
+      },
+      {
+        "discount_pct": 6.2,
+        "fill_rate_pct": 6.9,
+        "filled_net_pct": -0.576,
+        "missed_net_pct": 0.577,
+        "gap_pp": -1.153
+      },
+      {
+        "discount_pct": 8.0,
+        "fill_rate_pct": 3.7,
+        "filled_net_pct": -0.327,
+        "missed_net_pct": 0.548,
+        "gap_pp": -0.874
+      }
+    ],
+    "measured_discount_pct": 6.2,
+    "measured_fill_rate_live_pct": 5.9,
+    "measured_live_basis": "決策快照 09-02~09-09 共 6 個交易日:breakout 訊號 68 筆 → 成交 4 筆",
+    "decomposition": {
+      "A_entry_close_bars_T1": 0.783,
+      "B_bars_T2": 0.767,
+      "C_filled_only": -0.283,
+      "C_missed_counterfactual": 0.616,
+      "bookkeeping_pp": -0.016,
+      "selection_pp": -1.05
+    },
+    "note": "反事實用 T+1 收盤進場,是上限不是可得報酬(市價追的滑價更差)。不改進場規則(PRE-REG 12.6 凍結),不是 Phase 2 判決。"
+  },
+  "fill_generated": "2026-09-14"
+}

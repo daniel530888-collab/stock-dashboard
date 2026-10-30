@@ -1,0 +1,228 @@
+{
+  "last_updated": "2026-10-30T13:37:33",
+  "metadata": {
+    "what": "各實驗進度總覽。**只報告既有帳本與預註冊判準，不做任何新統計。**",
+    "why_no_score": "不給加權總分 —— 加權需要權重，而權重沒有客觀依據，那會做出一個看起來精確、實際上是我們捏的數字（沿用 progress_stage.py 的立場）。",
+    "why_no_ranking": "不排名 —— 各實驗的判準、樣本期、出場都不同，排名是範疇錯誤。",
+    "k_untouched": "本支不吃 k（純報告，不是新假設）。"
+  },
+  "ledgers": [
+    {
+      "key": "auction",
+      "file": "state_auction.json",
+      "label": "§21 收盤集合競價 breakout",
+      "prereg": "§21（進場）+ §12.4（判準七條）",
+      "gate": "60 筆**成熟**已平倉 breakout 或 2027-03-12，先到先跑",
+      "is_phase2": true,
+      "note": "Phase 2 唯一算數的那本。成熟 = **進場日滿 30 天**，不是「已平倉」。",
+      "n_open": 78,
+      "n_closed": 147,
+      "n_pending": 0,
+      "strategies": {
+        "breakout": 225
+      },
+      "n_mature_closed": 44,
+      "last_run_date": "2026-10-29",
+      "entry_date_range": [
+        "2026-09-23",
+        "2026-10-29"
+      ],
+      "n_entry_days": 21,
+      "blocked_strategies": {}
+    },
+    {
+      "key": "champion",
+      "file": "state.json",
+      "label": "champion（舊機制）",
+      "prereg": "§13.4 已否決「任何形式的限價單」",
+      "gate": "不適用 —— 不計入 Phase 2",
+      "is_phase2": false,
+      "note": "進場走 Fib 0.705 折價限價，**已被 §17 否決**（實測成交率 6.9%、逆選擇 −1.05pp）。~70% 是 pullback（n=51,430 實測無 edge，同濾網隨機當虛無時還差 0.49pp）。**它的報酬數字不構成任何判準的證據。**",
+      "n_open": 10,
+      "n_closed": 101,
+      "n_pending": 3,
+      "strategies": {
+        "pullback": 71,
+        "breakout": 40
+      },
+      "n_mature_closed": null,
+      "last_run_date": "2026-10-30",
+      "entry_date_range": [
+        "2026-09-03",
+        "2026-10-30"
+      ],
+      "n_entry_days": 21,
+      "blocked_strategies": {
+        "pullback": {
+          "status": "quarantined",
+          "since": "2026-09-10"
+        }
+      }
+    },
+    {
+      "key": "challenger",
+      "file": "state_challenger.json",
+      "label": "challenger（MG1 融資餘額變動）",
+      "prereg": "§10.2（觀察判準，2026-09-11 凍結）",
+      "gate": "地板每筆淨 +0.90%；連續 40 筆平倉的移動平均跌破 → 停止並重新檢討",
+      "is_phase2": false,
+      "note": "§10.6 明寫「與 Phase 2 無關、獨立 state」。2026-10-20 第一個檢視點觸發（滾動 40 筆 −5.015%，離地板 5.9pp）→ 已 quarantined（M573）。**§10.2 說的是「停止**並**重新檢討」，目前只做了停止。**",
+      "n_open": 142,
+      "n_closed": 82,
+      "n_pending": 1,
+      "strategies": {
+        "mg1_margin_shift": 224
+      },
+      "n_mature_closed": null,
+      "last_run_date": "2026-10-30",
+      "entry_date_range": [
+        "2026-10-05",
+        "2026-10-20"
+      ],
+      "n_entry_days": 10,
+      "blocked_strategies": {
+        "mg1_margin_shift": {
+          "status": "quarantined",
+          "since": "2026-10-20"
+        }
+      }
+    },
+    {
+      "key": "trident",
+      "file": "state_trident.json",
+      "label": "trident",
+      "prereg": "見 docs/trident.json 的 pre_registration 欄位",
+      "gate": "見同檔的 bonferroni_k / significance_threshold",
+      "is_phase2": false,
+      "note": "",
+      "n_open": 55,
+      "n_closed": 69,
+      "n_pending": 3,
+      "strategies": {
+        "(無 strategy 欄位)": 124
+      },
+      "n_mature_closed": null,
+      "last_run_date": "2026-10-30",
+      "entry_date_range": [
+        "2026-09-18",
+        "2026-10-30"
+      ],
+      "n_entry_days": 24,
+      "blocked_strategies": {}
+    },
+    {
+      "key": "v1_archived",
+      "file": "state_v1.json",
+      "label": "v1（M156 之前，已封存）",
+      "prereg": "—",
+      "gate": "不適用 —— 已封存",
+      "is_phase2": false,
+      "note": "M156 換出場邏輯時封存，**不再更新**。只能拿來對照「換出場前後」。",
+      "n_open": 112,
+      "n_closed": 55,
+      "n_pending": 291,
+      "strategies": {
+        "pullback": 155,
+        "breakout": 12
+      },
+      "n_mature_closed": null,
+      "last_run_date": "2026-09-01",
+      "entry_date_range": [
+        "2026-08-17",
+        "2026-09-01"
+      ],
+      "n_entry_days": 12,
+      "blocked_strategies": {
+        "pullback": {
+          "status": "quarantined",
+          "since": "2026-09-10"
+        }
+      }
+    }
+  ],
+  "hypotheses": {
+    "n_registered": 38,
+    "n_active": 0,
+    "by_status": {
+      "proxy_only": 3,
+      "available": 28,
+      "needs_definition": 4,
+      "retired": 3
+    },
+    "bonferroni_k": 38,
+    "significance_threshold": 0.0013158,
+    "note": "k 就是這份 registry 的**行數**（append-only，只增不減）。`tests/test_prereg_k_matches_registry.py` 釘住它跟 PRE-REG 手寫的 k 必須是同一個數字。**active 目前是 0** —— M134 那批 13 條結案後沒有新假設上線，而登記 ≠ 上線：燈號是 research-only（M125 §2.1），不接進交易。",
+    "recent": [
+      {
+        "id": "MG3",
+        "short_label": "融資方向·forward",
+        "status": "available",
+        "registered_at": "2026-10-06T14:38:35Z",
+        "active": false
+      },
+      {
+        "id": "MG2",
+        "short_label": "融資暴增·上櫃",
+        "status": "available",
+        "registered_at": "2026-10-06T10:08:11Z",
+        "active": false
+      },
+      {
+        "id": "TD1",
+        "short_label": "計數反轉·Setup 9",
+        "status": "retired",
+        "registered_at": "2026-09-26T12:57:40Z",
+        "active": false
+      },
+      {
+        "id": "TRI1",
+        "short_label": "ABC 回撤·0.25 觸發",
+        "status": "available",
+        "registered_at": "2026-09-17T03:03:21Z",
+        "active": false
+      },
+      {
+        "id": "EXT1",
+        "short_label": "外圍風險·隔夜",
+        "status": "retired",
+        "registered_at": "2026-09-14T11:43:05Z",
+        "active": false
+      },
+      {
+        "id": "MG1",
+        "short_label": "融資異動·幅度",
+        "status": "available",
+        "registered_at": "2026-09-11T08:13:01Z",
+        "active": false
+      },
+      {
+        "id": "TV011",
+        "short_label": "趨勢盤·自適應翻多",
+        "status": "retired",
+        "registered_at": "2026-09-11T01:43:19Z",
+        "active": false
+      },
+      {
+        "id": "HARM1",
+        "short_label": "諧波三推",
+        "status": "available",
+        "registered_at": "2026-09-10T08:01:25Z",
+        "active": false
+      },
+      {
+        "id": "IF001",
+        "short_label": "投信連買",
+        "status": "available",
+        "registered_at": "2026-09-10T07:28:28Z",
+        "active": false
+      },
+      {
+        "id": "IF002",
+        "short_label": "外資大買",
+        "status": "available",
+        "registered_at": "2026-09-10T07:28:28Z",
+        "active": false
+      }
+    ]
+  }
+}
