@@ -1,0 +1,124 @@
+{
+  "last_updated": "2026-11-07T00:47:39.534232+08:00",
+  "last_run": {
+    "available": true,
+    "started_utc": "2026-11-06T16:44:25.594584+00:00",
+    "completed": null,
+    "completed_unknowable": "本檔由 pipeline 的最後一個 stage 寫出,而 pipeline_complete 在它之後才寫 —— 所以「這一跑完成了嗎」在這裡結構上答不出來。要看 pipeline 有沒有正常跑完,讀 prev_run。",
+    "prev_run": {
+      "available": true,
+      "started_utc": "2026-11-06T14:37:30.074134+00:00",
+      "completed": true,
+      "aborted": false,
+      "n_stage_success": 16,
+      "n_stage_failure": 0,
+      "failed_stages": []
+    },
+    "n_stage_success": 15,
+    "n_stage_failure": 0,
+    "failed_stages": [],
+    "slowest": [
+      {
+        "stage": "全市場分析",
+        "sec": 122.7
+      },
+      {
+        "stage": "今日發現掃描",
+        "sec": 33.3
+      },
+      {
+        "stage": "追蹤清單深度分析",
+        "sec": 12.6
+      }
+    ],
+    "total_sec": 193.9
+  },
+  "next_run": {
+    "available": true,
+    "nominal_utc": "2026-11-09T06:37:00+00:00",
+    "nominal_taipei": "2026-11-09 14:37",
+    "cron": "37 6 * * 1-5",
+    "skipped_holidays": [],
+    "median_late_min": 149,
+    "p90_late_min": 392,
+    "caveat": "名目時間是 cron 排的，**GHA 實測中位遲到 149 分、p90 392 分**（M426）。外部觸發已於 M426 否決，M428 改用多排一個時段當保險。"
+  },
+  "ledgers": [
+    {
+      "file": "state_auction.json",
+      "label": "§21 收盤競價",
+      "note": "★ Phase 2 的分子從這一本數（M449）",
+      "available": true,
+      "open": 45,
+      "closed": 135,
+      "pending": 0,
+      "last_run_date": "2026-11-03"
+    },
+    {
+      "file": "state.json",
+      "label": "champion（舊機制）",
+      "note": "Fib 0.705 折價限價 —— §13.4 已否決，**不計入 Phase 2**",
+      "available": true,
+      "open": 5,
+      "closed": 109,
+      "pending": 3,
+      "last_run_date": "2026-11-06"
+    },
+    {
+      "file": "state_challenger.json",
+      "label": "challenger",
+      "note": "MG1（收盤競價，09-25 起）+ TV004（時鐘暫停中）",
+      "available": true,
+      "open": 61,
+      "closed": 163,
+      "pending": 0,
+      "last_run_date": "2026-11-06"
+    },
+    {
+      "file": "state_trident.json",
+      "label": "㉓ Trident",
+      "note": "PRE-REG §16 forward test",
+      "available": true,
+      "open": 13,
+      "closed": 118,
+      "pending": 0,
+      "last_run_date": "2026-11-06"
+    }
+  ],
+  "clocks": [
+    {
+      "label": "Challenger 時鐘（TV004）",
+      "paused_since": "2026-09-14",
+      "unlock_section": "PRE-REG §14.3"
+    }
+  ],
+  "audit_flags": [
+    "**策略衰退**:['champion/breakout']",
+    "衰退**判不了**(出場日太集中):['challenger/mg1_margin_shift(期望值 -15.79%,但只有 1 個出場日)']",
+    "**1 個 commit 違規**（事後稽核，跟 hook 有沒有掛上無關）:6d1fcc62 判決類檔案沒有 `Owner-Approved:`:['data/twse_margin/2016/20160912.j"
+  ],
+  "audits_as_of": "2026-11-07 00:47",
+  "gate": {
+    "life_state": "awaiting",
+    "n_mature_closed": 84,
+    "target_closed": 60,
+    "since": "2026-09-23",
+    "ledger": "state_auction.json (PRE-REG §21 收盤競價)",
+    "ledger_lag_days": 3
+  },
+  "health": {
+    "as_of": "2026-11-06T16:46:34.811989+00:00",
+    "summary": {
+      "universe_size": 655,
+      "succeeded": 655,
+      "failed": 0,
+      "success_rate": 1.0,
+      "data_quality_flag_count": 2
+    },
+    "n_fetch_failures": 0,
+    "n_quality_flags": 2
+  },
+  "missing": [],
+  "nontrading_weekdays_ahead": [],
+  "note": "這一頁**只讀不算** —— 每個數字都指向它的來源檔，不在這裡重新判斷任何事（重判會出現同一件事兩個答案）。"
+}
