@@ -1,0 +1,595 @@
+{
+  "pre_registration": "PRE-REGISTRATION.md 第 15 節(凍結於跑第一次之前)",
+  "primary": {
+    "x": "^SOX",
+    "y": "y1_open_to_close"
+  },
+  "band_pct": 1.0,
+  "cost_pct": 0.771,
+  "alpha": 0.0014705882352941176,
+  "n_days": 2428,
+  "span": [
+    "2016-09-19",
+    "2026-09-14"
+  ],
+  "tests": [
+    {
+      "x": "^SOX",
+      "y": "y1_open_to_close",
+      "n": 2428,
+      "n_risk_off": 587,
+      "n_mid": 1103,
+      "n_risk_on": 738,
+      "mean_risk_off_pct": -0.3326,
+      "mean_mid_pct": 0.0431,
+      "mean_risk_on_pct": 0.2217,
+      "gap_pct": -0.5544,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.3942,
+      "gap_oos_pct": -0.8954,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.41949472261793963
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.7236864314598834
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.6795919952990368
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "primary"
+    },
+    {
+      "x": "^GSPC",
+      "y": "y1_open_to_close",
+      "n": 2428,
+      "n_risk_off": 259,
+      "n_mid": 1849,
+      "n_risk_on": 320,
+      "mean_risk_off_pct": -0.4279,
+      "mean_mid_pct": 0.0198,
+      "mean_risk_on_pct": 0.2816,
+      "gap_pct": -0.7095,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.5381,
+      "gap_oos_pct": -1.1837,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.5619453121755715
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.9565694297837393
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.7290515265533789
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^IXIC",
+      "y": "y1_open_to_close",
+      "n": 2428,
+      "n_risk_off": 376,
+      "n_mid": 1586,
+      "n_risk_on": 466,
+      "mean_risk_off_pct": -0.3931,
+      "mean_mid_pct": 0.0268,
+      "mean_risk_on_pct": 0.26,
+      "gap_pct": -0.6531,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.4865,
+      "gap_oos_pct": -1.0534,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.5237657048159956
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.7079380730524196
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.7824405528630904
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^N225",
+      "y": "y1_open_to_close",
+      "n": 2428,
+      "n_risk_off": 370,
+      "n_mid": 1634,
+      "n_risk_on": 424,
+      "mean_risk_off_pct": -0.1163,
+      "mean_mid_pct": 0.0096,
+      "mean_risk_on_pct": 0.1021,
+      "gap_pct": -0.2185,
+      "bootstrap_p": 0.0014,
+      "gap_in_sample_pct": -0.1803,
+      "gap_oos_pct": -0.2845,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.119353097795494
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.3855261418216556
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.26367711378578335
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^KS11",
+      "y": "y1_open_to_close",
+      "n": 2426,
+      "n_risk_off": 351,
+      "n_mid": 1661,
+      "n_risk_on": 414,
+      "mean_risk_off_pct": -0.1029,
+      "mean_mid_pct": 0.0045,
+      "mean_risk_on_pct": 0.1031,
+      "gap_pct": -0.206,
+      "bootstrap_p": 0.0052,
+      "gap_in_sample_pct": -0.1405,
+      "gap_oos_pct": -0.2939,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.1353085355692937
+        },
+        "盤整": {
+          "n": 465,
+          "gap_pct": -0.22365648096779062
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.26186865309919927
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": false,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^SOX",
+      "y": "y2_close_to_close",
+      "n": 2428,
+      "n_risk_off": 587,
+      "n_mid": 1103,
+      "n_risk_on": 738,
+      "mean_risk_off_pct": -0.694,
+      "mean_mid_pct": 0.1165,
+      "mean_risk_on_pct": 0.6229,
+      "gap_pct": -1.3169,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -1.061,
+      "gap_oos_pct": -1.8546,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -1.090987716244001
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -1.486478085286588
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -1.6292670910498392
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": true,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": true,
+      "role": "exploratory"
+    },
+    {
+      "x": "^GSPC",
+      "y": "y2_close_to_close",
+      "n": 2428,
+      "n_risk_off": 259,
+      "n_mid": 1849,
+      "n_risk_on": 320,
+      "mean_risk_off_pct": -0.9386,
+      "mean_mid_pct": 0.0947,
+      "mean_risk_on_pct": 0.7772,
+      "gap_pct": -1.7158,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -1.4253,
+      "gap_oos_pct": -2.5168,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -1.458564877051996
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -2.0472678288462496
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -1.8238059525570693
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": true,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": true,
+      "role": "exploratory"
+    },
+    {
+      "x": "^IXIC",
+      "y": "y2_close_to_close",
+      "n": 2428,
+      "n_risk_off": 376,
+      "n_mid": 1586,
+      "n_risk_on": 466,
+      "mean_risk_off_pct": -0.8416,
+      "mean_mid_pct": 0.0943,
+      "mean_risk_on_pct": 0.7459,
+      "gap_pct": -1.5876,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -1.3084,
+      "gap_oos_pct": -2.2452,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -1.3821485508152727
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -1.5874449330665834
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -1.849694452754688
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": true,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": true,
+      "role": "exploratory"
+    },
+    {
+      "x": "^N225",
+      "y": "y2_close_to_close",
+      "n": 2428,
+      "n_risk_off": 370,
+      "n_mid": 1634,
+      "n_risk_on": 424,
+      "mean_risk_off_pct": -0.0613,
+      "mean_mid_pct": 0.0739,
+      "mean_risk_on_pct": 0.1951,
+      "gap_pct": -0.2564,
+      "bootstrap_p": 0.0044,
+      "gap_in_sample_pct": -0.265,
+      "gap_oos_pct": -0.2453,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.09139345816609179
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.37631113699509655
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.44794952555579876
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": false,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^KS11",
+      "y": "y2_close_to_close",
+      "n": 2426,
+      "n_risk_off": 351,
+      "n_mid": 1661,
+      "n_risk_on": 414,
+      "mean_risk_off_pct": -0.0449,
+      "mean_mid_pct": 0.0711,
+      "mean_risk_on_pct": 0.1825,
+      "gap_pct": -0.2274,
+      "bootstrap_p": 0.0222,
+      "gap_in_sample_pct": -0.1821,
+      "gap_oos_pct": -0.2718,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.1373523129710278
+        },
+        "盤整": {
+          "n": 465,
+          "gap_pct": -0.182064840946808
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.30677957355908897
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": false,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^SOX",
+      "y": "y3_gap",
+      "n": 2428,
+      "n_risk_off": 587,
+      "n_mid": 1103,
+      "n_risk_on": 738,
+      "mean_risk_off_pct": -0.3645,
+      "mean_mid_pct": 0.0728,
+      "mean_risk_on_pct": 0.3992,
+      "gap_pct": -0.7637,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.6679,
+      "gap_oos_pct": -0.9612,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.6716919340898576
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.7648282875592785
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.9507969619722858
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^GSPC",
+      "y": "y3_gap",
+      "n": 2428,
+      "n_risk_off": 259,
+      "n_mid": 1849,
+      "n_risk_on": 320,
+      "mean_risk_off_pct": -0.5159,
+      "mean_mid_pct": 0.0741,
+      "mean_risk_on_pct": 0.4924,
+      "gap_pct": -1.0083,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.889,
+      "gap_oos_pct": -1.3363,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.8967794915572695
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -1.0916005487226572
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -1.0982959369610996
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": true,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": true,
+      "role": "exploratory"
+    },
+    {
+      "x": "^IXIC",
+      "y": "y3_gap",
+      "n": 2428,
+      "n_risk_off": 376,
+      "n_mid": 1586,
+      "n_risk_on": 466,
+      "mean_risk_off_pct": -0.4525,
+      "mean_mid_pct": 0.0668,
+      "mean_risk_on_pct": 0.4833,
+      "gap_pct": -0.9359,
+      "bootstrap_p": 0.0,
+      "gap_in_sample_pct": -0.823,
+      "gap_oos_pct": -1.1942,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.8584564139511707
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": -0.8805736090643874
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -1.069488097791881
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": true,
+        "③bootstrap p < 0.00147": true,
+        "④OOS 方向一致": true,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": true,
+      "role": "exploratory"
+    },
+    {
+      "x": "^N225",
+      "y": "y3_gap",
+      "n": 2428,
+      "n_risk_off": 370,
+      "n_mid": 1634,
+      "n_risk_on": 424,
+      "mean_risk_off_pct": 0.0509,
+      "mean_mid_pct": 0.0632,
+      "mean_risk_on_pct": 0.0916,
+      "gap_pct": -0.0406,
+      "bootstrap_p": 0.1922,
+      "gap_in_sample_pct": -0.0856,
+      "gap_oos_pct": 0.0333,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": 0.02828750138948148
+        },
+        "盤整": {
+          "n": 467,
+          "gap_pct": 0.00432714222568345
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.19062013389854549
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": false,
+        "④OOS 方向一致": false,
+        "⑤至少兩種 regime 成立": false
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    },
+    {
+      "x": "^KS11",
+      "y": "y3_gap",
+      "n": 2426,
+      "n_risk_off": 351,
+      "n_mid": 1661,
+      "n_risk_on": 414,
+      "mean_risk_off_pct": 0.0537,
+      "mean_mid_pct": 0.0654,
+      "mean_risk_on_pct": 0.0782,
+      "gap_pct": -0.0244,
+      "bootstrap_p": 0.3024,
+      "gap_in_sample_pct": -0.0428,
+      "gap_oos_pct": 0.0159,
+      "by_regime": {
+        "多頭": {
+          "n": 1453,
+          "gap_pct": -0.001999697936094308
+        },
+        "盤整": {
+          "n": 465,
+          "gap_pct": 0.03729157585961406
+        },
+        "空頭": {
+          "n": 508,
+          "gap_pct": -0.05170357738104947
+        }
+      },
+      "checks": {
+        "①方向(risk-off 較差)": true,
+        "②幅度 > 成本 0.771%": false,
+        "③bootstrap p < 0.00147": false,
+        "④OOS 方向一致": false,
+        "⑤至少兩種 regime 成立": true
+      },
+      "all_passed": false,
+      "role": "exploratory"
+    }
+  ],
+  "verdict": {
+    "passed": false,
+    "light": "🔴",
+    "failed": [
+      "②幅度 > 成本 0.771%"
+    ],
+    "text": "🔴 **假設證偽**(PRE-REG 15.6:五條全過才算)。沒過的:\n     ❌ ②幅度 > 成本 0.771%\n   → **「盤前風險閘門」提案連帶否決**,不是「再研究看看」。\n   外圍那五個指數維持對照組定位(只顯示、不驅動決策)。"
+  }
+}
