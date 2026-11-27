@@ -1,0 +1,123 @@
+{
+  "last_updated": "2026-11-27T14:49:08.483933+08:00",
+  "last_run": {
+    "available": true,
+    "started_utc": "2026-11-27T06:45:00.786608+00:00",
+    "completed": null,
+    "completed_unknowable": "本檔由 pipeline 的最後一個 stage 寫出,而 pipeline_complete 在它之後才寫 —— 所以「這一跑完成了嗎」在這裡結構上答不出來。要看 pipeline 有沒有正常跑完,讀 prev_run。",
+    "prev_run": {
+      "available": true,
+      "started_utc": "2026-11-26T06:42:57.743043+00:00",
+      "completed": true,
+      "aborted": false,
+      "n_stage_success": 16,
+      "n_stage_failure": 0,
+      "failed_stages": []
+    },
+    "n_stage_success": 15,
+    "n_stage_failure": 0,
+    "failed_stages": [],
+    "slowest": [
+      {
+        "stage": "全市場分析",
+        "sec": 138.8
+      },
+      {
+        "stage": "今日發現掃描",
+        "sec": 46.4
+      },
+      {
+        "stage": "每日稽核",
+        "sec": 22.1
+      }
+    ],
+    "total_sec": 247.7
+  },
+  "next_run": {
+    "available": true,
+    "nominal_utc": "2026-11-30T06:37:00+00:00",
+    "nominal_taipei": "2026-11-30 14:37",
+    "cron": "37 6 * * 1-5",
+    "skipped_holidays": [],
+    "median_late_min": 149,
+    "p90_late_min": 392,
+    "caveat": "名目時間是 cron 排的，**GHA 實測中位遲到 149 分、p90 392 分**（M426）。外部觸發已於 M426 否決，M428 改用多排一個時段當保險。"
+  },
+  "ledgers": [
+    {
+      "file": "state_auction.json",
+      "label": "§21 收盤競價",
+      "note": "★ Phase 2 的分子從這一本數（M449）",
+      "available": true,
+      "open": 5,
+      "closed": 191,
+      "pending": 0,
+      "last_run_date": "2026-11-25"
+    },
+    {
+      "file": "state.json",
+      "label": "champion（舊機制）",
+      "note": "Fib 0.705 折價限價 —— §13.4 已否決，**不計入 Phase 2**",
+      "available": true,
+      "open": 0,
+      "closed": 114,
+      "pending": 1,
+      "last_run_date": "2026-11-27"
+    },
+    {
+      "file": "state_challenger.json",
+      "label": "challenger",
+      "note": "MG1（收盤競價，09-25 起）+ TV004（時鐘暫停中）",
+      "available": true,
+      "open": 8,
+      "closed": 216,
+      "pending": 0,
+      "last_run_date": "2026-11-27"
+    },
+    {
+      "file": "state_trident.json",
+      "label": "㉓ Trident",
+      "note": "PRE-REG §16 forward test",
+      "available": true,
+      "open": 4,
+      "closed": 137,
+      "pending": 1,
+      "last_run_date": "2026-11-27"
+    }
+  ],
+  "clocks": [
+    {
+      "label": "Challenger 時鐘（TV004）",
+      "paused_since": "2026-09-14",
+      "unlock_section": "PRE-REG §14.3"
+    }
+  ],
+  "audit_flags": [],
+  "audits_as_of": "2026-11-27 14:48",
+  "gate": {
+    "life_state": "awaiting",
+    "n_mature_closed": 176,
+    "target_closed": 60,
+    "since": "2026-09-23",
+    "ledger": "state_auction.json (PRE-REG §21 收盤競價)",
+    "ledger_lag_days": 2
+  },
+  "health": {
+    "as_of": "2026-11-27T06:47:29.345602+00:00",
+    "summary": {
+      "universe_size": 552,
+      "succeeded": 552,
+      "failed": 0,
+      "success_rate": 1.0,
+      "data_quality_flag_count": 1
+    },
+    "n_fetch_failures": 0,
+    "n_quality_flags": 1
+  },
+  "missing": [],
+  "nontrading_weekdays_ahead": [
+    "2026-12-25",
+    "2027-01-01"
+  ],
+  "note": "這一頁**只讀不算** —— 每個數字都指向它的來源檔，不在這裡重新判斷任何事（重判會出現同一件事兩個答案）。"
+}

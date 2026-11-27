@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- M124(2026-08-28):失敗案例已併進「覆盤與除錯中心」。這頁保留是為了舊書籤/
+     直接連結不 404,開啟時自動轉到 review.html 的失敗案例區塊。
+
+     M482(2026-09-29):砍成純轉址頁。原本 335 行裡有 5,744 字的 <style>、
+     4,897 字的 <script>、以及整份舊版失敗案例頁的 DOM ——
+     **全部在 0 秒轉址後面,永遠不會被任何人看到**,卻要跟著全站一起維護:
+     它正是 2026-09-29 掃「移動停損」時命中的 5 個頁面之一
+     (一份沒人看得到的 EXIT_LABEL 對照表)。
+     沒人看的程式碼還是會被 grep 命中、還是會讓人誤以為要改。
+
+     這頁刻意**不連 Google Fonts、不吃任何 JSON** —— 轉址頁需要的東西只有
+     一個 meta 跟一個手動連結。樣式內嵌到夠用為止,讓極少數
+     meta refresh 被停用的情況下畫面不會是裸的白底黑字。 -->
+<meta http-equiv="refresh" content="0; url=./review.html#sec-failures">
+<title>失敗案例集 → 覆盤與除錯中心</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; color: #F2F0EA;
+    font-family: 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+    line-height: 1.7; padding: 24px;
+  }
+  .box { max-width: 30rem; text-align: center; }
+  h1 { font-size: 1.1rem; font-weight: 600; margin: 0 0 12px; }
+  p { color: #9C9A93; font-size: 0.9rem; margin: 0; }
+  a { color: #CBBFA8; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>「失敗案例」已整合進<a href="./review.html#sec-failures">覆盤與除錯中心</a></h1>
+    <p>正在為你轉過去。如果沒有自動跳轉，<a href="./review.html#sec-failures">點這裡</a>。</p>
+  </div>
+</body>
+</html>

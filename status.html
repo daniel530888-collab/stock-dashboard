@@ -1,0 +1,825 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系統現在在幹嘛</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #000; --bg-card: #0D0D0D; --bg-hover: #141414;
+    --text-primary: #F2F0EA; --text-secondary: #9C9A93; --text-muted: #898781;
+    --gold: #CBBFA8; --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    /* 圖表用色：dataviz 參考色的深色階，在 #0D0D0D 上跑過 validate_palette.js。
+       網站原本的 ok/warn 綠黃在紅綠色弱下 ΔE 只有 5.2，所以狀態一律「圖示＋文字」，顏色只是第三層。 */
+    --grid: #2c2c2a; --axis: #383835;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    --series-dim: #4a4945; --neg: #e66767;
+    --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+    --font-text: 'IBM Plex Sans', 'Noto Sans TC', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans TC', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-page); color: var(--text-primary);
+    font-family: var(--font-text); line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 2rem; }
+  .topbar { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 13px;
+    color: var(--text-secondary); text-decoration: none;
+  }
+  .back-link:hover { color: var(--gold); }
+  header.hero { padding: 2rem 0 1.4rem; border-bottom: 1px solid var(--border); position: relative; }
+  header.hero::after {
+    content: ''; position: absolute; bottom: -1px; left: 0;
+    width: 48px; height: 2px; background: var(--gold);
+  }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.5rem;
+  }
+  h1 { font-size: 30px; font-weight: 700; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); font-size: 13.5px; margin: 0; max-width: 700px; }
+  section { padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+  section h2 {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 0.9rem; font-weight: 600;
+  }
+  .grid { display: grid; gap: 8px; }
+  .row {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.75rem 0.95rem;
+  }
+  .row.bad { border-color: rgba(208,59,59,0.5); }
+  .row.warn { border-color: rgba(250,178,25,0.35); }
+  .k { font-size: 12px; color: var(--text-muted); margin: 0; }
+  .v { font-size: 20px; font-weight: 600; margin: 0; }
+  .v.sm { font-size: 15px; }
+  .note { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 0; }
+  .note b { color: var(--text-primary); }
+  .cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .star { color: var(--gold); }
+  .mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+  footer { padding: 1.4rem 0 3rem; }
+  .empty { color: var(--text-muted); font-size: 13.5px; padding: 0.6rem 0; margin: 0; }
+  .empty b { color: var(--text-secondary); }
+
+  /* ── 狀態徽章：圖示＋文字，顏色只是第三層 */
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-primary); }
+  .badge i {
+    font-style: normal; width: 17px; height: 17px; border-radius: 50%; flex: none;
+    display: inline-grid; place-items: center; font-size: 10.5px; font-weight: 700;
+    color: #fff; background: var(--good);
+  }
+  .b-warning i { background: var(--warning); color: #0b0b0b; }
+  .b-critical i { background: var(--critical); }
+  .b-muted i { background: var(--series-dim); color: var(--text-primary); }
+
+  /* ── 一眼看懂：四格 */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding: 1.4rem 0 0.4rem; }
+  .tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; }
+  .tile .v { font-size: 28px; line-height: 1.25; margin: 2px 0 6px; }
+  .tile-line { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; color: var(--text-secondary); }
+  .tile-line .meter { flex: 1 1 100%; }
+  .tile a { color: var(--text-secondary); }
+
+  /* ── 量條（meter）：同色階的軌道 */
+  .meter { height: 8px; border-radius: 4px; background: rgba(57,135,229,0.18); overflow: hidden; min-width: 80px; }
+  .meter span { display: block; height: 100%; border-radius: 4px; background: var(--series-1); }
+
+  /* ── 細分段條：一個整體切成幾段，2px 縫，不印字 */
+  .seg { display: flex; gap: 2px; height: 8px; margin: 8px 0 2px; }
+  .seg span { display: block; height: 100%; border-radius: 4px; min-width: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-secondary); margin: 0 0 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  /* ── 進場時間軸 */
+  .tl { display: grid; gap: 12px; }
+  .tl-row { display: grid; grid-template-columns: 230px 1fr; column-gap: 16px; row-gap: 3px; align-items: center; }
+  .tl-label { grid-row: span 2; font-size: 13.5px; }
+  .tl-label b { display: block; font-weight: 600; line-height: 1.35; margin-bottom: 4px; }
+  .tl-track { position: relative; height: 14px; border-radius: 7px; background: rgba(255,255,255,0.03); cursor: default; }
+  .tl-track:focus { outline: 1px solid var(--border-strong); outline-offset: 3px; }
+  .tl-bar { position: absolute; top: 1px; height: 12px; border-radius: 6px; background: var(--series-1); }
+  .tl-bar.dim { background: var(--series-dim); }
+  .tl-gap { position: absolute; top: 6px; height: 2px; background: var(--axis); }
+  .tl-sub { grid-column: 2; font-size: 12px; color: var(--text-secondary); }
+  .tl-axis { position: relative; height: 20px; border-top: 1px solid var(--axis); }
+  .tl-axis span { position: absolute; top: 3px; transform: translateX(-50%); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .tl-axis span.today { transform: translateX(-100%); color: var(--text-secondary); }
+
+  /* ── 離門檻多遠 */
+  .gates { display: grid; gap: 8px; margin-top: 16px; }
+  .gate { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.95rem; }
+  .gate-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; align-items: baseline; }
+  .gate-top b { font-size: 14px; }
+  .gate .fig { font-size: 13px; color: var(--text-secondary); margin: 6px 0 4px; }
+  .gate .fig b { color: var(--text-primary); font-weight: 600; }
+  .sbar { position: relative; height: 22px; margin: 6px 0 2px; }
+  .sbar .track { position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: var(--grid); }
+  .sbar .fill { position: absolute; top: 5px; height: 12px; border-radius: 4px; }
+  .sbar .zero, .sbar .floor { position: absolute; top: 0; width: 2px; height: 22px; }
+  .sbar .zero { background: var(--axis); }
+  .sbar .floor { background: var(--text-secondary); }
+  .sbar-lab { position: relative; height: 16px; font-size: 11px; color: var(--text-muted); }
+  .sbar-lab span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+
+  /* ── 柱狀圖 */
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .cap { font-size: 12.5px; color: var(--text-secondary); margin: 0 0 8px; }
+  .chart .cap b { color: var(--text-primary); }
+  .hit:focus { outline: none; }
+  .hit:focus + .bar, .hit:hover + .bar { opacity: 0.78; }
+
+  /* ── 上一跑最慢的幾段 */
+  .hbars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
+  .hbars .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--series-1); }
+  .hbars .n { font-family: var(--font-mono); text-align: right; }
+
+  /* ── 帳本列 */
+  .led { display: grid; grid-template-columns: minmax(0,1.5fr) repeat(3, 62px) 96px; gap: 10px; align-items: baseline; }
+  .led .num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .led-head { color: var(--text-muted); font-size: 11px; }
+
+  /* ── 稽核旗標：標題一行，細節收起來 */
+  details.flag { background: var(--bg-card); border: 1px solid rgba(250,178,25,0.3); border-radius: 8px; padding: 0.6rem 0.95rem; }
+  details.flag summary { cursor: pointer; display: flex; gap: 8px; align-items: center; font-size: 13.5px; list-style: none; }
+  details.flag summary::-webkit-details-marker { display: none; }
+  details.flag summary::after { content: '展開'; margin-left: auto; font-size: 11px; color: var(--text-muted); }
+  details.flag[open] summary::after { content: '收起'; }
+  details.flag p { font-size: 12.5px; color: var(--text-secondary); margin: 8px 0 0; word-break: break-word; }
+
+  /* ── 表格檢視（每張圖都有） */
+  details.tv { margin-top: 10px; }
+  details.tv summary { cursor: pointer; font-size: 12px; color: var(--text-muted); }
+  details.tv table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+  details.tv th, details.tv td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); }
+  details.tv th { color: var(--text-muted); font-weight: 500; }
+  details.tv td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .tip {
+    position: fixed; z-index: 10; pointer-events: none; opacity: 0; transition: opacity .12s;
+    max-width: 320px; background: #1a1a19; border: 1px solid var(--border-strong); border-radius: 6px;
+    padding: 6px 9px; font-size: 12px; color: var(--text-primary); line-height: 1.45;
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 1rem; }
+    .led { grid-template-columns: 1fr; gap: 2px; }
+    .led .num { text-align: left; }
+    .led-head { display: none; }
+    .tl-row { grid-template-columns: 1fr; }
+    .tl-label { grid-row: auto; }
+    .tl-sub { grid-column: 1; }
+    .tl-axis-row .tl-label { display: none; }
+  }
+</style>
+
+<div class="topbar"><div class="wrap"><a class="back-link" href="./index.html">← 返回看板</a></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">System Status</p>
+  <h1>系統現在在幹嘛</h1>
+  <p class="sub">最上面四格先看；下面依序是每個實驗收樣本收到哪裡、離自己的門檻多遠、每天進來多少訊號。
+    <b>這一頁只讀不算</b> —— 每個數字都來自它自己的來源檔，這裡不重新判斷任何事。</p>
+</div></header>
+
+<div class="wrap"><div id="stale-banner"></div></div>
+<div class="wrap" id="viz">
+  <div class="kpis" id="kpi">
+    <div class="tile" id="kpi-run"><p class="k">每日更新</p><p class="empty">載入中…</p></div>
+    <div class="tile" id="kpi-data"><p class="k">資料抓取</p><p class="empty">載入中…</p></div>
+    <div class="tile" id="kpi-flags"><p class="k">今日稽核旗標</p><p class="empty">載入中…</p></div>
+    <div class="tile" id="kpi-exp"><p class="k">實驗</p><p class="empty">載入中…</p></div>
+  </div>
+  <section><h2>各實驗收樣本收到哪裡</h2><div id="exp"><p class="empty">載入中…</p></div></section>
+  <section><h2>§21 每天收進幾個訊號</h2><div id="collect" class="chart"><p class="empty">載入中…</p></div></section>
+</div>
+<main class="wrap" id="body"><p class="empty">載入中…</p></main>
+<footer><div class="wrap"><p class="note" id="foot"></p></div></footer>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ⚠️ 這一頁的來源字串**本來就帶 Markdown 的 `**`** —— `audits.json` 的旗標
+//    是寫給 log 與 LINE 看的，`status.json` 的 `note` 是我在 LEDGERS 裡寫的。
+//    照抄會在畫面上印出兩顆星。M450 在 review.html 修過同一件事，
+//    而這一頁**第一版只修了旗標、漏了帳本的 note**，是測試抓到的。
+//    **先轉義再換**，所以 XSS 面不變；只認 `**…**`，不做完整 Markdown。
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+// 台北時間；沒有就講「不明」，不要靜默當今天（M439 的規則）
+function tpe(iso) {
+  if (!iso) return '日期不明';
+  const d = new Date(iso);
+  if (isNaN(d)) return '日期不明';
+  return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit' });
+}
+function ago(iso) {
+  if (!iso) return '';
+  const h = (Date.now() - new Date(iso)) / 3600000;
+  if (isNaN(h)) return '';
+  return h < 48 ? `（${h.toFixed(0)} 小時前）` : `（${(h / 24).toFixed(0)} 天前）`;
+}
+
+function cell(k, v, note) {
+  return `<div class="row"><div class="k">${esc(k)}</div>`
+    + `<div class="v">${esc(String(v))}</div>`
+    + (note ? `<p class="note">${note}</p>` : '') + `</div>`;
+}
+
+// ★★ **「站台停止更新」只能靠看的人的時鐘察覺。**（M578）
+//
+// 2026-10-16~10-20 站台凍了四天,而這一頁是綠的。`ago()` 一直都在算
+// 「（4 天前）」—— **尺早就有,只是它是灰色小字,沒有門檻、沒有改頁面判定。**
+// 一個自我回報新鮮度的指標**永遠無法偵測「我停止被發布了」**:檔案說
+// 「我是 10-16 的」,頁面就老實印「10-16」,而沒有人說「而今天是 10-20」。
+//
+// 所以這段**只用兩個東西**:payload 的 `last_updated` ＋ 瀏覽器的時鐘。
+// 凡是來自 payload 的判斷在凍結時都一起凍結,唯一還新鮮的是後者。
+//
+// ⚠️ 為什麼要數**交易日**而不是日曆天:asof 週五、週一休市、週二來看,
+// 算日曆天會說「漏跑 2 天」而那是誤報。2026-10-13 我就是這樣把
+// 「批次死了五天」寫進三份文件,而實際上那四天裡一個交易日都沒有。
+// **「交易日」三個字是這條規則的一半。**
+// 休市表由 `status_stage` **預先**寫進 payload（公告表含未來）,所以
+// 凍結的 payload 照樣算得準。
+function missedTradingDays(d) {
+  const iso = d && d.last_updated;
+  if (!iso) return null;                     // 判不出來就不喊
+  const asof = new Date(iso);
+  if (isNaN(asof)) return null;
+  // 台北日期（站台的時間基準）。用 sv-SE 拿 YYYY-MM-DD。
+  const tpeDate = (x) => x.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' });
+  const a = tpeDate(asof), now = tpeDate(new Date());
+  const skip = new Set(d.nontrading_weekdays_ahead || []);
+  // 休市表拿不到時放寬一天 —— 不確定的時候少喊一次。
+  // **天天誤報的警訊會被當成背景噪音,下次真的斷線時沒人會看**（M452）。
+  const tol = skip.size ? 0 : 1;
+  const missed = [];
+  for (let t = new Date(a + 'T00:00:00Z'); ; t.setUTCDate(t.getUTCDate() + 1)) {
+    const day = t.toISOString().slice(0, 10);
+    if (day <= a) continue;                  // asof 當天不算
+    if (day >= now) break;                   // ★ 今天不算 —— 那一跑 14:37 才發生
+    const wd = t.getUTCDay();
+    if (wd === 0 || wd === 6) continue;      // 週末
+    if (skip.has(day)) continue;             // 公告休市
+    missed.push(day);
+  }
+  return { missed, tol, n: Math.max(0, missed.length - tol) };
+}
+
+function renderStaleBanner(d) {
+  const el = document.getElementById('stale-banner');
+  if (!el) return;
+  const m = missedTradingDays(d);
+  if (!m) {
+    el.innerHTML = '<p class="note" style="border-left:3px solid #c80;padding-left:.7em">'
+      + '⚠️ <b>判不出這份資料是哪一天的</b>（<span class="mono">last_updated</span> 缺或壞）'
+      + ' —— 這不代表系統沒事，是這一頁算不出新鮮度。</p>';
+    return;
+  }
+  if (m.n < 1) { el.innerHTML = ''; return; }
+  const days = m.missed.join('、');
+  el.innerHTML =
+    '<div style="border:2px solid #c0392b;background:rgba(192,57,43,.08);'
+    + 'border-radius:8px;padding:14px 16px;margin:14px 0">'
+    + `<p style="margin:0 0 .4em;font-weight:700;color:#c0392b;font-size:1.05rem">`
+    + `🔴 你現在看到的不是今天的資料 —— 漏了 ${m.n} 個交易日</p>`
+    + `<p class="note" style="margin:0">這一頁的資料產生於 <b>${esc(tpe(d.last_updated))}</b>`
+    + `${esc(ago(d.last_updated))}，而下列交易日完全沒有產出：<b>${esc(days)}</b>。`
+    + `<br><b>站台很可能已經停止更新</b>（2026-10-16~10-20 發生過一次，`
+    + `當時這一頁全綠而整站凍了四天）。先查三件事：`
+    + `本機排程的 <span class="mono">logs/local_pipeline.log</span> 有 START 沒 END？`
+    + `GitHub Actions 是不是紅的？<span class="mono">git log origin/main</span> 有沒有新的快照 commit？`
+    + (m.tol ? '<br>（休市表拿不到，門檻已放寬 1 天）' : '')
+    + `</p></div>`;
+}
+
+// ══ 圖像化的零件（老闆 2026-11-17：「不要只有文字，我需要圖像化」）
+//
+// 規矩（dataviz）：狀態一律「圖示＋文字」，顏色只是第三層；每張圖都有表格檢視；
+// 字永遠用文字色，不用資料色；細線、圓角資料端、不畫外框。
+const ICON = { good: '✓', warning: '!', critical: '✕', muted: '–' };
+function badge(kind, text) {
+  return `<span class="badge b-${kind}"><i aria-hidden="true">${ICON[kind] || '·'}</i>${esc(text)}</span>`;
+}
+function frac(v, max) {
+  const x = Number(v) / Number(max);
+  return Number.isFinite(x) ? Math.max(0, Math.min(1, x)) : 0;
+}
+function meter(v, max, label) {
+  return `<div class="meter" role="img" aria-label="${esc(label || `${v} / ${max}`)}">`
+    + `<span style="width:${(frac(v, max) * 100).toFixed(1)}%"></span></div>`;
+}
+// 帶號的數值對一條門檻：零線 + 門檻線；負值用發散色的負端（不是狀態紅）。
+function signedBar(v, floor, label) {
+  const lo = Math.min(-1, v, floor) * 1.15, hi = Math.max(1, v, floor) * 1.15;
+  const at = x => (x - lo) / (hi - lo) * 100;
+  const z = at(0), f = at(floor), p = at(v);
+  const left = Math.min(z, p), width = Math.max(0.6, Math.abs(p - z));
+  const fmt = x => `${x > 0 ? '+' : ''}${x}%`;
+  return `<div class="sbar" role="img" aria-label="${esc(label)}">`
+    + `<span class="track"></span>`
+    + `<span class="fill" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;`
+    + `background:${v < 0 ? 'var(--neg)' : 'var(--series-1)'}"></span>`
+    + `<span class="zero" style="left:${z.toFixed(1)}%"></span>`
+    + `<span class="floor" style="left:${f.toFixed(1)}%"></span></div>`
+    + `<div class="sbar-lab"><span style="left:${p.toFixed(1)}%">${esc(fmt(v))}</span>`
+    + (Math.abs(f - p) > 14 ? `<span style="left:${f.toFixed(1)}%">門檻 ${esc(fmt(floor))}</span>` : '')
+    + `</div>`;
+}
+function tile(id, label, value, line) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<p class="k">${esc(label)}</p><p class="v">${esc(value)}</p>`
+    + `<div class="tile-line">${line}</div>`;
+}
+
+// 日期工具：一律用 UTC 午夜表示「那一天」，不帶時區漂移
+function dayOf(s) {
+  const t = String(s || '').replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
+  const d = new Date(t + 'T00:00:00Z');
+  return isNaN(d) ? null : d;
+}
+function tpeToday() {
+  return dayOf(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }));
+}
+// a 之後、到 b（含）有幾個週一到週五。**不知道國定假日**，所以叫「工作日」不叫交易日。
+function weekdaysAfter(a, b) {
+  if (!a || !b) return null;
+  let n = 0;
+  const d = new Date(a.getTime());
+  for (d.setUTCDate(d.getUTCDate() + 1); d <= b; d.setUTCDate(d.getUTCDate() + 1)) {
+    const w = d.getUTCDay();
+    if (w !== 0 && w !== 6) n += 1;
+  }
+  return n;
+}
+
+// 一本帳本現在是什麼狀態。**全部從 experiments.json 推，不在頁面上手寫任何一本的狀態**。
+const GAP_WARN = 5;          // 超過 5 個工作日沒有新進場才標黃（批次本來就隔夜才寫）
+function ledgerState(L, today) {
+  const strats = Object.keys(L.strategies || {});
+  const blocked = L.blocked_strategies || {};
+  const last = dayOf((L.entry_date_range || [])[1]);
+  const gap = weekdaysAfter(last, today);
+  if (/已封存/.test(L.gate || '')) return { kind: 'muted', text: '已封存', active: false, gap };
+  if (strats.length && strats.every(s => blocked[s])) {
+    const since = Object.values(blocked).map(b => b && b.since).filter(Boolean).sort()[0] || '日期不明';
+    return { kind: 'critical', text: `隔離中：${since} 起不再進場`, active: false, gap };
+  }
+  if (/^不適用/.test(L.gate || '')) return { kind: 'muted', text: '舊機制，不計入 Phase 2', active: false, gap };
+  if (gap != null && gap > GAP_WARN) return { kind: 'warning', text: `${gap} 個工作日沒有新進場`, active: false, gap };
+  return { kind: 'good', text: '在收新樣本', active: true, gap };
+}
+
+function gateBox(title, right, body, note) {
+  return `<div class="gate"><div class="gate-top"><b>${esc(title)}</b>${right}</div>`
+    + body + (note ? `<p class="note">${note}</p>` : '') + `</div>`;
+}
+
+// ── 各實驗：進場時間軸 + 離門檻多遠 + 停著的（來源：experiments / progress / trident / audits）
+function renderExp(exp, prog, tri, aud) {
+  const el = document.getElementById('exp');
+  if (!el) return;
+  const ledgers = (exp && Array.isArray(exp.ledgers) ? exp.ledgers : [])
+    .filter(L => Array.isArray(L.entry_date_range) && dayOf(L.entry_date_range[0]) && dayOf(L.entry_date_range[1]));
+  const kpi = document.getElementById('kpi-exp');
+  if (!ledgers.length) {
+    el.innerHTML = `<p class="empty">讀不到 <span class="mono">experiments.json</span> 的帳本資料`
+      + ` —— <b>這不代表實驗都停了</b>，是這一區拿不到資料。</p>`;
+    if (kpi) tile('kpi-exp', '實驗', '—', '讀不到 experiments.json');
+    return;
+  }
+  const today = tpeToday();
+  const t0 = ledgers.map(L => dayOf(L.entry_date_range[0])).sort((a, b) => a - b)[0];
+  const span = Math.max(1, today - t0);
+  const x = d => Math.max(0, Math.min(100, (d - t0) / span * 100));
+  const rows = ledgers.slice().sort((a, b) => (b.is_phase2 ? 1 : 0) - (a.is_phase2 ? 1 : 0));
+  const states = rows.map(L => ledgerState(L, today));
+
+  const lanes = rows.map((L, i) => {
+    const s = states[i];
+    const xa = x(dayOf(L.entry_date_range[0])), xb = x(dayOf(L.entry_date_range[1]));
+    const tip = `${L.label}：進場 ${L.entry_date_range[0]} → ${L.entry_date_range[1]}`
+      + `（${L.n_entry_days ?? '?'} 個進場日）· 持倉 ${L.n_open ?? '—'} · 已平倉 ${L.n_closed ?? '—'}`
+      + ` · 排隊 ${L.n_pending ?? '—'}`;
+    return `<div class="tl-row">`
+      + `<div class="tl-label"><b${L.is_phase2 ? ' class="star"' : ''}>${esc(L.label)}</b>`
+      + badge(s.kind, s.text) + `</div>`
+      + `<div class="tl-track" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip)}">`
+      + `<span class="tl-bar${s.active ? '' : ' dim'}" style="left:${xa.toFixed(2)}%;`
+      + `width:${Math.max(0.8, xb - xa).toFixed(2)}%"></span>`
+      + (xb < 99.5 ? `<span class="tl-gap" style="left:${xb.toFixed(2)}%;width:${(100 - xb).toFixed(2)}%"></span>` : '')
+      + `</div>`
+      + `<div class="tl-sub">最後一筆進場 <b>${esc(L.entry_date_range[1])}</b>`
+      + (s.gap != null ? `，之後 ${s.gap} 個工作日` : '')
+      + ` · 持倉 ${esc(L.n_open ?? '—')} · 已平倉 ${esc(L.n_closed ?? '—')}</div></div>`;
+  }).join('');
+
+  const ticks = [];
+  for (const m = new Date(Date.UTC(t0.getUTCFullYear(), t0.getUTCMonth() + 1, 1)); m < today;
+       m.setUTCMonth(m.getUTCMonth() + 1)) {
+    if (x(m) < 92) ticks.push(`<span style="left:${x(m).toFixed(2)}%">${m.getUTCMonth() + 1} 月</span>`);
+  }
+  ticks.push(`<span class="today" style="left:100%">今天</span>`);
+  const axis = `<div class="tl-row tl-axis-row"><div class="tl-label"></div>`
+    + `<div class="tl-axis">${ticks.join('')}</div></div>`;
+
+  const table = `<details class="tv"><summary>看表格</summary><table><thead><tr>`
+    + `<th>帳本</th><th>狀態</th><th>第一筆</th><th>最後一筆</th><th>進場日數</th><th>持倉</th><th>已平倉</th><th>排隊</th>`
+    + `</tr></thead><tbody>` + rows.map((L, i) => `<tr><td>${esc(L.label)}</td><td>${esc(states[i].text)}</td>`
+      + `<td>${esc(L.entry_date_range[0])}</td><td>${esc(L.entry_date_range[1])}</td>`
+      + `<td class="num">${esc(L.n_entry_days ?? '—')}</td><td class="num">${esc(L.n_open ?? '—')}</td>`
+      + `<td class="num">${esc(L.n_closed ?? '—')}</td><td class="num">${esc(L.n_pending ?? '—')}</td></tr>`).join('')
+    + `</tbody></table></details>`;
+
+  // 離門檻多遠 —— 三本各有自己的判準，各讀各的來源檔
+  const gates = [];
+  if (prog && Number(prog.target_closed) > 0) {
+    const n = Number(prog.n_mature_closed) || 0, t = Number(prog.target_closed);
+    gates.push(gateBox('§21 收盤競價 · Phase 2 樣本',
+      n >= t ? badge('good', '樣本門檻已到') : badge('muted', '還在累積'),
+      meter(n, t, `成熟已平倉 ${n} / ${t}`)
+        + `<p class="fig">成熟已平倉 <b>${esc(n)} / ${esc(t)}</b>`
+        + ` · 另有持倉 ${esc(prog.n_open ?? '—')}、未成熟已平倉 ${esc(prog.n_immature_closed ?? '—')}</p>`,
+      `成熟 = 進場日滿 max_hold_days。樣本到了不等於過關 —— 判決看 <span class="mono">GATE_ACCEPTANCE_LOG.md</span>。`));
+  }
+  const pr = tri && tri.promotion;
+  if (pr && Number(pr.min_closed) > 0) {
+    const okN = !!pr.gate_n, okNet = !!pr.gate_net_positive;
+    const net = Math.round(Number(pr.net_mean_pct) * 100) / 100;
+    gates.push(gateBox(`Trident · 升格門檻（${tri.pre_registration ? 'PRE-REG §16' : '§16'}）`,
+      okN && okNet ? badge('good', '兩條都過') : badge('critical', '沒過'),
+      meter(pr.closed_n, pr.min_closed, `已平倉 ${pr.closed_n} / ${pr.min_closed}`)
+        + `<p class="fig">${okN ? '✓' : '✕'} 已平倉 <b>${esc(pr.closed_n)} / ${esc(pr.min_closed)}</b></p>`
+        + signedBar(net, 0, `每筆淨報酬 ${net}%，門檻 > 0`)
+        + `<p class="fig">${okNet ? '✓' : '✕'} 每筆淨報酬 <b>${esc(net)}%</b>（門檻要 > 0）`
+        + ` · 勝率 ${esc(pr.win_rate_pct)}%</p>`, ''));
+  }
+  const conds = (((aud || {}).audits || {}).stop_conditions || {}).conditions || [];
+  for (const c of conds) {
+    if (c == null || c.latest_ma_pct == null) continue;
+    // ⚠️ PRE-REG §42.2（2026-11-04）：「任何引用 state_challenger.json 的 MG1 數字，
+    //    都必須先說清楚它含不含那 101 筆」。這個移動平均是帳本**全部**已平倉部位算的 —— 含。
+    const note42 = c.strategy === 'mg1_margin_shift'
+      ? `這個數字用帳本<b>全部</b>已平倉部位算，<b>含</b> PRE-REG §42.2 記錄的那批`
+        + `不在 MG1 預註冊宇宙裡的部位（§42.2 當時量到 101 / 224）。` : '';
+    gates.push(gateBox(`${c.strategy} · 停止條件（${c.source || '預註冊'}）`,
+      c.triggered ? badge('critical', `已觸發 ${c.first_triggered_on || ''}`.trim()) : badge('good', '未觸發'),
+      signedBar(Number(c.latest_ma_pct), Number(c.floor_pct),
+        `最近 ${c.window} 筆移動平均 ${c.latest_ma_pct}%，地板 ${c.floor_pct}%`)
+        + `<p class="fig">最近 ${esc(c.window)} 筆平倉的移動平均 <b>${esc(c.latest_ma_pct)}%</b>`
+        + `（地板 +${esc(c.floor_pct)}%）· ${esc(c.n_windows_at_or_above_floor)} / ${esc(c.n_windows)} 個窗口在地板之上`
+        + ` · 已平倉 ${esc(c.n_closed)} 筆</p>`, note42));
+  }
+
+  el.innerHTML = `<div class="legend"><span><i style="background:var(--series-1)"></i>還在收新樣本</span>`
+    + `<span><i style="background:var(--series-dim)"></i>停了、舊機制或封存</span>`
+    + `<span>細線 = 最後一筆進場之後到今天</span></div>`
+    + `<div class="tl">${lanes}${axis}</div>` + table
+    + (gates.length ? `<div class="gates">${gates.join('')}</div>` : '');
+
+  const nActive = states.filter(s => s.active).length;
+  if (kpi) tile('kpi-exp', '實驗', `${nActive} / ${rows.length}`,
+    badge(nActive ? 'good' : 'warning', `${nActive} 本在收新樣本`)
+    + (states.some(s => s.kind === 'critical') ? badge('critical', '有隔離中的') : ''));
+
+  // 「刻意停著的」那一區補上 risk engine 的隔離（status.json 的 clocks 只有時鐘）
+  const stopped = document.getElementById('stopped-extra');
+  if (stopped) {
+    const items = [];
+    for (const L of rows) {
+      for (const [s, b] of Object.entries(L.blocked_strategies || {})) {
+        items.push(`<div class="row warn"><div class="k">${esc(L.label)}</div>`
+          + `<div class="v sm">${esc(s)} · ${esc((b && b.status) || '停用')}，自 ${esc((b && b.since) || '日期不明')}</div>`
+          + `<p class="note">來源 <span class="mono">experiments.json</span> 的 blocked_strategies`
+          + `（risk engine 的隔離，新訊號在排隊那一關就被擋下）</p></div>`);
+      }
+    }
+    stopped.innerHTML = items.join('');
+  }
+}
+
+// ── §21 每天收進幾個訊號（柱狀圖，單一序列）
+function niceCeil(v) {
+  const p = Math.pow(10, Math.floor(Math.log10(Math.max(1, v))));
+  for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p;
+  return 10 * p;
+}
+function columnSvg(pts, W) {
+  const padL = 30, padR = 6, padT = 16, plotH = 150, axisH = 24;
+  const plotW = Math.max(160, W - padL - padR);
+  const top = niceCeil(Math.max(1, ...pts.map(p => p.n)));
+  const slot = plotW / Math.max(1, pts.length);
+  const bw = Math.max(2, Math.min(24, slot * 0.66));
+  const y = v => padT + plotH - (v / top) * plotH;
+  const base = padT + plotH;
+  const out = [];
+  for (const g of [0, top / 2, top]) {
+    out.push(`<line x1="${padL}" x2="${padL + plotW}" y1="${y(g).toFixed(1)}" y2="${y(g).toFixed(1)}"`
+      + ` stroke="${g ? 'var(--grid)' : 'var(--axis)'}" stroke-width="1"/>`
+      + `<text x="${padL - 6}" y="${(y(g) + 4).toFixed(1)}" text-anchor="end" font-size="11"`
+      + ` fill="var(--text-muted)">${g}</text>`);
+  }
+  let lastLabelX = -1e9;
+  pts.forEach((p, i) => {
+    const cx = padL + slot * (i + 0.5), x0 = cx - bw / 2;
+    const label = `${p.d.slice(4, 6)}-${p.d.slice(6, 8)}`;
+    const tip = p.n ? `${label}：${p.n} 個訊號` : `${label}：沒有訊號（有評估）`;
+    out.push(`<rect class="hit" x="${(padL + slot * i).toFixed(1)}" y="${padT}" width="${slot.toFixed(1)}"`
+      + ` height="${plotH}" fill="transparent" tabindex="0" data-tip="${esc(tip)}"><title>${esc(tip)}</title></rect>`);
+    if (p.n > 0) {
+      const yt = y(p.n), r = Math.min(4, bw / 2, base - yt);
+      out.push(`<path class="bar" fill="var(--series-1)" d="M${x0.toFixed(1)} ${base}`
+        + `V${(yt + r).toFixed(1)}Q${x0.toFixed(1)} ${yt.toFixed(1)} ${(x0 + r).toFixed(1)} ${yt.toFixed(1)}`
+        + `H${(x0 + bw - r).toFixed(1)}Q${(x0 + bw).toFixed(1)} ${yt.toFixed(1)} ${(x0 + bw).toFixed(1)} ${(yt + r).toFixed(1)}`
+        + `V${base}Z"/>`);
+    } else {
+      out.push(`<rect class="bar zero-day" x="${x0.toFixed(1)}" y="${base - 2}" width="${bw.toFixed(1)}" height="2"`
+        + ` fill="var(--text-muted)"/>`);
+    }
+    const first = i === 0, last = i === pts.length - 1;
+    const monthStart = i > 0 && p.d.slice(0, 6) !== pts[i - 1].d.slice(0, 6);
+    if ((first || last || monthStart) && cx - lastLabelX > 46) {
+      out.push(`<text x="${cx.toFixed(1)}" y="${base + 16}" text-anchor="middle" font-size="11"`
+        + ` fill="var(--text-muted)">${label}</text>`);
+      lastLabelX = cx;
+    }
+  });
+  const lp = pts[pts.length - 1];
+  if (lp && lp.n > 0) {
+    out.push(`<text x="${(padL + slot * (pts.length - 0.5)).toFixed(1)}" y="${(y(lp.n) - 5).toFixed(1)}"`
+      + ` text-anchor="middle" font-size="11" fill="var(--text-secondary)">${lp.n}</text>`);
+  }
+  const H = padT + plotH + axisH;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="§21 每天的訊號數">${out.join('')}</svg>`;
+}
+let collectPayload = null;
+function renderCollect(ap) {
+  const el = document.getElementById('collect');
+  if (!el) return;
+  const days = ap && ap.days && typeof ap.days === 'object' && !Array.isArray(ap.days) ? ap.days : null;
+  if (!days || !Object.keys(days).length) {
+    el.innerHTML = `<p class="empty">讀不到 <span class="mono">auction_progress.json</span> 的每日訊號`
+      + ` —— <b>這不代表沒有收到訊號</b>，是這一區拿不到資料。</p>`;
+    return;
+  }
+  collectPayload = ap;
+  const pts = Object.entries(days).map(([d, n]) => ({ d: String(d), n: Number(n) || 0 }));
+  for (const d of (ap.evaluated_days_without_signal || [])) {
+    if (!(d in days)) pts.push({ d: String(d), n: 0 });
+  }
+  pts.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+  const total = pts.reduce((s, p) => s + p.n, 0);
+  const W = Math.round(el.clientWidth || 640);
+  el.innerHTML = `<p class="cap">起算 <b>${esc(ap.from_day || pts[0].d)}</b> · 評估了 <b>${esc(ap.n_evaluated_days ?? pts.length)}</b> 個交易日`
+    + ` · 共 <b>${esc(ap.n_signals ?? total)}</b> 個訊號 · 批次最後一跑 <b>${esc(tpe(ap.last_updated))}</b>`
+    + `${esc(ago(ap.last_updated))}。橫線是「有評估但沒有訊號」的日子。</p>`
+    + columnSvg(pts, W)
+    + `<details class="tv"><summary>看表格</summary><table><thead><tr><th>日期</th><th>訊號數</th></tr></thead><tbody>`
+    + pts.map(p => `<tr><td>${esc(p.d)}</td><td class="num">${esc(p.n)}</td></tr>`).join('')
+    + `</tbody></table></details>`;
+}
+
+function render(d) {
+  renderStaleBanner(d);
+  const lr = d.last_run || {}, nr = d.next_run || {}, g = d.gate || {};
+  const out = [];
+
+  // ── 最上面四格裡的三格（第四格「實驗」由 renderExp 填）
+  const nBad = Number(lr.n_stage_failure) || 0, nOk = Number(lr.n_stage_success) || 0;
+  tile('kpi-run', '每日更新（上一跑）', lr.available === false ? '—' : `${nOk}/${nOk + nBad}`,
+    (lr.available === false ? badge('warning', '讀不到上一跑')
+      : nBad ? badge('critical', `${nBad} 段失敗`) : badge('good', '每一段都成功'))
+    + `<span>${esc(tpe(lr.started_utc))}</span>`);
+  const h = d.health || {}, hs = h.summary || {};
+  tile('kpi-data', '資料抓取', hs.universe_size == null ? '—' : `${hs.succeeded ?? '—'}/${hs.universe_size}`,
+    meter(hs.succeeded, hs.universe_size, '抓取成功的檔數')
+    + (Number(hs.failed) ? badge('warning', `${hs.failed} 檔失敗`) : badge('good', '全部抓到')));
+  const flags = d.audit_flags || [];
+  tile('kpi-flags', '今日稽核旗標', String(flags.length),
+    (flags.length ? badge('warning', '要看') : badge('good', '沒有旗標'))
+    + (flags.length ? `<a href="#flags">往下看是哪幾條</a>` : ''));
+
+  // ── 上一跑
+  const failed = nBad > 0;
+  const pr = lr.prev_run || {available: false};
+  const slow = lr.slowest || [];
+  const slowMax = Math.max(1, ...slow.map(s => Number(s.sec) || 0));
+  out.push(`<section><h2>上一跑</h2><div class="grid">`
+    + `<div class="row${failed ? ' bad' : ''}">`
+    + `<div class="k">開始時間（台北）</div>`
+    + `<div class="v sm">${esc(tpe(lr.started_utc))} ${esc(ago(lr.started_utc))}</div>`
+    + (lr.available === false ? '' : meter(nOk, nOk + nBad, `${nOk} 段成功、${nBad} 段失敗`))
+    + `<p class="note">`
+    + (lr.available === false ? md(lr.reason || '讀不到')
+      // M565:`completed` 對「這一跑」結構上答不出來（本檔由最後一個
+      //   stage 寫出,pipeline_complete 在它之後才寫）。原本印
+      //   「沒有跑完」—— 實測 18/18 跑都是假警報。改成講上一跑。
+      : `${pr.available === false ? '這一跑進行中'
+          : pr.completed ? '前一跑正常跑完'
+          : pr.aborted ? '<b>前一跑中止了</b>'
+          : '<b>前一跑沒有完成事件</b>'}`
+        + ` · ${lr.n_stage_success} 個 stage 成功`
+        + (failed ? ` · <b>${lr.n_stage_failure} 個失敗：${esc((lr.failed_stages || []).join('、'))}</b>` : '')
+        + ` · 共 ${lr.total_sec} 秒`)
+    + `</p>`
+    + (slow.length
+      ? `<div class="hbars" aria-label="最慢的幾段">` + slow.map(s =>
+          `<span>${esc(s.stage)}</span><span class="b" style="width:${(frac(s.sec, slowMax) * 100).toFixed(1)}%"></span>`
+          + `<span class="n">${esc(s.sec)}s</span>`).join('') + `</div>` : '')
+    + `</div></div></section>`);
+
+  // ── 下一跑（★ 名目 vs 實測遲到，兩個都給）
+  out.push(`<section><h2>下一跑</h2><div class="grid"><div class="row">`
+    + `<div class="k">名目時間（台北）</div>`
+    + `<div class="v sm">${esc(nr.nominal_taipei || '—')}</div>`
+    + `<p class="note">`
+    + (nr.available === false ? md(nr.reason || '')
+      : `<b>這是名目，不是實際</b> —— GHA 實測中位遲到 ${nr.median_late_min} 分、`
+        + `p90 ${nr.p90_late_min} 分。所以實際大概落在 `
+        + `<b>${esc(nr.nominal_taipei || '')} 之後 2~6 小時</b>。`)
+    + `</p>`
+    + ((nr.skipped_holidays || []).length
+      ? `<p class="note">跳過的休市日：<b>${esc(nr.skipped_holidays.join('、'))}</b>`
+        + `　—— GHA 的 cron 不知道國定假日，這裡用交易所日曆濾掉</p>` : '')
+    + (nr.cron ? `<p class="note mono">cron ${esc(nr.cron)}</p>` : '')
+    + `</div></div></section>`);
+
+  // ── 四本帳本（每本一條細分段條：持倉／已平倉／排隊）
+  out.push(`<section><h2>四本帳本</h2>`
+    + `<div class="legend"><span><i style="background:var(--series-1)"></i>持倉</span>`
+    + `<span><i style="background:var(--series-2)"></i>已平倉</span>`
+    + `<span><i style="background:var(--series-3)"></i>排隊</span></div><div class="grid">`
+    + `<div class="row led led-head"><span>帳本</span>`
+    + `<span class="num">持倉</span><span class="num">已平倉</span>`
+    + `<span class="num">排隊</span><span class="num">最後一跑</span></div>`
+    + (d.ledgers || []).map(l => {
+        const star = (l.note || '').startsWith('★');
+        const tot = (Number(l.open) || 0) + (Number(l.closed) || 0) + (Number(l.pending) || 0);
+        const seg = l.available === false || !tot ? '' : `<div class="seg" role="img" aria-label="`
+          + `${esc(`持倉 ${l.open}、已平倉 ${l.closed}、排隊 ${l.pending}`)}">`
+          + [['open', 'var(--series-1)'], ['closed', 'var(--series-2)'], ['pending', 'var(--series-3)']]
+            .filter(([k]) => Number(l[k]) > 0)
+            .map(([k, c]) => `<span style="flex:${Number(l[k])};background:${c}"></span>`).join('')
+          + `</div>`;
+        return `<div class="row"><div class="led">`
+          + `<span${star ? ' class="star"' : ''}><b>${esc(l.label)}</b></span>`
+          + `<span class="num">${l.available === false ? '—' : l.open}</span>`
+          + `<span class="num">${l.available === false ? '—' : l.closed}</span>`
+          + `<span class="num">${l.available === false ? '—' : l.pending}</span>`
+          + `<span class="num">${esc(l.last_run_date || '—')}</span></div>`
+          + seg + `<p class="note">${md(l.note)}</p></div>`;
+      }).join('')
+    + `</div></section>`);
+
+  // ── Phase 2
+  const paused = (d.clocks || []).length > 0;
+  out.push(`<section><h2>Phase 2</h2>`
+    + (g.target_closed ? meter(g.n_mature_closed, g.target_closed,
+        `成熟已平倉 ${g.n_mature_closed} / ${g.target_closed}`) + `<div style="height:10px"></div>` : '')
+    + `<div class="cells">`
+    + cell('成熟已平倉', `${g.n_mature_closed ?? '—'}/${g.target_closed ?? 60}`,
+           '成熟 = 進場日 + max_hold_days ≤ 今天')
+    + cell('眼睛', esc(g.life_state || '—'),
+           'closed = 時鐘暫停中；綁判決不綁筆數')
+    + cell('起算日', esc(g.since || '—'), 'PRE-REG §21.3')
+    + cell('帳本落後', g.ledger_lag_days == null ? '—' : `${g.ledger_lag_days} 天`,
+           '週批次最多延遲一週（§21.4 已知代價）')
+    + `</div>`
+    + `<p class="note" style="margin-top:10px">分子來自 <b>${esc(g.ledger || '—')}</b></p>`
+    + `</section>`);
+
+  // ── 刻意停著的（時鐘來自 status.json；risk engine 的隔離由 renderExp 補在下面）
+  out.push(`<section><h2>刻意停著的</h2>`
+    + (paused
+      ? `<div class="grid">` + d.clocks.map(c =>
+          `<div class="row warn"><div class="k">${esc(c.label)}</div>`
+          + `<div class="v sm">自 ${esc(c.paused_since)} 暫停</div>`
+          + `<p class="note">解除條件：${esc(c.unlock_section)}`
+          + `　—— <b>停著是一個決定，不是壞掉</b></p></div>`).join('')
+        + `</div>`
+      : `<p class="empty">時鐘沒有暫停的。</p>`)
+    + `<div class="grid" id="stopped-extra" style="margin-top:8px"></div>`
+    + `</section>`);
+
+  // ── 稽核旗標（照抄，不重判）：標題一行，細節收起來
+  out.push(`<section id="flags"><h2>今日稽核旗標</h2>`
+    + (flags.length
+      // ⚠️ 旗標字串本來就帶 Markdown 的 `**`（audits.json 是給 log 與 LINE
+      //    用的）。照抄會在畫面上印出字面星號 —— M450 在 review.html 修過
+      //    同一件事。這裡只轉 `**…**`，不做完整 Markdown：轉義之後再換，
+      //    所以 XSS 面不變。
+      ? `<div class="grid">` + flags.map(f => {
+          const m = String(f).match(/^\*\*(.+?)\*\*\s*([\s\S]*)$/);
+          const head = m ? `<b>${esc(m[1])}</b>` : md(String(f));
+          const rest = m ? md(m[2].replace(/^[:：]\s*/, '')) : '';
+          return `<details class="flag"><summary>${badge('warning', '')}${head}</summary>`
+            + (rest ? `<p>${rest}</p>` : '') + `</details>`;
+        }).join('') + `</div>`
+      : `<p class="empty">沒有旗標。</p>`)
+    + `<p class="note" style="margin-top:10px">`
+    + `照抄 <span class="mono">audits.json</span>（${esc(d.audits_as_of || '日期不明')} 算的），`
+    + `<b>這裡不重新判斷</b> —— 重判會出現同一件事兩個答案。</p>`
+    + `</section>`);
+
+  // ── 資料健康
+  out.push(`<section><h2>資料健康</h2>`
+    + (hs.universe_size ? meter(hs.succeeded, hs.universe_size, '抓取成功的檔數') + `<div style="height:10px"></div>` : '')
+    + `<div class="cells">`
+    + cell('宇宙檔數', hs.universe_size ?? '—', '')
+    + cell('抓取成功率',
+           hs.success_rate == null ? '—' : `${(hs.success_rate * 100).toFixed(1)}%`,
+           `失敗 ${hs.failed ?? '—'} 檔`)
+    + cell('品質旗標', h.n_quality_flags ?? '—', '')
+    + `</div><p class="note" style="margin-top:10px">`
+    + `${esc(tpe(h.as_of))} ${esc(ago(h.as_of))}</p></section>`);
+
+  document.getElementById('body').innerHTML = out.join('');
+  document.getElementById('foot').innerHTML =
+    `產生於 ${esc(tpe(d.last_updated))}`
+    + ((d.missing || []).length
+      ? `　⚠️ 有 ${d.missing.length} 份來源讀不到：<b>${esc(d.missing.join('、'))}</b>`
+      : '')
+    + `<br>${md(d.note || '')}`;
+}
+
+// ── 一個共用的提示框：滑鼠移上去或鍵盤聚焦都看得到，內容一律 textContent
+(function tooltip() {
+  if (typeof document.createElement !== 'function' || !document.body) return;
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  document.body.appendChild(tip);
+  const host = e => (e.target && e.target.closest ? e.target.closest('[data-tip]') : null);
+  const place = (x, y) => {
+    const w = tip.offsetWidth, hgt = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w / 2)) + 'px';
+    tip.style.top = Math.max(8, y - hgt - 12) + 'px';
+  };
+  const show = (el, x, y) => { tip.textContent = el.getAttribute('data-tip'); tip.style.opacity = '1'; place(x, y); };
+  const hide = () => { tip.style.opacity = '0'; };
+  document.addEventListener('pointermove', e => { const el = host(e); if (el) show(el, e.clientX, e.clientY); else hide(); });
+  document.addEventListener('focusin', e => {
+    const el = host(e);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    show(el, r.left + r.width / 2, r.top);
+  });
+  document.addEventListener('focusout', hide);
+})();
+
+(async () => {
+  try {
+    const r = await fetch('./status.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    render(await r.json());
+  } catch (e) {
+    // 讀不到就講讀不到 —— 靜默空白會被讀成「系統沒事」
+    document.getElementById('body').innerHTML =
+      `<p class="empty">讀不到 <span class="mono">status.json</span>（${esc(e.message)}）`
+      + `　—— 先跑 <span class="mono">py src/status_stage.py</span>。`
+      + `<br><b>這不代表系統沒事，是這一頁自己拿不到資料。</b></p>`;
+  }
+})();
+
+// 各實驗那一區：四個來源逐一降級 —— 少一個只少那一塊，不會整區空白
+async function getJson(url) {
+  const r = await fetch(url + '?t=' + Date.now());
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+(async () => {
+  try {
+    const got = await Promise.allSettled([getJson('./experiments.json'), getJson('./progress.json'),
+      getJson('./trident.json'), getJson('./audits.json')]);
+    const v = got.map(x => (x.status === 'fulfilled' ? x.value : null));
+    renderExp(v[0], v[1], v[2], v[3]);
+  } catch (e) {
+    const el = document.getElementById('exp');
+    if (el) el.innerHTML = `<p class="empty">各實驗這一區畫不出來（${esc(e.message)}）`
+      + ` —— <b>這不代表實驗都停了</b>。</p>`;
+  }
+})();
+(async () => {
+  try {
+    renderCollect(await getJson('./auction_progress.json'));
+  } catch (e) {
+    renderCollect(null);
+  }
+})();
+// 視窗大小變了，柱狀圖照新的寬度重畫（字不會被縮到看不見）
+if (typeof window.addEventListener === 'function') {
+  let t = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { if (collectPayload) renderCollect(collectPayload); }, 150);
+  });
+}
+</script>
